@@ -44,18 +44,17 @@ const tvly = tavily({
 });
 
 const webSearchTool = tool({
-  description: "Search the web for information",
+  description:
+    "Search the web for information. This tool is useful when you need to retrieve information from the web or access to real-time data.",
   parameters: z.object({
     query: z.string(),
   }),
   execute: async ({ query }) => {
-    const context = await tvly.search(query, {
+    const context = await tvly.searchQNA(query, {
       days: 7,
     });
 
-    console.log(JSON.stringify(context));
-
-    return JSON.stringify(context);
+    return context;
   },
 });
 
@@ -71,6 +70,14 @@ async function runInference(
 ) {
   const { model, messages } = params;
 
+  const messagesToSend = [
+    {
+      role: "system" as const,
+      content: `You are a briliant AI assistant. It is currently ${new Date().toLocaleDateString()}.`,
+    },
+    ...messages,
+  ];
+
   const modelToRun = MODELS[model];
 
   const { textStream } = await streamText({
@@ -79,8 +86,9 @@ async function runInference(
       webSearch: webSearchTool,
     },
     toolChoice: "auto",
-    maxSteps: 10,
-    messages: convertToCoreMessages(messages),
+    maxSteps: 5,
+    temperature: 0.5,
+    messages: convertToCoreMessages(messagesToSend),
     maxTokens: params.maxTokens,
     onChunk({ chunk }) {
       if (chunk.type === "tool-call") {

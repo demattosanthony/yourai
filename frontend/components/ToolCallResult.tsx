@@ -17,14 +17,16 @@ export default function ToolCallResultComponent({
                 {toolCall.status === "pending" ? (
                   <div className="flex max-w-[300px]">
                     <Loader2 className="h-5 w-5 text-primary animate-spin mr-2" />
-                    <p className="text-sm text-white/80">
+                    <p className="text-sm text-primary/80">
                       Searching the web...
                     </p>
                   </div>
                 ) : (
                   <div className="flex max-w-[300px]">
                     <Check className="h-5 w-5 text-primary mr-2" />
-                    <p className="text-sm text-white/80">Finished web search</p>
+                    <p className="text-sm text-primary/80">
+                      Finished web search
+                    </p>
                   </div>
                 )}
               </div>
