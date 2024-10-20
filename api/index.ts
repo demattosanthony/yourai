@@ -130,8 +130,6 @@ app.post("/inference", async (req, res) => {
       );
     }
 
-    res.write("event: DONE\ndata: {}\n\n");
-
     res.end();
   } catch (error) {
     console.log("Error", error);
