@@ -1,0 +1,22 @@
+{
+  "name": "api",
+  "module": "index.ts",
+  "type": "module",
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@ai-sdk/groq": "^0.0.1",
+    "@ai-sdk/openai": "^0.0.68",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "add": "^2.0.6",
+    "ai": "^3.4.16",
+    "cors": "^2.8.5",
+    "express": "^4.21.1",
+    "i": "^0.3.7"
+  }
+}
