@@ -70,15 +70,15 @@ const ChatInputForm: React.FC<ChatInputFormProps> = ({
         onChange={(e: any) => setInput(e.currentTarget.value)}
         onKeyDown={handleKeyDown}
         disabled={disabled}
-        placeholder="Message Syyclops"
-        className="min-h-[50px] max-h-[250px] pr-[58px] py-4 pl-12 resize-none w-full text-md overflow-hidden rounded-3xl focus:shadow-sm overflow-y-auto"
+        placeholder="Ask anything..."
+        className="min-h-[50px] max-h-[250px] pr-[58px] py-4 pl-12 resize-none w-full text-md overflow-hidden rounded-3xl focus:shadow-sm"
       />
       <Button
         size="sm"
         className="p-1 absolute bottom-[10px] right-2 h-9 w-9 rounded-full"
         type="submit"
         // variant={"link"}
-        disabled={disabled || input === ""}
+        // disabled={disabled || input === ""}
         ref={buttonRef}
       >
         <CheckIcon className="w-8 h-8" />

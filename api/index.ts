@@ -45,16 +45,16 @@ const tvly = tavily({
 
 const webSearchTool = tool({
   description:
-    "Search the web for information. This tool is useful when you need to retrieve information from the web or access to real-time data.",
+    "Search the web for information. This tool is useful when you need to retrieve information from the web or access to real-time data. Only use this tool when you need to access the web.",
   parameters: z.object({
     query: z.string(),
   }),
   execute: async ({ query }) => {
-    const context = await tvly.searchQNA(query, {
+    const context = await tvly.search(query, {
       days: 7,
     });
 
-    return context;
+    return JSON.stringify(context);
   },
 });
 
@@ -73,7 +73,7 @@ async function runInference(
   const messagesToSend = [
     {
       role: "system" as const,
-      content: `You are a briliant AI assistant. It is currently ${new Date().toLocaleDateString()}.`,
+      content: `You are a briliant AI. Like Jarvis from Iron Man. It is currently ${new Date().toLocaleDateString()}.`,
     },
     ...messages,
   ];
@@ -87,7 +87,7 @@ async function runInference(
     },
     toolChoice: "auto",
     maxSteps: 5,
-    temperature: 0.5,
+    temperature: 1,
     messages: convertToCoreMessages(messagesToSend),
     maxTokens: params.maxTokens,
     onChunk({ chunk }) {
@@ -129,6 +129,8 @@ app.post("/inference", async (req, res) => {
         })}\n\n`
       );
     }
+
+    res.write("event: DONE\ndata: {}\n\n");
 
     res.end();
   } catch (error) {

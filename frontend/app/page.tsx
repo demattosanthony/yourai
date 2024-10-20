@@ -97,15 +97,9 @@ const sendMessage = async function* (
 import ChatInputForm from "@/components/ChatInputForm";
 import { ModeToggle } from "@/components/DarkModeToggle";
 import MarkdownViewer from "@/components/MarkdownViewer";
+import ModelSelector from "@/components/ModelSelector";
 import ToolCallResultComponent from "@/components/ToolCallResult";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useAtom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 import { Plus } from "lucide-react";
@@ -143,53 +137,6 @@ export type ChatMessage = {
   tool_calls?: ToolCall[];
   tool_call_id?: string;
 };
-
-const MODELS = [
-  {
-    provider: "openai",
-    model: "gpt-4o-mini",
-  },
-  {
-    provider: "openai",
-    model: "gpt-4o",
-  },
-  {
-    provider: "anthropic",
-    model: "claude-3.5-sonnet",
-  },
-  {
-    provider: "anthropic",
-    model: "claude-3-opus",
-  },
-  {
-    provider: "groq",
-    model: "llama-3.2-90b-text-preview",
-  },
-  {
-    provider: "groq",
-    model: "llama-3.2-1b-preview",
-  },
-  {
-    provider: "groq",
-    model: "llama-3.2-11b-text-preview",
-  },
-  {
-    provider: "groq",
-    model: "llama-3.1-70b-versatile",
-  },
-  {
-    provider: "perplexity",
-    model: "llama-3.1-online-large",
-  },
-  {
-    provider: "perplexity",
-    model: "llama-3.1-online-small",
-  },
-  {
-    provider: "perplexity",
-    model: "llama-3.1-online-huge",
-  },
-];
 
 const selectedModelAtom = atomWithStorage("selectedAiModel", "gpt-4o");
 const messagesAtom = atomWithStorage<ChatMessage[]>("chatMessages", []);
@@ -291,29 +238,15 @@ export default function Home() {
 
   return (
     <div className="h-screen w-screen flex flex-col">
-      <div className="w-full p-4 items-center justify-center flex absolute top-0 left-0 right-0 z-10 backdrop-blur-md bg-background/80 transition-all">
-        <Select
-          onValueChange={(value) => {
-            setSelectedModel(value);
-          }}
-          value={selectedModel}
-          open={isSelectOpen}
-          onOpenChange={setIsSelectOpen}
-        >
-          <SelectTrigger className="w-auto min-w-[225px] text-sm font-semibold">
-            <SelectValue placeholder="Select a model" />
-          </SelectTrigger>
-          <SelectContent>
-            {MODELS.map((model) => (
-              <SelectItem key={model.model} value={model.model}>
-                {model.model}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
+      <div className="w-full p-4 h-16 items-center justify-center flex absolute top-0 left-0 right-0 z-10 backdrop-blur-md bg-background/80 transition-all">
         <div className="absolute right-2 md:right-8 bg-opacity-50 z-10">
-          <div className="flex items-center md:gap-2">
+          <div className="flex items-center ">
+            <ModelSelector
+              isSelectOpen={isSelectOpen}
+              setIsSelectOpen={setIsSelectOpen}
+              selectedModel={selectedModel}
+              setSelectedModel={setSelectedModel}
+            />
             <Button
               variant={"ghost"}
               onClick={() => {
