@@ -15,6 +15,7 @@
     "@ai-sdk/anthropic": "^0.0.51",
     "@ai-sdk/groq": "^0.0.1",
     "@ai-sdk/openai": "^0.0.68",
+    "@tavily/core": "^0.0.2",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
     "add": "^2.0.6",

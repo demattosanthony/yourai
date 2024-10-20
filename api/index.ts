@@ -2,8 +2,10 @@ import Express from "express";
 import cors from "cors";
 import { createOpenAI, openai } from "@ai-sdk/openai";
 import { anthropic } from "@ai-sdk/anthropic";
-import { convertToCoreMessages, streamText, type Message } from "ai";
+import { convertToCoreMessages, streamText, tool, type Message } from "ai";
 import { createGroq } from "@ai-sdk/groq";
+import { tavily } from "@tavily/core";
+import { z } from "zod";
 
 const PORT = 3000;
 
@@ -37,21 +39,61 @@ const MODELS = {
   "llama-3.1-online-huge": perplexity("llama-3.1-sonar-huge-128k-online"),
 };
 
+const tvly = tavily({
+  apiKey: process.env.TAVILY_API_KEY,
+});
+
+const webSearchTool = tool({
+  description: "Search the web for information",
+  parameters: z.object({
+    query: z.string(),
+  }),
+  execute: async ({ query }) => {
+    const context = await tvly.search(query, {
+      days: 7,
+    });
+
+    console.log(JSON.stringify(context));
+
+    return JSON.stringify(context);
+  },
+});
+
 interface inferenceParams {
   model: keyof typeof MODELS;
   messages: Message[];
   maxTokens?: number;
 }
 
-async function runInference(params: inferenceParams) {
+async function runInference(
+  params: inferenceParams,
+  onToolEvent: (event: string, data: any) => void
+) {
   const { model, messages } = params;
 
   const modelToRun = MODELS[model];
 
   const { textStream } = await streamText({
     model: modelToRun,
+    tools: {
+      webSearch: webSearchTool,
+    },
+    toolChoice: "auto",
+    maxSteps: 10,
     messages: convertToCoreMessages(messages),
     maxTokens: params.maxTokens,
+    onChunk({ chunk }) {
+      if (chunk.type === "tool-call") {
+        const { toolName, args } = chunk;
+        // Trigger the tool call start event
+        onToolEvent("tool-call-start", { toolName, args });
+      }
+
+      if (chunk.type === "tool-result") {
+        // Trigger the tool call end event
+        onToolEvent("tool-call-end", { toolName: chunk.toolName });
+      }
+    },
   });
 
   return textStream;
@@ -62,8 +104,15 @@ app.post("/inference", async (req, res) => {
 
   res.setHeader("Content-Type", "text/event-stream");
 
+  const onToolEvent = (event: string, data: any) => {
+    res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+  };
+
   try {
-    const textStream = await runInference({ model, messages, maxTokens });
+    const textStream = await runInference(
+      { model, messages, maxTokens },
+      onToolEvent
+    );
 
     for await (const message of textStream) {
       res.write(

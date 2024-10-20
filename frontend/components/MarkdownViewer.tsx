@@ -36,6 +36,13 @@ const MarkdownViewer: React.FC<{ content: string }> = ({ content }) => {
     th: ({ node, ...props }: any) => <TypographyTh {...props} />,
     td: ({ node, ...props }: any) => <TypographyTd {...props} />,
     ul: ({ node, ...props }: any) => <TypographyList {...props} />,
+    ol: ({ node, ...props }: any) => (
+      <TypographyList
+        as="ol"
+        className="my-6 ml-6 list-decimal space-y-2"
+        {...props}
+      />
+    ),
     li: ({ node, ...props }: any) => <TypographyLi {...props} />,
     code: ({ node, inline, className, children, ...props }: any) => {
       const match = /language-(\w+)/.exec(className || "");
@@ -91,7 +98,12 @@ const MarkdownViewer: React.FC<{ content: string }> = ({ content }) => {
     strong: ({ node, ...props }: any) => <strong {...props} />,
     delete: ({ node, ...props }: any) => <del {...props} />,
     a: ({ node, ...props }: any) => (
-      <a className="text-blue-500 hover:underline" {...props} />
+      <a
+        className="text-blue-500 hover:underline"
+        target="_blank"
+        rel="noopener noreferrer"
+        {...props}
+      />
     ),
     img: ({ node, ...props }: any) => (
       <img className="max-w-full h-auto" {...props} />
@@ -102,7 +114,7 @@ const MarkdownViewer: React.FC<{ content: string }> = ({ content }) => {
     <ReactMarkdown
       components={components}
       remarkPlugins={[remarkGfm]}
-      className={"flex flex-col gap-4"}
+      className={"flex flex-col"}
     >
       {content}
     </ReactMarkdown>

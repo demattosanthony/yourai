@@ -42,13 +42,21 @@ const sendMessage = async function* (
         const event = buffer.slice(0, eventEnd);
         buffer = buffer.slice(eventEnd + 2);
 
-        const match = event.match(/data: (.*)/);
-        if (match) {
+        const eventMatch = event.match(/event: (.*)/);
+        const dataMatch = event.match(/data: (.*)/);
+
+        if (eventMatch && dataMatch) {
+          const eventType = eventMatch[1];
+          const data = dataMatch[1];
+
           try {
-            const jsonData = JSON.parse(match[1]);
-            if (jsonData.text) {
-              yield jsonData.text; // Yield the text value
-            }
+            const jsonData = JSON.parse(data);
+
+            // Yield the entire event object as JSON
+            yield JSON.stringify({
+              event: eventType,
+              data: jsonData,
+            });
           } catch (error) {
             console.error("Error parsing JSON:", error);
           }
@@ -60,13 +68,21 @@ const sendMessage = async function* (
 
     // Process any remaining data in the buffer
     if (buffer) {
-      const match = buffer.match(/data: (.*)/);
-      if (match) {
+      const eventMatch = buffer.match(/event: (.*)/);
+      const dataMatch = buffer.match(/data: (.*)/);
+
+      if (eventMatch && dataMatch) {
+        const eventType = eventMatch[1];
+        const data = dataMatch[1];
+
         try {
-          const jsonData = JSON.parse(match[1]);
-          if (jsonData.text) {
-            yield jsonData.text;
-          }
+          const jsonData = JSON.parse(data);
+
+          // Yield the entire event object as JSON
+          yield JSON.stringify({
+            event: eventType,
+            data: jsonData,
+          });
         } catch (error) {
           console.error("Error parsing JSON:", error);
         }
@@ -81,6 +97,7 @@ const sendMessage = async function* (
 import ChatInputForm from "@/components/ChatInputForm";
 import { ModeToggle } from "@/components/DarkModeToggle";
 import MarkdownViewer from "@/components/MarkdownViewer";
+import ToolCallResultComponent from "@/components/ToolCallResult";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -92,13 +109,30 @@ import {
 import { useAtom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 import { Plus } from "lucide-react";
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+
+export type WebSearchResult = string;
+
+type FunctionResultMap = {
+  webSearch: WebSearchResult;
+};
 
 export enum MessageRole {
   system = "system",
   user = "user",
   assistant = "assistant",
+  tool = "tool",
 }
+
+export type ToolCall = {
+  [K in keyof FunctionResultMap]: {
+    id: string;
+    type: "function";
+    function: { name: K; arguments: string };
+    status: "pending" | "completed" | "failed";
+    result?: FunctionResultMap[K];
+  };
+}[keyof FunctionResultMap];
 
 export type MessageContent = string;
 
@@ -106,8 +140,8 @@ export type ChatMessage = {
   role: MessageRole;
   content: MessageContent | null;
   name?: string;
-  // tool_calls?: ToolCall[];
-  // tool_call_id?: string;
+  tool_calls?: ToolCall[];
+  tool_call_id?: string;
 };
 
 const MODELS = [
@@ -183,18 +217,62 @@ export default function Home() {
       [...messages, { role: MessageRole.user, content: userInput }],
       selectedModel
     )) {
-      // Update the chat with the assistant response
-      setMessages((prevMessages) => {
-        const updatedMessages = [...prevMessages];
-        const lastMessage = updatedMessages[updatedMessages.length - 1];
+      const { event, data } = JSON.parse(chunk);
 
-        // Ensure the last message is from the assistant
-        if (lastMessage.role === MessageRole.assistant) {
-          lastMessage.content += chunk;
-        }
+      if (event === "message") {
+        const { text } = data;
+        // Update the chat with the assistant response
+        setMessages((prevMessages) => {
+          const updatedMessages = [...prevMessages];
+          const lastMessage = updatedMessages[updatedMessages.length - 1];
 
-        return updatedMessages;
-      });
+          // Ensure the last message is from the assistant
+          if (lastMessage.role === MessageRole.assistant) {
+            lastMessage.content += text;
+          }
+
+          return updatedMessages;
+        });
+      } else if (event === "tool-call-start") {
+        const { toolName, args } = data;
+
+        // Handle tool calls
+        setMessages((prevMessages) => {
+          let updatesMessages = [...prevMessages];
+          updatesMessages[updatesMessages.length - 1].tool_calls = [
+            ...(updatesMessages[updatesMessages.length - 1].tool_calls || []),
+            {
+              id: "",
+              type: "function",
+              function: { name: toolName, arguments: args },
+              status: "pending",
+            },
+          ];
+
+          return updatesMessages;
+        });
+      } else if (event === "tool-call-end") {
+        const { toolName } = data;
+        console.log("Tool result:", toolName);
+
+        // Handle tool results
+        setMessages((prevMessages) => {
+          let updatesMessages = [...prevMessages];
+          const lastMessage = updatesMessages[updatesMessages.length - 1];
+
+          if (lastMessage.tool_calls) {
+            const toolCall = lastMessage.tool_calls.find(
+              (call) => call.function.name === toolName
+            );
+
+            if (toolCall) {
+              toolCall.status = "completed";
+            }
+          }
+
+          return updatesMessages;
+        });
+      }
     }
   };
   const [isSelectOpen, setIsSelectOpen] = useState(false);
@@ -267,12 +345,18 @@ export default function Home() {
               {messages.map((message, index) => (
                 <div
                   key={index}
-                  className={`flex ${
+                  className={`flex flex-col ${
                     message.role === MessageRole.user
                       ? "justify-end"
                       : "justify-start"
                   } mb-4`}
                 >
+                  <>
+                    {message.tool_calls?.map((toolCall, id) => (
+                      <ToolCallResultComponent toolCall={toolCall} key={id} />
+                    ))}
+                  </>
+
                   <div
                     className={`max-w-full md:max-w-[70%] rounded-xl p-3 ${
                       message.role === MessageRole.user
