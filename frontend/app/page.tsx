@@ -4,12 +4,12 @@
 type ResponseChunk = string;
 
 const sendMessage = async function* (
-  input: string,
+  messages: ChatMessage[],
   model: string
 ): AsyncGenerator<ResponseChunk> {
   const url = `http://localhost:3000/inference`;
   const data = {
-    input,
+    messages,
     model,
   };
 
@@ -42,9 +42,16 @@ const sendMessage = async function* (
         const event = buffer.slice(0, eventEnd);
         buffer = buffer.slice(eventEnd + 2);
 
-        const match = event.match(/data: "([^"]*)"/);
+        const match = event.match(/data: (.*)/);
         if (match) {
-          yield match[1]; // Yield only the message data string
+          try {
+            const jsonData = JSON.parse(match[1]);
+            if (jsonData.text) {
+              yield jsonData.text; // Yield the text value
+            }
+          } catch (error) {
+            console.error("Error parsing JSON:", error);
+          }
         }
 
         eventEnd = buffer.indexOf("\n\n");
@@ -53,9 +60,16 @@ const sendMessage = async function* (
 
     // Process any remaining data in the buffer
     if (buffer) {
-      const match = buffer.match(/data: "([^"]*)"/);
+      const match = buffer.match(/data: (.*)/);
       if (match) {
-        yield match[1];
+        try {
+          const jsonData = JSON.parse(match[1]);
+          if (jsonData.text) {
+            yield jsonData.text;
+          }
+        } catch (error) {
+          console.error("Error parsing JSON:", error);
+        }
       }
     }
   } catch (error) {
@@ -65,6 +79,9 @@ const sendMessage = async function* (
 };
 
 import ChatInputForm from "@/components/ChatInputForm";
+import { ModeToggle } from "@/components/DarkModeToggle";
+import MarkdownViewer from "@/components/MarkdownViewer";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -72,6 +89,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useAtom } from "jotai";
+import { atomWithStorage } from "jotai/utils";
+import { Plus } from "lucide-react";
 import { useState } from "react";
 
 export enum MessageRole {
@@ -129,10 +149,12 @@ const MODELS = [
   },
 ];
 
+const selectedModelAtom = atomWithStorage("selectedAiModel", "gpt-4o");
+
 export default function Home() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
-  const [selectedModel, setSelectedModel] = useState(MODELS[0].model);
+  const [selectedModel, setSelectedModel] = useAtom(selectedModelAtom);
 
   const handleSubmit = async () => {
     // Capture the current input
@@ -148,7 +170,10 @@ export default function Home() {
       { role: MessageRole.assistant, content: "" },
     ]);
 
-    for await (const chunk of sendMessage(userInput, selectedModel)) {
+    for await (const chunk of sendMessage(
+      [...messages, { role: MessageRole.user, content: userInput }],
+      selectedModel
+    )) {
       // Update the chat with the assistant response
       setMessages((prevMessages) => {
         const updatedMessages = [...prevMessages];
@@ -156,7 +181,6 @@ export default function Home() {
 
         // Ensure the last message is from the assistant
         if (lastMessage.role === MessageRole.assistant) {
-          console.log("chunk", chunk);
           lastMessage.content += chunk;
         }
 
@@ -166,40 +190,74 @@ export default function Home() {
   };
   return (
     <div className="h-screen w-screen flex flex-col">
-      <Select onValueChange={(value) => setSelectedModel(value)}>
-        <SelectTrigger className="w-[180px]">
-          <SelectValue placeholder="Select Model" />
-        </SelectTrigger>
-        <SelectContent>
-          {MODELS.map((model) => (
-            <SelectItem key={model.model} value={model.model}>
-              {model.model}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      <div className="w-full p-6 items-center justify-center flex relative">
+        <Select
+          onValueChange={(value) => {
+            setSelectedModel(value);
+          }}
+          value={selectedModel}
+        >
+          <SelectTrigger className="w-auto min-w-[225px] text-sm font-semibold">
+            <SelectValue placeholder="Select a model" />
+          </SelectTrigger>
+          <SelectContent>
+            {MODELS.map((model) => (
+              <SelectItem key={model.model} value={model.model}>
+                {model.model}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <div className="absolute  right-8 bg-opacity-50 z-10">
+          <div className="flex items-center ">
+            <Button
+              variant={"ghost"}
+              onClick={() => {
+                setMessages([]);
+              }}
+              size={"lg"}
+              className=" p-3 rounded-full"
+            >
+              <Plus size={32} />
+            </Button>
+
+            <ModeToggle />
+          </div>
+        </div>
+      </div>
 
       <div className="flex-1 w-full max-w-[1200px] mx-auto overflow-y-auto p-4">
-        {messages.map((message, index) => (
-          <div
-            key={index}
-            className={`flex ${
-              message.role === MessageRole.user
-                ? "justify-end"
-                : "justify-start"
-            } mb-4`}
-          >
-            <div
-              className={`max-w-[70%] rounded-xl p-3 ${
-                message.role === MessageRole.user
-                  ? "bg-primary text-white self-end"
-                  : "bg-secondary self-start"
-              }`}
-            >
-              {message.content}
-            </div>
+        {messages.length === 0 && (
+          <div className="flex-1 w-full max-w-[1200px] h-full mx-auto flex items-center justify-center">
+            <div className="w-32 h-32 bg-black rounded-full dark:bg-white"></div>
           </div>
-        ))}
+        )}
+
+        {messages.length > 0 && (
+          <>
+            {messages.map((message, index) => (
+              <div
+                key={index}
+                className={`flex ${
+                  message.role === MessageRole.user
+                    ? "justify-end"
+                    : "justify-start"
+                } mb-4`}
+              >
+                <div
+                  className={`max-w-[70%] rounded-xl p-3 ${
+                    message.role === MessageRole.user
+                      ? "bg-primary text-white self-end dark:text-black"
+                      : "bg-secondary self-start"
+                  }`}
+                >
+                  <MarkdownViewer content={message.content || ""} />
+                </div>
+              </div>
+            ))}
+          </>
+        )}
       </div>
       <div className="w-full flex items-center justify-center mx-auto p-4">
         <ChatInputForm

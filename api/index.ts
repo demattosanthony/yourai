@@ -1,7 +1,7 @@
 import Express from "express";
 import cors from "cors";
 import { createOpenAI, openai } from "@ai-sdk/openai";
-import { convertToCoreMessages, generateText, streamText } from "ai";
+import { convertToCoreMessages, streamText, type Message } from "ai";
 import { createGroq } from "@ai-sdk/groq";
 
 const PORT = 3000;
@@ -36,45 +36,38 @@ const MODELS = {
 
 interface inferenceParams {
   model: keyof typeof MODELS;
-  input: string;
+  messages: Message[];
   maxTokens?: number;
 }
 
 async function runInference(params: inferenceParams) {
-  const { model, input } = params;
+  const { model, messages } = params;
 
   const modelToRun = MODELS[model];
-
-  const messages = [
-    {
-      role: "system" as const,
-      content: "You are a helpful assistant.",
-    },
-    {
-      role: "user" as const,
-      content: input,
-    },
-  ];
 
   const { textStream } = await streamText({
     model: modelToRun,
     messages: convertToCoreMessages(messages),
-    maxTokens: params.maxTokens || 100,
+    maxTokens: params.maxTokens,
   });
 
   return textStream;
 }
 
 app.post("/inference", async (req, res) => {
-  const { model, input, maxTokens } = req.body;
+  const { model, messages, maxTokens } = req.body;
 
   res.setHeader("Content-Type", "text/event-stream");
 
   try {
-    const textStream = await runInference({ model, input, maxTokens });
+    const textStream = await runInference({ model, messages, maxTokens });
 
     for await (const message of textStream) {
-      res.write(`event: message\ndata: ${JSON.stringify(message)}\n\n`);
+      res.write(
+        `event: message\ndata: ${JSON.stringify({
+          text: message,
+        })}\n\n`
+      );
     }
 
     res.end();
