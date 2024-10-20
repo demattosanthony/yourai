@@ -71,7 +71,7 @@ const ChatInputForm: React.FC<ChatInputFormProps> = ({
         onKeyDown={handleKeyDown}
         disabled={disabled}
         placeholder="Message Syyclops"
-        className="min-h-[50px] max-h-[250px] pr-[58px] py-4 pl-12 resize-none w-full text-md overflow-hidden rounded-3xl focus:shadow-sm"
+        className="min-h-[50px] max-h-[250px] pr-[58px] py-4 pl-12 resize-none w-full text-md overflow-hidden rounded-3xl focus:shadow-sm overflow-y-auto"
       />
       <Button
         size="sm"

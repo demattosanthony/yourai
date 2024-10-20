@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
@@ -39,16 +39,50 @@ const MarkdownViewer: React.FC<{ content: string }> = ({ content }) => {
     li: ({ node, ...props }: any) => <TypographyLi {...props} />,
     code: ({ node, inline, className, children, ...props }: any) => {
       const match = /language-(\w+)/.exec(className || "");
+      const codeString = String(children).replace(/\n$/, "");
+      const [buttonText, setButtonText] = useState("Copy");
+
+      const handleCopy = () => {
+        navigator.clipboard
+          .writeText(codeString)
+          .then(() => {
+            console.log("Code copied to clipboard");
+            setButtonText("Copied!");
+            setTimeout(() => setButtonText("Copy"), 2000); // Reset after 2 seconds
+          })
+          .catch((err) => {
+            console.error("Failed to copy code: ", err);
+          });
+      };
+
       return !inline && match ? (
-        <SyntaxHighlighter
-          style={vscDarkPlus}
-          language={match[1]}
-          PreTag="div"
-          className="rounded-md"
-          {...props}
-        >
-          {String(children).replace(/\n$/, "")}
-        </SyntaxHighlighter>
+        <div style={{ position: "relative" }}>
+          <button
+            onClick={handleCopy}
+            style={{
+              position: "absolute",
+              right: "10px",
+              top: "10px",
+              background: "rgba(0, 0, 0, 0.5)",
+              color: "white",
+              border: "none",
+              borderRadius: "4px",
+              padding: "5px",
+              cursor: "pointer",
+            }}
+          >
+            {buttonText}
+          </button>
+          <SyntaxHighlighter
+            style={vscDarkPlus}
+            language={match[1]}
+            PreTag="div"
+            className="rounded-md"
+            {...props}
+          >
+            {codeString}
+          </SyntaxHighlighter>
+        </div>
       ) : (
         <TypographyInlineCode {...props}>{children}</TypographyInlineCode>
       );

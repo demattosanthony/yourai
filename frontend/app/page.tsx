@@ -92,7 +92,7 @@ import {
 import { useAtom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 import { Plus } from "lucide-react";
-import { useState } from "react";
+import { use, useState } from "react";
 
 export enum MessageRole {
   system = "system",
@@ -150,9 +150,10 @@ const MODELS = [
 ];
 
 const selectedModelAtom = atomWithStorage("selectedAiModel", "gpt-4o");
+const messagesAtom = atomWithStorage<ChatMessage[]>("chatMessages", []);
 
 export default function Home() {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [messages, setMessages] = useAtom(messagesAtom);
   const [input, setInput] = useState("");
   const [selectedModel, setSelectedModel] = useAtom(selectedModelAtom);
 
@@ -227,38 +228,41 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="flex-1 w-full max-w-[1200px] mx-auto overflow-y-auto p-4">
-        {messages.length === 0 && (
-          <div className="flex-1 w-full max-w-[1200px] h-full mx-auto flex items-center justify-center">
-            <div className="w-32 h-32 bg-black rounded-full dark:bg-white"></div>
-          </div>
-        )}
+      <div className="flex-1 w-full flex overflow-y-auto">
+        <div className="max-w-[1200px] mx-auto p-4 w-full">
+          {messages.length === 0 && (
+            <div className="flex-1 w-full h-full flex items-center justify-center">
+              <div className="w-32 h-32 bg-black rounded-full dark:bg-white"></div>
+            </div>
+          )}
 
-        {messages.length > 0 && (
-          <>
-            {messages.map((message, index) => (
-              <div
-                key={index}
-                className={`flex ${
-                  message.role === MessageRole.user
-                    ? "justify-end"
-                    : "justify-start"
-                } mb-4`}
-              >
+          {messages.length > 0 && (
+            <>
+              {messages.map((message, index) => (
                 <div
-                  className={`max-w-[70%] rounded-xl p-3 ${
+                  key={index}
+                  className={`flex ${
                     message.role === MessageRole.user
-                      ? "bg-primary text-white self-end dark:text-black"
-                      : "bg-secondary self-start"
-                  }`}
+                      ? "justify-end"
+                      : "justify-start"
+                  } mb-4`}
                 >
-                  <MarkdownViewer content={message.content || ""} />
+                  <div
+                    className={`max-w-[70%] rounded-xl p-3 ${
+                      message.role === MessageRole.user
+                        ? "bg-primary text-white self-end dark:text-black"
+                        : "bg-secondary self-start"
+                    }`}
+                  >
+                    <MarkdownViewer content={message.content || ""} />
+                  </div>
                 </div>
-              </div>
-            ))}
-          </>
-        )}
+              ))}
+            </>
+          )}
+        </div>
       </div>
+
       <div className="w-full flex items-center justify-center mx-auto p-4">
         <ChatInputForm
           input={input}
