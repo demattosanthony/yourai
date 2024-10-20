@@ -1,3 +1,13 @@
 {
-  "name": "any_agent"
+  "name": "any_agent",
+  "scripts": {
+    "dev": "concurrently \"bun --filter api dev\" \"bun --filter frontend dev\""
+  },
+  "dependencies": {
+    "concurrently": "^5.3.0"
+  },
+  "workspaces": [
+    "api",
+    "frontend"
+  ]
 }

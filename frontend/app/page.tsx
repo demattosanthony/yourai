@@ -92,7 +92,7 @@ import {
 import { useAtom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 import { Plus } from "lucide-react";
-import { use, useState } from "react";
+import { use, useEffect, useState } from "react";
 
 export enum MessageRole {
   system = "system",
@@ -118,6 +118,14 @@ const MODELS = [
   {
     provider: "openai",
     model: "gpt-4o",
+  },
+  {
+    provider: "anthropic",
+    model: "claude-3.5-sonnet",
+  },
+  {
+    provider: "anthropic",
+    model: "claude-3-opus",
   },
   {
     provider: "groq",
@@ -189,6 +197,22 @@ export default function Home() {
       });
     }
   };
+  const [isSelectOpen, setIsSelectOpen] = useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.metaKey && event.key === "k") {
+        setIsSelectOpen(true);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
+
   return (
     <div className="h-screen w-screen flex flex-col">
       <div className="w-full p-6 items-center justify-center flex relative">
@@ -197,6 +221,8 @@ export default function Home() {
             setSelectedModel(value);
           }}
           value={selectedModel}
+          open={isSelectOpen}
+          onOpenChange={setIsSelectOpen}
         >
           <SelectTrigger className="w-auto min-w-[225px] text-sm font-semibold">
             <SelectValue placeholder="Select a model" />
@@ -210,8 +236,8 @@ export default function Home() {
           </SelectContent>
         </Select>
 
-        <div className="absolute  right-8 bg-opacity-50 z-10">
-          <div className="flex items-center ">
+        <div className="absolute right-8 bg-opacity-50 z-10">
+          <div className="flex items-center gap-2">
             <Button
               variant={"ghost"}
               onClick={() => {
@@ -248,7 +274,7 @@ export default function Home() {
                   } mb-4`}
                 >
                   <div
-                    className={`max-w-[70%] rounded-xl p-3 ${
+                    className={`max-w-full md:max-w-[70%] rounded-xl p-3 ${
                       message.role === MessageRole.user
                         ? "bg-primary text-white self-end dark:text-black"
                         : "bg-secondary self-start"

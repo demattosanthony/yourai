@@ -1,6 +1,7 @@
 import Express from "express";
 import cors from "cors";
 import { createOpenAI, openai } from "@ai-sdk/openai";
+import { anthropic } from "@ai-sdk/anthropic";
 import { convertToCoreMessages, streamText, type Message } from "ai";
 import { createGroq } from "@ai-sdk/groq";
 
@@ -25,6 +26,8 @@ const perplexity = createOpenAI({
 const MODELS = {
   "gpt-4o-mini": openai("gpt-4o-mini"),
   "gpt-4o": openai("gpt-4o"),
+  "claude-3.5-sonnet": anthropic("claude-3-5-sonnet-20240620"),
+  "claude-3-opus": anthropic("claude-3-opus-20240229"),
   "llama-3.2-90b-text-preview": groq("llama-3.2-90b-text-preview"),
   "llama-3.2-1b-preview": groq("llama-3.2-1b-preview"),
   "llama-3.2-11b-text-preview": groq("llama-3.2-11b-text-preview"),
