@@ -270,6 +270,7 @@ export default function Home() {
               selectedModel={selectedModel}
               setSelectedModel={setSelectedModel}
             />
+
             <Button
               variant={"ghost"}
               onClick={() => {
@@ -291,7 +292,8 @@ export default function Home() {
           {messages.length === 0 && (
             <div className="flex-1 w-full h-full flex items-center justify-center">
               <div
-                className={`w-32 h-32 bg-black rounded-full dark:bg-white`}
+                className={`w-32 h-32 bg-black rounded-full dark:bg-white 
+                  `}
               ></div>
             </div>
           )}
@@ -305,7 +307,9 @@ export default function Home() {
                     message.role === MessageRole.user
                       ? "justify-end"
                       : "justify-start"
-                  } mb-4`}
+                  } 
+                  ${messages[index + 1]?.content === "" && "animate-spin"}
+                  mb-4`}
                 >
                   <>
                     {message.tool_calls?.map((toolCall, id) => (

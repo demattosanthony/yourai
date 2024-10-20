@@ -21,6 +21,16 @@ const MODELS = [
   },
   {
     provider: "openai",
+    model: "o1-mini",
+    name: "OpenAI O1 Mini",
+  },
+  {
+    provider: "openai",
+    model: "o1-preview",
+    name: "OpenAI O1 Preview",
+  },
+  {
+    provider: "openai",
     model: "gpt-4o-mini",
     name: "OpenAI GPT-4o Mini",
   },
@@ -34,21 +44,21 @@ const MODELS = [
     model: "claude-3-opus",
     name: "Anthropic Claude 3 Opus",
   },
-  {
-    provider: "groq",
-    model: "llama-3.2-90b-text-preview",
-    name: "Groq Llama 3.2 90b",
-  },
+  // {
+  //   provider: "groq",
+  //   model: "llama-3.2-90b-text-preview",
+  //   name: "Groq Llama 3.2 90b",
+  // },
   {
     provider: "groq",
     model: "llama-3.1-70b-versatile",
     name: "Groq Llama 3.1 70b",
   },
-  {
-    provider: "groq",
-    model: "llama-3.2-11b-text-preview",
-    name: "Groq Llama 3.2 11b",
-  },
+  // {
+  //   provider: "groq",
+  //   model: "llama-3.2-11b-text-preview",
+  //   name: "Groq Llama 3.2 11b",
+  // },
   {
     provider: "groq",
     model: "llama-3.2-1b-preview",
@@ -68,6 +78,16 @@ const MODELS = [
     provider: "perplexity",
     model: "llama-3.1-online-small",
     name: "Perplexity Llama 3.1 Online Small",
+  },
+  {
+    provider: "perplexity",
+    model: "llama-3.1-8b-instruct",
+    name: "Perplexity Llama 3.1 8b Instruct",
+  },
+  {
+    provider: "perplexity",
+    model: "llama-3.1-70b-instruct",
+    name: "Perplexity Llama 3.1 70b Instruct",
   },
 ];
 

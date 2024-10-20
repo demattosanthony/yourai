@@ -41,30 +41,40 @@ body {
     --radius: 0.5rem;
   }
   .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
+    --background: 0 0% 0%; /* Pure black background */
+    --foreground: 0 0% 100%; /* Pure white text */
+
+    --card: 0 0% 10%; /* Very dark gray */
+    --card-foreground: 0 0% 100%; /* Pure white text on cards */
+
+    --popover: 0 0% 10%; /* Very dark gray */
+    --popover-foreground: 0 0% 100%; /* Pure white text on popovers */
+
+    --primary: 0 0% 100%; /* Pure white for primary elements */
+    --primary-foreground: 0 0% 0%; /* Pure black text on primary elements */
+
+    --secondary: 0 0% 20%; /* Dark gray for secondary elements */
+    --secondary-foreground: 0 0% 100%; /* Pure white text on secondary elements */
+
+    --muted: 0 0% 15%; /* Dark gray for muted elements */
+    --muted-foreground: 0 0% 70%; /* Light gray for muted text */
+
+    --accent: 0 0% 20%; /* Dark gray for accent elements */
+    --accent-foreground: 0 0% 100%; /* Pure white text on accent */
+
+    --destructive: 0 0% 30%; /* Dark gray for destructive actions */
+    --destructive-foreground: 0 0% 100%; /* Pure white text on destructive actions */
+
+    --border: 0 0% 20%; /* Dark gray for borders */
+    --input: 0 0% 20%; /* Dark gray for input fields */
+    --ring: 0 0% 80%; /* Light gray for focus rings */
+
+    /* Chart colors - consistent grayscale */
+    --chart-1: 0 0% 90%;
+    --chart-2: 0 0% 70%;
+    --chart-3: 0 0% 50%;
+    --chart-4: 0 0% 30%;
+    --chart-5: 0 0% 10%;
   }
 }
 
