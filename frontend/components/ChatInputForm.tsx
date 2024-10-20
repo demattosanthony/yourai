@@ -2,11 +2,14 @@ import { useEffect, useRef, useState } from "react";
 import { Textarea } from "./ui/textarea";
 import { Button } from "./ui/button";
 import { CheckIcon, Paperclip } from "lucide-react";
+import { StopIcon } from "@radix-ui/react-icons";
 
 interface ChatInputFormProps {
   input: string;
   setInput: (input: string) => void;
   onSubmit: () => void;
+  onAbort?: any;
+  generating?: boolean;
   disabled?: boolean;
 }
 
@@ -15,6 +18,8 @@ const ChatInputForm: React.FC<ChatInputFormProps> = ({
   setInput,
   onSubmit,
   disabled,
+  onAbort,
+  generating,
 }) => {
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -69,7 +74,7 @@ const ChatInputForm: React.FC<ChatInputFormProps> = ({
         autoFocus
         onChange={(e: any) => setInput(e.currentTarget.value)}
         onKeyDown={handleKeyDown}
-        disabled={disabled}
+        disabled={disabled || generating}
         placeholder="Ask anything..."
         className="min-h-[50px] max-h-[250px] pr-[58px] py-4 pl-12 resize-none w-full text-md overflow-hidden rounded-3xl focus:shadow-sm"
       />
@@ -77,11 +82,22 @@ const ChatInputForm: React.FC<ChatInputFormProps> = ({
         size="sm"
         className="p-1 absolute bottom-[10px] right-2 h-9 w-9 rounded-full"
         type="submit"
-        // variant={"link"}
-        // disabled={disabled || input === ""}
         ref={buttonRef}
+        onClick={(e) => {
+          e.preventDefault();
+          if (generating) {
+            // If currently generating, abort the ongoing request
+            onAbort.current();
+          } else {
+            onSubmit();
+          }
+        }}
       >
-        <CheckIcon className="w-8 h-8" />
+        {generating ? (
+          <StopIcon className="w-8 h-8" />
+        ) : (
+          <CheckIcon className="w-8 h-8" />
+        )}
       </Button>
     </form>
   );

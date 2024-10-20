@@ -5,7 +5,8 @@ type ResponseChunk = string;
 
 const sendMessage = async function* (
   messages: ChatMessage[],
-  model: string
+  model: string,
+  signal: AbortSignal
 ): AsyncGenerator<ResponseChunk> {
   const url = `http://localhost:3000/inference`;
   const data = {
@@ -20,8 +21,8 @@ const sendMessage = async function* (
       headers: {
         "Content-Type": "application/json",
       },
+      signal, // Pass the abort signal here
     });
-
     if (!response.body) {
       throw new Error("Response body is empty");
     }
@@ -90,7 +91,7 @@ const sendMessage = async function* (
     }
   } catch (error) {
     console.error("Error in sendMessage:", error);
-    throw error;
+    // throw error;
   }
 };
 
@@ -100,10 +101,10 @@ import MarkdownViewer from "@/components/MarkdownViewer";
 import ModelSelector from "@/components/ModelSelector";
 import ToolCallResultComponent from "@/components/ToolCallResult";
 import { Button } from "@/components/ui/button";
-import { useAtom } from "jotai";
+import { atom, useAtom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 import { Plus } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export type WebSearchResult = string;
 
@@ -140,11 +141,15 @@ export type ChatMessage = {
 
 const selectedModelAtom = atomWithStorage("selectedAiModel", "gpt-4o");
 const messagesAtom = atomWithStorage<ChatMessage[]>("chatMessages", []);
+const generatingResponseAtom = atom(false);
 
 export default function Home() {
   const [messages, setMessages] = useAtom(messagesAtom);
   const [input, setInput] = useState("");
   const [selectedModel, setSelectedModel] = useAtom(selectedModelAtom);
+  const [generating, setGenerating] = useAtom(generatingResponseAtom);
+
+  const abortGenerationRef = useRef<() => void>(() => {});
 
   const handleSubmit = async () => {
     // Capture the current input
@@ -160,66 +165,84 @@ export default function Home() {
       { role: MessageRole.assistant, content: "" },
     ]);
 
-    for await (const chunk of sendMessage(
-      [...messages, { role: MessageRole.user, content: userInput }],
-      selectedModel
-    )) {
-      const { event, data } = JSON.parse(chunk);
+    setGenerating(true);
 
-      if (event === "message") {
-        const { text } = data;
-        // Update the chat with the assistant response
-        setMessages((prevMessages) => {
-          const updatedMessages = [...prevMessages];
-          const lastMessage = updatedMessages[updatedMessages.length - 1];
+    const abortController = new AbortController();
+    const { signal } = abortController;
 
-          // Ensure the last message is from the assistant
-          if (lastMessage.role === MessageRole.assistant) {
-            lastMessage.content += text;
-          }
+    // Update the abort function
+    abortGenerationRef.current = () => {
+      console.log("Aborting generation...");
+      abortController.abort();
+      setGenerating(false);
+    };
 
-          return updatedMessages;
-        });
-      } else if (event === "tool-call-start") {
-        const { toolName, args } = data;
+    try {
+      for await (const chunk of sendMessage(
+        [...messages, { role: MessageRole.user, content: userInput }],
+        selectedModel,
+        signal
+      )) {
+        const { event, data } = JSON.parse(chunk);
 
-        // Handle tool calls
-        setMessages((prevMessages) => {
-          let updatesMessages = [...prevMessages];
-          updatesMessages[updatesMessages.length - 1].tool_calls = [
-            ...(updatesMessages[updatesMessages.length - 1].tool_calls || []),
-            {
-              id: "",
-              type: "function",
-              function: { name: toolName, arguments: args },
-              status: "pending",
-            },
-          ];
+        if (event === "message") {
+          const { text } = data;
+          setMessages((prevMessages) => {
+            const updatedMessages = [...prevMessages];
+            const lastMessage = updatedMessages[updatedMessages.length - 1];
 
-          return updatesMessages;
-        });
-      } else if (event === "tool-call-end") {
-        const { toolName } = data;
-        console.log("Tool result:", toolName);
+            if (lastMessage.role === MessageRole.assistant) {
+              lastMessage.content += text;
+            }
 
-        // Handle tool results
-        setMessages((prevMessages) => {
-          let updatesMessages = [...prevMessages];
-          const lastMessage = updatesMessages[updatesMessages.length - 1];
+            return updatedMessages;
+          });
+        } else if (event === "tool-call-start") {
+          const { toolName, args } = data;
+          setMessages((prevMessages) => {
+            let updatesMessages = [...prevMessages];
+            updatesMessages[updatesMessages.length - 1].tool_calls = [
+              ...(updatesMessages[updatesMessages.length - 1].tool_calls || []),
+              {
+                id: "",
+                type: "function",
+                function: { name: toolName, arguments: args },
+                status: "pending",
+              },
+            ];
 
-          if (lastMessage.tool_calls) {
-            lastMessage.tool_calls.forEach((call) => {
-              if (call.function.name === toolName) {
-                call.status = "completed";
-              }
-            });
-          }
+            return updatesMessages;
+          });
+        } else if (event === "tool-call-end") {
+          const { toolName } = data;
+          console.log("Tool result:", toolName);
+          setMessages((prevMessages) => {
+            let updatesMessages = [...prevMessages];
+            const lastMessage = updatesMessages[updatesMessages.length - 1];
 
-          return updatesMessages;
-        });
+            if (lastMessage.tool_calls) {
+              lastMessage.tool_calls.forEach((call) => {
+                if (call.function.name === toolName) {
+                  call.status = "completed";
+                }
+              });
+            }
+
+            return updatesMessages;
+          });
+        }
       }
+    } catch (error: any) {
+      if (error.name === "AbortError") {
+        console.log("Fetch request was aborted.");
+      } else {
+        console.error("Error in handleSubmit:", error);
+      }
+    } finally {
+      setGenerating(false);
     }
   };
+
   const [isSelectOpen, setIsSelectOpen] = useState(false);
 
   useEffect(() => {
@@ -267,7 +290,9 @@ export default function Home() {
         <div className="max-w-[1200px] mx-auto p-4 w-full">
           {messages.length === 0 && (
             <div className="flex-1 w-full h-full flex items-center justify-center">
-              <div className="w-32 h-32 bg-black rounded-full dark:bg-white"></div>
+              <div
+                className={`w-32 h-32 bg-black rounded-full dark:bg-white`}
+              ></div>
             </div>
           )}
 
@@ -309,6 +334,8 @@ export default function Home() {
           input={input}
           setInput={setInput}
           onSubmit={handleSubmit}
+          onAbort={abortGenerationRef}
+          generating={generating}
         />
       </div>
     </div>
