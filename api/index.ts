@@ -156,7 +156,6 @@ async function runInference(
   const modelToRun = MODELS[model];
 
   if (modelToRun.supportsSystemMessages !== false) {
-    // Add message to the first position of the array
     messagesToSend.unshift({
       id: "sysMessage",
       role: "system" as const,
@@ -230,6 +229,23 @@ It is currently ${new Date().toLocaleDateString()}`,
         webSearch: webSearchTool,
       },
       toolChoice: "auto",
+      maxSteps: 10,
+      messages: convertToCoreMessages(messages),
+      maxTokens: params.maxTokens,
+      onChunk({
+        chunk,
+      }: {
+        chunk: { type: string; toolName: string; args: any };
+      }) {
+        if (chunk.type === "tool-call") {
+          const { toolName, args } = chunk;
+          onToolEvent("tool-call-start", { toolName, args });
+        }
+
+        if (chunk.type === "tool-result") {
+          onToolEvent("tool-call-end", { toolName: chunk.toolName });
+        }
+      },
     };
   }
 

@@ -308,7 +308,6 @@ export default function Home() {
                       ? "justify-end"
                       : "justify-start"
                   } 
-                  ${messages[index + 1]?.content === "" && "animate-spin"}
                   mb-4`}
                 >
                   <>
