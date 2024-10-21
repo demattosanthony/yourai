@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { Textarea } from "./ui/textarea";
-import { Button } from "./ui/button";
+import { Textarea } from "../ui/textarea";
+import { Button } from "../ui/button";
 import { CheckIcon, Paperclip } from "lucide-react";
 import { StopIcon } from "@radix-ui/react-icons";
 
@@ -8,7 +8,7 @@ interface ChatInputFormProps {
   input: string;
   setInput: (input: string) => void;
   onSubmit: () => void;
-  onAbort?: any;
+  onAbort?: () => void;
   generating?: boolean;
   disabled?: boolean;
 }
@@ -54,6 +54,12 @@ const ChatInputForm: React.FC<ChatInputFormProps> = ({
     }
   }, [input]);
 
+  useEffect(() => {
+    if (!generating) {
+      textAreaRef.current?.focus();
+    }
+  }, [generating]);
+
   return (
     <form
       onSubmit={(e) => {
@@ -87,7 +93,7 @@ const ChatInputForm: React.FC<ChatInputFormProps> = ({
           e.preventDefault();
           if (generating) {
             // If currently generating, abort the ongoing request
-            onAbort.current();
+            if (onAbort) onAbort();
           } else {
             onSubmit();
           }

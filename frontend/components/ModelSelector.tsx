@@ -1,17 +1,22 @@
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "./ui/select";
+"use client";
 
-interface ModelSelectorProps {
-  selectedModel: string;
-  setSelectedModel: (model: string) => void;
-  isSelectOpen: boolean;
-  setIsSelectOpen: (isOpen: boolean) => void;
-}
+import * as React from "react";
+import { Check, ChevronsUpDown } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 const MODELS = [
   {
@@ -21,18 +26,18 @@ const MODELS = [
   },
   {
     provider: "openai",
-    model: "o1-mini",
-    name: "OpenAI O1 Mini",
+    model: "gpt-4o-mini",
+    name: "OpenAI GPT-4o Mini",
   },
   {
     provider: "openai",
     model: "o1-preview",
-    name: "OpenAI O1 Preview",
+    name: "OpenAI o1 Preview",
   },
   {
     provider: "openai",
-    model: "gpt-4o-mini",
-    name: "OpenAI GPT-4o Mini",
+    model: "o1-mini",
+    name: "OpenAI o1 Mini",
   },
   {
     provider: "anthropic",
@@ -44,21 +49,11 @@ const MODELS = [
     model: "claude-3-opus",
     name: "Anthropic Claude 3 Opus",
   },
-  // {
-  //   provider: "groq",
-  //   model: "llama-3.2-90b-text-preview",
-  //   name: "Groq Llama 3.2 90b",
-  // },
   {
     provider: "groq",
     model: "llama-3.1-70b-versatile",
     name: "Groq Llama 3.1 70b",
   },
-  // {
-  //   provider: "groq",
-  //   model: "llama-3.2-11b-text-preview",
-  //   name: "Groq Llama 3.2 11b",
-  // },
   {
     provider: "groq",
     model: "llama-3.2-1b-preview",
@@ -91,12 +86,17 @@ const MODELS = [
   },
 ];
 
-export default function ModelSelector({
+interface ModelSelectorProps {
+  selectedModel: string;
+  setSelectedModel: React.Dispatch<React.SetStateAction<string>>;
+}
+
+const ModelSelector: React.FC<ModelSelectorProps> = ({
   selectedModel,
   setSelectedModel,
-  isSelectOpen,
-  setIsSelectOpen,
-}: ModelSelectorProps) {
+}) => {
+  const [open, setOpen] = React.useState(false);
+
   function getModelImage(model: string) {
     const modelInfo = MODELS.find((m) => m.model === model);
     if (!modelInfo) return null;
@@ -134,40 +134,60 @@ export default function ModelSelector({
     }
   }
 
-  console.log("selectedModel", selectedModel);
-
   return (
-    <Select
-      onValueChange={(value) => {
-        setSelectedModel(value);
-      }}
-      value={selectedModel}
-      open={isSelectOpen}
-      onOpenChange={setIsSelectOpen}
-    >
-      <SelectTrigger className="w-auto text-sm font-semibold border-none shadow-none focus-visible:ring-0 focus:ring-0">
-        <SelectValue>
-          <div className="flex flex-row items-center mr-2">
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="ghost"
+          role="combobox"
+          aria-expanded={open}
+          className="w-autojustify-between"
+        >
+          <div className="flex items-center">
             {getModelImage(selectedModel)}
-
-            {MODELS.find((model) => model.model === selectedModel)?.name}
+            {MODELS.find((model) => model.model === selectedModel)?.name ||
+              "Select model..."}
           </div>
-        </SelectValue>
-      </SelectTrigger>
-      <SelectContent>
-        {MODELS.map((model) => (
-          <SelectItem
-            key={model.model}
-            value={model.model}
-            className="flex flex-row items-center"
-          >
-            <div className="flex flex-row items-center">
-              {getModelImage(model.model)}
-              <span>{model.name}</span>
-            </div>
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="p-0">
+        <Command>
+          <CommandInput placeholder="Search model..." />
+          <CommandList>
+            <CommandEmpty>No model found.</CommandEmpty>
+            <CommandGroup>
+              {MODELS.map((model) => (
+                <CommandItem
+                  key={model.model}
+                  value={model.model}
+                  onSelect={(currentValue) => {
+                    setSelectedModel(
+                      currentValue === selectedModel ? "" : currentValue
+                    );
+                    setOpen(false);
+                  }}
+                >
+                  <div className="flex items-center">
+                    {getModelImage(model.model)}
+                    <span>{model.name}</span>
+                  </div>
+                  <Check
+                    className={cn(
+                      "ml-auto h-4 w-4",
+                      selectedModel === model.model
+                        ? "opacity-100"
+                        : "opacity-0"
+                    )}
+                  />
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
   );
-}
+};
+
+export default ModelSelector;

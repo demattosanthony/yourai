@@ -1,6 +1,7 @@
-import { ToolCall } from "@/app/page";
+import { ToolCall } from "@/hooks/useChat";
+import { ScrollArea } from "@radix-ui/react-scroll-area";
 import { Check, Loader2 } from "lucide-react";
-import { ScrollArea, ScrollBar } from "./ui/scroll-area";
+import { ScrollBar } from "../ui/scroll-area";
 
 export default function ToolCallResultComponent({
   toolCall,

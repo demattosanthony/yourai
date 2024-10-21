@@ -33,7 +33,7 @@ export function TypographyH4({ children }: { children: React.ReactNode }) {
 }
 
 export function TypographyP({ children }: { children: React.ReactNode }) {
-  return <p className="leading-7 [&:not(:first-child)]:mt-6">{children}</p>;
+  return <p className="leading-7 [&:not(:first-child)]">{children}</p>;
 }
 
 export function TypographyBlockquote({
@@ -94,7 +94,7 @@ export function TypographyInlineCode({
   children: React.ReactNode;
 }) {
   return (
-    <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold">
+    <code className="relative rounded bg-muted-foreground px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold">
       {children}
     </code>
   );

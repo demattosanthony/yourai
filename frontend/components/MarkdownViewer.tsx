@@ -84,7 +84,7 @@ const MarkdownViewer: React.FC<{ content: string }> = ({ content }) => {
             style={vscDarkPlus}
             language={match[1]}
             PreTag="div"
-            className="rounded-md"
+            className="rounded-md bg-red-400"
             {...props}
           >
             {codeString}
@@ -114,7 +114,7 @@ const MarkdownViewer: React.FC<{ content: string }> = ({ content }) => {
     <ReactMarkdown
       components={components}
       remarkPlugins={[remarkGfm]}
-      className={"flex flex-col"}
+      className={"flex flex-col gap-2"}
     >
       {content}
     </ReactMarkdown>
