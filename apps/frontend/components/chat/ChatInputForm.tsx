@@ -63,6 +63,21 @@ const ChatInputForm: React.FC<ChatInputFormProps> = ({
     }
   }, [generating]);
 
+  useEffect(() => {
+    const handleGlobalKeyDown = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key === "k") {
+        event.preventDefault();
+        textAreaRef.current?.focus();
+      }
+    };
+
+    window.addEventListener("keydown", handleGlobalKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleGlobalKeyDown);
+    };
+  }, []);
+
   return (
     <form
       onSubmit={(e) => {
@@ -83,7 +98,7 @@ const ChatInputForm: React.FC<ChatInputFormProps> = ({
         onKeyDown={handleKeyDown}
         disabled={disabled || generating}
         placeholder="Ask anything..."
-        className="h-[24px] max-h-[250px] pr-[58px] pt-[17px] pl-11 resize-none w-full text-md overflow-hidden rounded-3xl focus:shadow-sm"
+        className="h-[24px] max-h-[250px] pr-[58px] pt-[17px] pl-11 resize-none w-full text-md overflow-hidden overflow-y-auto rounded-3xl focus:shadow-sm"
       />
       <Button
         size="sm"
