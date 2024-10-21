@@ -1,6 +1,7 @@
 {
   "name": "api",
   "module": "index.ts",
+  "main": "index.ts",
   "type": "module",
   "scripts": {
     "dev": "bun run --watch index.ts"

@@ -1,0 +1,31 @@
+version: "3.6"
+services:
+  pg:
+    build:
+      context: ./postgres
+      dockerfile: Dockerfile
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+
+  # api:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - 3000:3000
+  #     - 8080:8080
+  #   env_file:
+  #     - ./api/.env
+  #   volumes:
+  #     - ./api:/app/api
+  #   environment:
+  #     - NODE_ENV=development
+  #     - POSTGRES_CONNECTION_STRING=postgres://postgres:postgres@pg:5432/postgres
+  #   depends_on:
+  #     - pg
+  #   platform: linux/amd64
+
+volumes:
+  postgres_data:

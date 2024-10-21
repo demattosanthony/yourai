@@ -189,47 +189,58 @@ export default function useChat() {
         if (event === "message") {
           const { text } = data;
           setMessages((prevMessages) => {
-            const updatedMessages = [...prevMessages];
-            const lastMessage = updatedMessages[updatedMessages.length - 1];
-
-            if (lastMessage.role === MessageRole.assistant) {
-              lastMessage.content += text;
-            }
-
+            const updatedMessages = prevMessages.map((message, index) => {
+              if (
+                index === prevMessages.length - 1 &&
+                message.role === MessageRole.assistant
+              ) {
+                return { ...message, content: message.content + text };
+              }
+              return message;
+            });
             return updatedMessages;
           });
         } else if (event === "tool-call-start") {
           const { toolName, args } = data;
           setMessages((prevMessages) => {
-            let updatesMessages = [...prevMessages];
-            updatesMessages[updatesMessages.length - 1].tool_calls = [
-              ...(updatesMessages[updatesMessages.length - 1].tool_calls || []),
-              {
-                id: "",
-                type: "function",
-                function: { name: toolName, arguments: args },
-                status: "pending",
-              },
-            ];
-
-            return updatesMessages;
+            const updatedMessages = prevMessages.map((message, index) => {
+              if (index === prevMessages.length - 1) {
+                return {
+                  ...message,
+                  tool_calls: [
+                    ...(message.tool_calls || []),
+                    {
+                      id: "",
+                      type: "function",
+                      function: { name: toolName, arguments: args },
+                      status: "pending",
+                    } as ToolCall,
+                  ],
+                };
+              }
+              return message;
+            });
+            return updatedMessages;
           });
         } else if (event === "tool-call-end") {
           const { toolName } = data;
-          console.log("Tool result:", toolName);
+
           setMessages((prevMessages) => {
-            let updatesMessages = [...prevMessages];
-            const lastMessage = updatesMessages[updatesMessages.length - 1];
-
-            if (lastMessage.tool_calls) {
-              lastMessage.tool_calls.forEach((call) => {
-                if (call.function.name === toolName) {
-                  call.status = "completed";
+            const updatedMessages = prevMessages.map((message, index) => {
+              if (index === prevMessages.length - 1) {
+                const lastToolCall = message.tool_calls?.pop();
+                if (lastToolCall) {
+                  lastToolCall.status = "completed";
+                  lastToolCall.result = data;
+                  return {
+                    ...message,
+                    tool_calls: [...(message.tool_calls || []), lastToolCall],
+                  };
                 }
-              });
-            }
-
-            return updatesMessages;
+              }
+              return message;
+            });
+            return updatedMessages;
           });
         }
       }
