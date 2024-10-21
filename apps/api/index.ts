@@ -16,14 +16,14 @@ import path from "path";
 const PORT = process.env.PORT || 4000;
 
 async function main() {
-  try {
-    await migrate(db, {
-      migrationsFolder: path.join(__dirname, "../../packages/db/drizzle"),
-    });
-  } catch (error) {
-    console.error("Error occurred during database migration", error);
-    process.exit(1);
-  }
+  // try {
+  //   await migrate(db, {
+  //     migrationsFolder: path.join(__dirname, "../../packages/db/drizzle"),
+  //   });
+  // } catch (error) {
+  //   console.error("Error occurred during database migration", error);
+  //   process.exit(1);
+  // }
 
   const app = Express();
   app.use(Express.json());
