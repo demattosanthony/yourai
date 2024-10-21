@@ -1,6 +1,8 @@
 import { createOpenAI, openai } from "@ai-sdk/openai";
 import { anthropic } from "@ai-sdk/anthropic";
 import { createGroq } from "@ai-sdk/groq";
+import { google } from "@ai-sdk/google";
+import { mistral } from "@ai-sdk/mistral";
 
 const groq = createGroq();
 
@@ -49,6 +51,36 @@ export const MODELS: Record<string, ModelConfig> = {
   },
   "claude-3-opus": {
     model: anthropic("claude-3-opus-20240229"),
+    supportsToolUse: true,
+    supportsStreaming: true,
+  },
+  "gemini-1.5-pro": {
+    model: google("gemini-1.5-pro-latest"),
+    supportsToolUse: true,
+    supportsStreaming: true,
+  },
+  "gemini-1.5-flash": {
+    model: google("gemini-1.5-flash-latest"),
+    supportsToolUse: true,
+    supportsStreaming: true,
+  },
+  "mistral-large": {
+    model: mistral("mistral-large-latest"),
+    supportsToolUse: true,
+    supportsStreaming: true,
+  },
+  "mistral-small": {
+    model: mistral("mistral-small-latest"),
+    supportsToolUse: true,
+    supportsStreaming: true,
+  },
+  codestral: {
+    model: mistral("codestral-latest"),
+    supportsToolUse: true,
+    supportsStreaming: true,
+  },
+  "ministral-8b": {
+    model: mistral("ministral-8b-latest"),
     supportsToolUse: true,
     supportsStreaming: true,
   },

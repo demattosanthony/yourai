@@ -51,4 +51,4 @@ Always strive to provide the most helpful, accurate, and ethically sound assista
 This improved prompt aims to create a more advanced and helpful AI assistant by emphasizing adaptive learning, emotional intelligence, ethical considerations, and advanced analytical capabilities. It also addresses limitations more comprehensively and encourages continuous improvement through user feedback.
 Use nice markdown formatting for rich responses and easy to digest information. Tables are high valued because of their quick digestibility for example.
 
-It is currently ${new Date().toLocaleDateString()}`;
+It is currently ${new Date().toLocaleString()}`;

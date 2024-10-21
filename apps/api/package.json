@@ -13,10 +13,12 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
-    "@anyagent/db": "workspace:*",
     "@ai-sdk/anthropic": "^0.0.51",
+    "@ai-sdk/google": "^0.0.52",
     "@ai-sdk/groq": "^0.0.1",
+    "@ai-sdk/mistral": "^0.0.44",
     "@ai-sdk/openai": "^0.0.68",
+    "@anyagent/db": "workspace:*",
     "@tavily/core": "^0.0.2",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",

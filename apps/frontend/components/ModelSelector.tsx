@@ -50,6 +50,31 @@ const MODELS = [
     name: "Anthropic Claude 3 Opus",
   },
   {
+    provider: "google",
+    model: "gemini-1.5-pro",
+    name: "Google Gemini 1.5 Pro",
+  },
+  {
+    provider: "google",
+    model: "gemini-1.5-flash",
+    name: "Google Gemini 1.5 Flash",
+  },
+  {
+    provider: "mistral",
+    model: "mistral-large",
+    name: "Mistral Large",
+  },
+  {
+    provider: "mistral",
+    model: "mistral-small",
+    name: "Mistral Small",
+  },
+  {
+    provider: "mistral",
+    model: "codestral",
+    name: "Mistral Codestral",
+  },
+  {
     provider: "groq",
     model: "llama-3.1-70b-versatile",
     name: "Groq Llama 3.1 70b",
@@ -126,6 +151,18 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
             className="w-5 h-5 mr-2"
           />
         );
+      case "google":
+        return (
+          <img
+            src="https://www.google.com/favicon.ico"
+            alt="Google"
+            className="w-5 h-5 mr-2"
+          />
+        );
+      case "mistral":
+        return (
+          <img src="/mistral.svg" alt="Mistral" className="w-5 h-5 mr-2" />
+        );
       case "groq":
         return <img src="/groq.svg" alt="Groq" className="w-5 h-5 mr-2" />;
 
@@ -162,9 +199,7 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
                   key={model.model}
                   value={model.model}
                   onSelect={(currentValue) => {
-                    setSelectedModel(
-                      currentValue === selectedModel ? "" : currentValue
-                    );
+                    setSelectedModel(currentValue);
                     setOpen(false);
                   }}
                 >

@@ -40,7 +40,7 @@ type ResponseChunk = string;
 
 // States
 const selectedModelAtom = atomWithStorage("selectedAiModel", "gpt-4o");
-const messagesAtom = atomWithStorage<ChatMessage[]>("chatMessages", []);
+const messagesAtom = atom<ChatMessage[]>([]);
 const generatingResponseAtom = atom(false);
 const generatingFirstTokenAtom = atom(false);
 const inputAtom = atom("");
