@@ -44,6 +44,7 @@ const messagesAtom = atom<ChatMessage[]>([]);
 const generatingResponseAtom = atom(false);
 const generatingFirstTokenAtom = atom(false);
 const inputAtom = atom("");
+const temperatureAtom = atomWithStorage("chattemp", 1);
 
 export default function useChat() {
   const [selectedModel, setSelectedModel] = useAtom(selectedModelAtom);
@@ -55,6 +56,7 @@ export default function useChat() {
     generatingFirstTokenAtom
   );
   const [input, setInput] = useAtom(inputAtom);
+  const [temperature, setTemperature] = useAtom(temperatureAtom);
 
   const abortGenerationRef = useRef<() => void>(() => {});
 
@@ -71,6 +73,7 @@ export default function useChat() {
     const data = {
       messages,
       model,
+      temperature,
     };
 
     try {
@@ -275,5 +278,7 @@ export default function useChat() {
     handleAbort,
     handleSubmit,
     generatingFirstToken,
+    temperature,
+    setTemperature,
   };
 }

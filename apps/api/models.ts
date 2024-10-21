@@ -12,6 +12,12 @@ const perplexity = createOpenAI({
   baseURL: "https://api.perplexity.ai/",
 });
 
+const xai = createOpenAI({
+  name: "xai",
+  apiKey: process.env.XAI_API_KEY ?? "",
+  baseURL: "https://api.x.ai/v1/",
+});
+
 interface ModelConfig {
   model: ReturnType<
     typeof openai | typeof anthropic | typeof groq | typeof perplexity
@@ -61,6 +67,11 @@ export const MODELS: Record<string, ModelConfig> = {
   },
   "gemini-1.5-flash": {
     model: google("gemini-1.5-flash-002"),
+    supportsToolUse: true,
+    supportsStreaming: true,
+  },
+  "grok-beta": {
+    model: xai("grok-beta"),
     supportsToolUse: true,
     supportsStreaming: true,
   },

@@ -37,13 +37,14 @@ async function main() {
     model: keyof typeof MODELS;
     messages: Message[];
     maxTokens?: number;
+    temperature?: number;
   }
 
   async function runInference(
     params: inferenceParams,
     onToolEvent: (event: string, data: any) => void
   ) {
-    const { model, messages } = params;
+    const { model, messages, temperature, maxTokens } = params;
 
     let messagesToSend = [...messages];
 
@@ -59,9 +60,9 @@ async function main() {
 
     let generationParams: any = {
       model: modelToRun.model,
-      temperature: 0,
+      temperature: temperature || 0.5,
       messages: convertToCoreMessages(messagesToSend),
-      maxTokens: params.maxTokens,
+      maxTokens: maxTokens || undefined,
     };
 
     if (modelToRun.supportsToolUse) {
@@ -99,7 +100,7 @@ async function main() {
   }
 
   app.post("/inference", async (req, res) => {
-    const { model, messages, maxTokens } = req.body;
+    const { model, messages, maxTokens, temperature } = req.body;
 
     res.setHeader("Content-Type", "text/event-stream");
 
@@ -109,7 +110,7 @@ async function main() {
 
     try {
       const textStream = await runInference(
-        { model, messages, maxTokens },
+        { model, messages, maxTokens, temperature },
         onToolEvent
       );
 

@@ -3,6 +3,7 @@ import ModelSelector from "./ModelSelector";
 import { Button } from "./ui/button";
 import { Plus } from "lucide-react";
 import { ModeToggle } from "./DarkModeToggle";
+import ChatSettings from "./ChatSettings";
 
 export default function Header() {
   const { selectedModel, setSelectedModel, setMessages } = useChat();
@@ -15,6 +16,8 @@ export default function Header() {
             selectedModel={selectedModel}
             setSelectedModel={setSelectedModel}
           />
+
+          <ChatSettings />
 
           <Button
             variant={"ghost"}
