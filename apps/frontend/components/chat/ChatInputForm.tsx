@@ -26,10 +26,13 @@ const ChatInputForm: React.FC<ChatInputFormProps> = ({
 
   const [, setIsTextAreaExpanded] = useState(false);
 
-  const handleKeyDown = async (event: any) => {
+  const handleKeyDown = async (
+    event: React.KeyboardEvent<HTMLTextAreaElement>
+  ) => {
     if (event.key === "Enter" && event.shiftKey) {
       event.preventDefault();
-      const caretPosition = event.target.selectionStart;
+      const target = event.target as HTMLTextAreaElement;
+      const caretPosition = target.selectionStart;
       const textBeforeCaret = input.substring(0, caretPosition);
       const textAfterCaret = input.substring(caretPosition);
       if (setInput) {
@@ -76,7 +79,7 @@ const ChatInputForm: React.FC<ChatInputFormProps> = ({
         value={input}
         role="textbox"
         autoFocus
-        onChange={(e: any) => setInput(e.currentTarget.value)}
+        onChange={(e) => setInput(e.currentTarget.value)}
         onKeyDown={handleKeyDown}
         disabled={disabled || generating}
         placeholder="Ask anything..."

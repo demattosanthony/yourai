@@ -19,106 +19,98 @@ import {
   TypographyInlineCode,
 } from "./Typography";
 
-const MarkdownViewer: React.FC<{ content: string }> = ({ content }) => {
-  const components = {
-    h1: ({ node, ...props }: any) => <TypographyH1 {...props} />,
-    h2: ({ node, ...props }: any) => <TypographyH2 {...props} />,
-    h3: ({ node, ...props }: any) => <TypographyH3 {...props} />,
-    h4: ({ node, ...props }: any) => <TypographyH4 {...props} />,
-    p: ({ node, ...props }: any) => <TypographyP {...props} />,
-    blockquote: ({ node, ...props }: any) => (
-      <TypographyBlockquote {...props} />
-    ),
-    table: ({ node, ...props }: any) => <TypographyTable {...props} />,
-    thead: ({ node, ...props }: any) => <thead {...props} />,
-    tbody: ({ node, ...props }: any) => <tbody {...props} />,
-    tr: ({ node, ...props }: any) => <TypographyTr {...props} />,
-    th: ({ node, ...props }: any) => <TypographyTh {...props} />,
-    td: ({ node, ...props }: any) => <TypographyTd {...props} />,
-    ul: ({ node, ...props }: any) => <TypographyList {...props} />,
-    ol: ({ node, ...props }: any) => (
-      <TypographyList
-        as="ol"
-        className="my-6 ml-6 list-decimal space-y-2"
-        {...props}
-      />
-    ),
-    li: ({ node, ...props }: any) => <TypographyLi {...props} />,
-    code: ({ node, inline, className, children, ...props }: any) => {
-      const match = /language-(\w+)/.exec(className || "");
-      const codeString = String(children).replace(/\n$/, "");
-      const [buttonText, setButtonText] = useState("Copy");
+// CodeBlock component for rendering code with copy functionality
+const CodeBlock: React.FC<{
+  className?: string;
+  children: React.ReactNode;
+}> = ({ className = "", children }) => {
+  const match = /language-(\w+)/.exec(className || "");
+  const codeString = String(children).trim();
+  const [buttonText, setButtonText] = useState("Copy");
 
-      const handleCopy = () => {
-        navigator.clipboard
-          .writeText(codeString)
-          .then(() => {
-            console.log("Code copied to clipboard");
-            setButtonText("Copied!");
-            setTimeout(() => setButtonText("Copy"), 2000); // Reset after 2 seconds
-          })
-          .catch((err) => {
-            console.error("Failed to copy code: ", err);
-          });
-      };
-
-      return !inline && match ? (
-        <div style={{ position: "relative" }}>
-          <button
-            onClick={handleCopy}
-            style={{
-              position: "absolute",
-              right: "10px",
-              top: "10px",
-              background: "rgba(0, 0, 0, 0.5)",
-              color: "white",
-              border: "none",
-              borderRadius: "4px",
-              padding: "5px",
-              cursor: "pointer",
-            }}
-          >
-            {buttonText}
-          </button>
-          <SyntaxHighlighter
-            style={vscDarkPlus}
-            language={match[1]}
-            PreTag="div"
-            className="rounded-md bg-red-400"
-            {...props}
-          >
-            {codeString}
-          </SyntaxHighlighter>
-        </div>
-      ) : (
-        <TypographyInlineCode {...props}>{children}</TypographyInlineCode>
-      );
-    },
-    em: ({ node, ...props }: any) => <em {...props} />,
-    strong: ({ node, ...props }: any) => <strong {...props} />,
-    delete: ({ node, ...props }: any) => <del {...props} />,
-    a: ({ node, ...props }: any) => (
-      <a
-        className="text-blue-500 hover:underline"
-        target="_blank"
-        rel="noopener noreferrer"
-        {...props}
-      />
-    ),
-    img: ({ node, ...props }: any) => (
-      <img className="max-w-full h-auto" {...props} />
-    ),
+  const handleCopy = () => {
+    navigator.clipboard
+      .writeText(codeString)
+      .then(() => {
+        console.log("Code copied to clipboard");
+        setButtonText("Copied!");
+        setTimeout(() => setButtonText("Copy"), 2000);
+      })
+      .catch((err) => {
+        console.error("Failed to copy code: ", err);
+      });
   };
 
-  return (
-    <ReactMarkdown
-      components={components}
-      remarkPlugins={[remarkGfm]}
-      className={"flex flex-col gap-2"}
-    >
-      {content}
-    </ReactMarkdown>
+  return match ? (
+    <div style={{ position: "relative" }}>
+      <button
+        onClick={handleCopy}
+        style={{
+          position: "absolute",
+          right: "10px",
+          top: "10px",
+          background: "rgba(0, 0, 0, 0.5)",
+          color: "white",
+          border: "none",
+          borderRadius: "4px",
+          padding: "5px",
+          cursor: "pointer",
+        }}
+      >
+        {buttonText}
+      </button>
+      <SyntaxHighlighter style={vscDarkPlus} language={match[1]} PreTag="div">
+        {codeString}
+      </SyntaxHighlighter>
+    </div>
+  ) : (
+    <TypographyInlineCode>{children}</TypographyInlineCode>
   );
 };
+
+// MarkdownViewer component for rendering markdown content
+const MarkdownViewer: React.FC<{ content: string }> = ({ content }) => (
+  <ReactMarkdown
+    components={{
+      h1: ({ children }) => <TypographyH1>{children}</TypographyH1>,
+      h2: ({ children }) => <TypographyH2>{children}</TypographyH2>,
+      h3: ({ children }) => <TypographyH3>{children}</TypographyH3>,
+      h4: ({ children }) => <TypographyH4>{children}</TypographyH4>,
+      p: ({ children }) => <TypographyP>{children}</TypographyP>,
+      blockquote: ({ children }) => (
+        <TypographyBlockquote>{children}</TypographyBlockquote>
+      ),
+      table: ({ children }) => <TypographyTable>{children}</TypographyTable>,
+      thead: ({ children }) => <thead>{children}</thead>,
+      tbody: ({ children }) => <tbody>{children}</tbody>,
+      tr: ({ children }) => <TypographyTr>{children}</TypographyTr>,
+      th: ({ children }) => <TypographyTh>{children}</TypographyTh>,
+      td: ({ children }) => <TypographyTd>{children}</TypographyTd>,
+      ul: ({ children }) => <TypographyList>{children}</TypographyList>,
+      ol: ({ children }) => <TypographyList>{children}</TypographyList>,
+      li: ({ children }) => <TypographyLi>{children}</TypographyLi>,
+      code: ({ className, children }) => (
+        <CodeBlock className={className}>{children}</CodeBlock>
+      ),
+      em: ({ children }) => <em>{children}</em>,
+      strong: ({ children }) => <strong>{children}</strong>,
+      a: ({ children, ...props }) => (
+        <a
+          className="text-blue-500 hover:underline"
+          target="_blank"
+          rel="noopener noreferrer"
+          {...props}
+        >
+          {children}
+        </a>
+      ),
+      img: ({ ...props }) => <img className="max-w-full h-auto" {...props} />,
+    }}
+    remarkPlugins={[remarkGfm]}
+    className="flex flex-col gap-2"
+  >
+    {content}
+  </ReactMarkdown>
+);
 
 export default MarkdownViewer;
