@@ -44,7 +44,7 @@ const messagesAtom = atom<ChatMessage[]>([]);
 const generatingResponseAtom = atom(false);
 const generatingFirstTokenAtom = atom(false);
 const inputAtom = atom("");
-const temperatureAtom = atomWithStorage("chattemp", 1);
+const temperatureAtom = atomWithStorage("chattemp", 0.5);
 
 export default function useChat() {
   const [selectedModel, setSelectedModel] = useAtom(selectedModelAtom);
@@ -169,7 +169,7 @@ export default function useChat() {
     // Add user message to the chat
     setMessages((prevMessages) => [
       ...prevMessages,
-      { role: MessageRole.user, content: userInput },
+      { role: MessageRole.user, content: input },
       { role: MessageRole.assistant, content: "" },
     ]);
 

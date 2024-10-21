@@ -17,7 +17,7 @@ export default function ChatSettings() {
   const [inputValue, setInputValue] = useState(temperature.toFixed(2));
 
   useEffect(() => {
-    setInputValue(temperature.toFixed(2));
+    setInputValue(temperature.toFixed(1));
   }, [temperature]);
 
   const handleTemperatureChange = (value: number[]) => {
@@ -48,7 +48,7 @@ export default function ChatSettings() {
             <Input
               type="number"
               min={0}
-              max={2}
+              max={1}
               step={0.01}
               value={inputValue}
               onChange={handleInputChange}
@@ -57,7 +57,7 @@ export default function ChatSettings() {
           </div>
           <Slider
             min={0}
-            max={2}
+            max={1}
             step={0.01}
             value={[temperature]}
             onValueChange={handleTemperatureChange}

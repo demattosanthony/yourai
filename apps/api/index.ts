@@ -7,7 +7,7 @@ import {
   type Message,
 } from "ai";
 import { MODELS } from "./models";
-import { webSearchTool } from "./tools";
+import { getWebPageContentsTool, webSearchTool } from "./tools";
 import { SYSTEM_MESSAGE } from "./prompts";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 import db from "@anyagent/db";
@@ -70,9 +70,10 @@ async function main() {
         ...generationParams,
         tools: {
           webSearch: webSearchTool,
+          getWebPageContents: getWebPageContentsTool,
         },
         toolChoice: "auto",
-        maxSteps: 10,
+        maxSteps: 5,
         onChunk({
           chunk,
         }: {
