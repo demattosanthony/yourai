@@ -11,6 +11,7 @@
     "packages/*"
   ],
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "@anyagent/db": "workspace:*"
   }
 }

@@ -13,6 +13,7 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
+    "@anyagent/db": "workspace:*",
     "@ai-sdk/anthropic": "^0.0.51",
     "@ai-sdk/groq": "^0.0.1",
     "@ai-sdk/openai": "^0.0.68",

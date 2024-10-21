@@ -2,8 +2,10 @@
   "name": "@anyagent/db",
   "module": "index.ts",
   "type": "module",
+  "scripts": {
+    "mig": "drizzle-kit generate"
+  },
   "dependencies": {
-    "@supabase/supabase-js": "^2.45.1",
     "drizzle-orm": "^0.35.2",
     "pg": "^8.13.0"
   },
