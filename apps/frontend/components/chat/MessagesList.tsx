@@ -11,7 +11,9 @@ export default function ChatMessagesList() {
         {messages.length === 0 && (
           <div className="flex-1 w-full h-full flex items-center justify-center">
             <div
-              className={`w-32 h-32 bg-black rounded-full dark:bg-white`}
+              className={`w-32 h-32 bg-black rounded-full dark:bg-white
+
+                `}
             ></div>
           </div>
         )}
@@ -21,11 +23,12 @@ export default function ChatMessagesList() {
             {messages.map((message, index) => (
               <div
                 key={index}
-                className={`flex flex-col ${
-                  message.role === MessageRole.user
-                    ? "justify-end"
-                    : "justify-start"
-                } 
+                className={`flex flex-col
+                  ${
+                    message.role === MessageRole.user
+                      ? "justify-end"
+                      : "justify-start"
+                  } 
                   mb-4`}
               >
                 <>

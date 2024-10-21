@@ -13,7 +13,7 @@ import { migrate } from "drizzle-orm/node-postgres/migrator";
 import db from "@anyagent/db";
 import path from "path";
 
-const PORT = 3000;
+const PORT = process.env.PORT || 4000;
 
 async function main() {
   await migrate(db, {

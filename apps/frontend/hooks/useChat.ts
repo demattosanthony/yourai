@@ -42,6 +42,7 @@ type ResponseChunk = string;
 const selectedModelAtom = atomWithStorage("selectedAiModel", "gpt-4o");
 const messagesAtom = atomWithStorage<ChatMessage[]>("chatMessages", []);
 const generatingResponseAtom = atom(false);
+const generatingFirstTokenAtom = atom(false);
 const inputAtom = atom("");
 
 export default function useChat() {
@@ -49,6 +50,9 @@ export default function useChat() {
   const [messages, setMessages] = useAtom(messagesAtom);
   const [generatingResponse, setGeneratingResponse] = useAtom(
     generatingResponseAtom
+  );
+  const [generatingFirstToken, setGeneratingFirstToken] = useAtom(
+    generatingFirstTokenAtom
   );
   const [input, setInput] = useAtom(inputAtom);
 
@@ -63,7 +67,7 @@ export default function useChat() {
     model: string,
     signal: AbortSignal
   ): AsyncGenerator<ResponseChunk> {
-    const url = `http://localhost:3000/inference`;
+    const url = `${process.env.NEXT_PUBLIC_API_URL}/inference`;
     const data = {
       messages,
       model,
@@ -167,6 +171,7 @@ export default function useChat() {
     ]);
 
     setGeneratingResponse(true);
+    setGeneratingFirstToken(true);
 
     const abortController = new AbortController();
     const { signal } = abortController;
@@ -185,6 +190,8 @@ export default function useChat() {
         signal
       )) {
         const { event, data } = JSON.parse(chunk);
+
+        if (generatingFirstToken) setGeneratingFirstToken(false);
 
         if (event === "message") {
           const { text } = data;
@@ -267,5 +274,6 @@ export default function useChat() {
     setInput,
     handleAbort,
     handleSubmit,
+    generatingFirstToken,
   };
 }
