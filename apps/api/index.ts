@@ -71,7 +71,7 @@ async function main() {
           webSearch: webSearchTool,
         },
         toolChoice: "auto",
-        maxSteps: 5,
+        maxSteps: 10,
         onChunk({
           chunk,
         }: {

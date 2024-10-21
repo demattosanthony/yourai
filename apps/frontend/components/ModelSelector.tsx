@@ -87,17 +87,17 @@ const MODELS = [
   {
     provider: "perplexity",
     model: "llama-3.1-online-huge",
-    name: "Perplexity Llama 3.1 Online Huge",
+    name: "Perplexity Llama 3.1 Online 405B",
   },
   {
     provider: "perplexity",
     model: "llama-3.1-online-large",
-    name: "Perplexity Llama 3.1 Online Large",
+    name: "Perplexity Llama 3.1 Online 70B",
   },
   {
     provider: "perplexity",
     model: "llama-3.1-online-small",
-    name: "Perplexity Llama 3.1 Online Small",
+    name: "Perplexity Llama 3.1 Online 8B",
   },
   {
     provider: "perplexity",

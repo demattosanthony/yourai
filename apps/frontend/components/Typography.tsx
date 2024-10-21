@@ -90,11 +90,15 @@ export function TypographyList({
 
 export function TypographyInlineCode({
   children,
+  color = "bg-muted-foreground",
 }: {
   children: React.ReactNode;
+  color?: string;
 }) {
   return (
-    <code className="relative rounded bg-muted-foreground px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold">
+    <code
+      className={`relative rounded ${color} px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold break-words whitespace-normal`}
+    >
       {children}
     </code>
   );

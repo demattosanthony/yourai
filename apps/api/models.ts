@@ -55,12 +55,12 @@ export const MODELS: Record<string, ModelConfig> = {
     supportsStreaming: true,
   },
   "gemini-1.5-pro": {
-    model: google("gemini-1.5-pro-latest"),
+    model: google("gemini-1.5-pro-002"),
     supportsToolUse: true,
     supportsStreaming: true,
   },
   "gemini-1.5-flash": {
-    model: google("gemini-1.5-flash-latest"),
+    model: google("gemini-1.5-flash-002"),
     supportsToolUse: true,
     supportsStreaming: true,
   },

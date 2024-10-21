@@ -15,7 +15,7 @@ export default function Home() {
 
       <ChatMessagesList />
 
-      <div className="w-full flex items-center justify-center mx-auto p-4">
+      <div className="w-full flex items-center justify-center mx-auto p-2 pt-1">
         <ChatInputForm
           input={input}
           setInput={setInput}
