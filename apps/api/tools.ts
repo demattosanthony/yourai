@@ -4,7 +4,7 @@ import { getJson } from "serpapi";
 
 export const webSearchTool = tool({
   description:
-    "Searches the web using Google and returns structured data. This tool provides comprehensive search results, including titles, snippets, URLs, and other relevant information from various sources like web pages, images, videos, and news.",
+    "Searches the web using Google and returns structured data. This tool provides comprehensive search results, including titles, snippets, URLs, and other relevant information from various sources like web pages, images, videos, and news. Use this tool when you need to gather information from the web.",
   parameters: z.object({
     query: z.string(),
   }),
@@ -23,7 +23,7 @@ export const webSearchTool = tool({
 
 export const getWebPageContentsTool = tool({
   description:
-    "Retrieves the content of a specific web page. This tool allows direct access to the underlying code of a given URL. Useful for tasks requiring precise information extraction or analysis of the page structure.	",
+    "Retrieves the content of a specific web page. This tool allows direct access to the underlying code of a given URL. Useful for tasks requiring precise information extraction or analysis of the page structure.	Use this tool when you need to extract specific information from a web page.",
   parameters: z.object({
     url: z.string(),
   }),

@@ -166,6 +166,11 @@ const MODELS = [
     model: "claude-3.5-sonnet",
     name: "Anthropic Claude 3.5 Sonnet",
   },
+  // {
+  //   provider: "anthropic",
+  //   model: "claude-3.5-haiku",
+  //   name: "Anthropic Claude 3.5 Haiku",
+  // },
   {
     provider: "anthropic",
     model: "claude-3-opus",

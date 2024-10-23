@@ -90,7 +90,7 @@ export function TypographyList({
 
 export function TypographyInlineCode({
   children,
-  color = "bg-muted-foreground",
+  color = "bg-muted",
 }: {
   children: React.ReactNode;
   color?: string;

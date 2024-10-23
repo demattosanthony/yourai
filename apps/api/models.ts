@@ -27,7 +27,32 @@ interface ModelConfig {
   supportsSystemMessages?: boolean;
 }
 
-export const MODELS: Record<string, ModelConfig> = {
+export const MODELS: Record<
+  | "gpt-4o-mini"
+  | "gpt-4o"
+  | "o1-preview"
+  | "o1-mini"
+  | "claude-3.5-sonnet"
+  | "claude-3,5-haiku"
+  | "claude-3-opus"
+  | "gemini-1.5-pro"
+  | "gemini-1.5-flash"
+  | "grok-beta"
+  | "mistral-large"
+  | "mistral-small"
+  | "codestral"
+  | "ministral-8b"
+  | "llama-3.2-90b-text-preview"
+  | "llama-3.2-1b-preview"
+  | "llama-3.2-11b-text-preview"
+  | "llama-3.1-70b-versatile"
+  | "llama-3.1-online-large"
+  | "llama-3.1-online-small"
+  | "llama-3.1-online-huge"
+  | "llama-3.1-8b-instruct"
+  | "llama-3.1-70b-instruct",
+  ModelConfig
+> = {
   "gpt-4o-mini": {
     model: openai("gpt-4o-mini"),
     supportsToolUse: true,
@@ -51,7 +76,12 @@ export const MODELS: Record<string, ModelConfig> = {
     supportsSystemMessages: false,
   },
   "claude-3.5-sonnet": {
-    model: anthropic("claude-3-5-sonnet-20240620"),
+    model: anthropic("claude-3-5-sonnet-20241022"),
+    supportsToolUse: true,
+    supportsStreaming: true,
+  },
+  "claude-3,5-haiku": {
+    model: anthropic("claude-3-5-haiku-latest"),
     supportsToolUse: true,
     supportsStreaming: true,
   },
@@ -134,6 +164,7 @@ export const MODELS: Record<string, ModelConfig> = {
     model: perplexity("llama-3.1-8b-instruct"),
     supportsToolUse: false,
     supportsStreaming: true,
+    supportsSystemMessages: false,
   },
   "llama-3.1-70b-instruct": {
     model: perplexity("llama-3.1-70b-instruct"),

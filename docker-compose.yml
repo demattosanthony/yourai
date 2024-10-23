@@ -1,31 +1,35 @@
-version: "3.6"
+version: "3.8"
 services:
-  pg:
+  postgres:
     build:
-      context: ./postgres
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./postgres/Dockerfile
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgresqldata:/var/lib/postgresql/data
     ports:
       - 5432:5432
+    networks:
+      - local
 
-  # api:
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile
-  #   ports:
-  #     - 3000:3000
-  #     - 8080:8080
-  #   env_file:
-  #     - ./api/.env
-  #   volumes:
-  #     - ./api:/app/api
-  #   environment:
-  #     - NODE_ENV=development
-  #     - POSTGRES_CONNECTION_STRING=postgres://postgres:postgres@pg:5432/postgres
-  #   depends_on:
-  #     - pg
-  #   platform: linux/amd64
+  grpah:
+    build:
+      context: .
+      dockerfile: ./neo4j/Dockerfile
+    volumes:
+      - neo4jdata:/data
+      - neo4jlogs:/logs
+      - neo4jplugins:/plugins
+    ports:
+      - 7474:7474
+      - 7687:7687
+    networks:
+      - local
+
+networks:
+  local:
 
 volumes:
-  postgres_data:
+  postgresqldata:
+  neo4jdata:
+  neo4jlogs:
+  neo4jplugins:
