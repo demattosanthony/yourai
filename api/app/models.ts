@@ -37,16 +37,17 @@ export const MODELS: Record<
   | "claude-3.5-haiku"
   | "gemini-2.0-pro"
   | "gemini-2.0-flash"
+  | "gemini-2.0-flash-online"
   | "grok-beta"
   | "mistral-large"
   | "mistral-small"
-  | "codestral"
-  | "ministral-8b"
+  //   | "codestral"
+  //   | "ministral-8b"
   | "llama-3.3-70b"
   | "llama-3.1-online-large"
   | "llama-3.1-online-small"
   | "llama-3.1-online-huge"
-  | "llama-3.1-8b-instruct"
+  //   | "llama-3.1-8b-instruct"
   | "llama-3.1-70b-instruct",
   ModelConfig
 > = {
@@ -106,6 +107,14 @@ export const MODELS: Record<
     supportsStreaming: true,
     provider: "google",
   },
+  "gemini-2.0-flash-online": {
+    model: google("gemini-2.0-flash-exp", {
+      useSearchGrounding: true,
+    }),
+    supportsToolUse: true,
+    supportsStreaming: true,
+    provider: "google",
+  },
   "grok-beta": {
     model: xai("grok-beta"),
     supportsToolUse: true,
@@ -124,18 +133,18 @@ export const MODELS: Record<
     supportsStreaming: true,
     provider: "mistral",
   },
-  codestral: {
-    model: mistral("codestral-latest"),
-    supportsToolUse: true,
-    supportsStreaming: true,
-    provider: "mistral",
-  },
-  "ministral-8b": {
-    model: mistral("ministral-8b-latest"),
-    supportsToolUse: true,
-    supportsStreaming: true,
-    provider: "mistral",
-  },
+  //   codestral: {
+  //     model: mistral("codestral-latest"),
+  //     supportsToolUse: true,
+  //     supportsStreaming: true,
+  //     provider: "mistral",
+  //   },
+  //   "ministral-8b": {
+  //     model: mistral("ministral-8b-latest"),
+  //     supportsToolUse: true,
+  //     supportsStreaming: true,
+  //     provider: "mistral",
+  //   },
   "llama-3.3-70b": {
     model: groq("llama-3.3-70b-versatile"),
     supportsToolUse: false,
@@ -176,13 +185,13 @@ export const MODELS: Record<
     supportsStreaming: true,
     provider: "perplexity",
   },
-  "llama-3.1-8b-instruct": {
-    model: perplexity("llama-3.1-8b-instruct"),
-    supportsToolUse: false,
-    supportsStreaming: true,
-    supportsSystemMessages: false,
-    provider: "perplexity",
-  },
+  //   "llama-3.1-8b-instruct": {
+  //     model: perplexity("llama-3.1-8b-instruct"),
+  //     supportsToolUse: false,
+  //     supportsStreaming: true,
+  //     supportsSystemMessages: false,
+  //     provider: "perplexity",
+  //   },
   "llama-3.1-70b-instruct": {
     model: perplexity("llama-3.1-70b-instruct"),
     supportsToolUse: false,

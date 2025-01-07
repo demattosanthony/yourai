@@ -6,13 +6,11 @@ import {
   streamText,
   type Message,
 } from "ai";
-import { MODELS } from "../models";
-import { getWebPageContentsTool, webSearchTool } from "../tools";
+import { MODELS } from "./models";
 import multer from "multer";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 
 import path from "path";
-import { profile } from "../profile";
 import db from "./config/db";
 
 interface inferenceParams {
@@ -50,12 +48,12 @@ async function runInference(
   if (modelToRun.supportsToolUse) {
     generationParams = {
       ...generationParams,
-      tools: {
-        webSearch: webSearchTool,
-        getWebPageContents: getWebPageContentsTool,
-      },
-      toolChoice: "auto",
-      maxSteps: 5,
+      //   tools: {
+      //     webSearch: webSearchTool,
+      //     getWebPageContents: getWebPageContentsTool,
+      //   },
+      //   toolChoice: "auto",
+      //   maxSteps: 5,
       onChunk({
         chunk,
       }: {

@@ -8,16 +8,20 @@
 
 1. Install Bun js runtime: https://bun.sh/docs/installation
 
-2. Install packages: ``bun install`
+2. Install packages
+
+````bash
+cd api && bun install && cd ../frontend && bun install && cd..
+```
 
 3. Add env vars to the api
 
 ```bash
-cd apps/api
+cd api
 cp .env.example .env.local
 
 # Update .env.local to have correct keys
-```
+````
 
 3. Run the apps: ``bun run dev`
 
