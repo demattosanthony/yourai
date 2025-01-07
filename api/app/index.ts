@@ -123,6 +123,17 @@ async function main() {
     res.send("Hello World");
   });
 
+  app.get("/models", async (req, res) => {
+    res.json(
+      Object.entries(MODELS).map(([modelName, config]) => ({
+        name: modelName,
+        supportsToolUse: config.supportsToolUse,
+        supportsStreaming: config.supportsStreaming,
+        provider: config.provider,
+      }))
+    );
+  });
+
   app.post("/inference", async (req, res) => {
     const { model, messages, maxTokens, temperature } = req.body;
 

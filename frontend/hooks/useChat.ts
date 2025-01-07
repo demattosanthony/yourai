@@ -1,3 +1,4 @@
+import { Model } from "@/types/model";
 import { atom, useAtom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 import { useRef } from "react";
@@ -39,7 +40,10 @@ export type ChatMessage = {
 type ResponseChunk = string;
 
 // States
-const selectedModelAtom = atomWithStorage("selectedAiModel", "gpt-4o");
+const selectedModelAtom = atomWithStorage<Model>("selectedAiModel", {
+  name: "gpt-4o",
+  provider: "openai",
+});
 const messagesAtom = atom<ChatMessage[]>([]);
 const generatingResponseAtom = atom(false);
 const generatingFirstTokenAtom = atom(false);
@@ -189,7 +193,7 @@ export default function useChat() {
     try {
       for await (const chunk of sendMessage(
         [...messages, { role: MessageRole.user, content: userInput }],
-        selectedModel,
+        selectedModel.name,
         signal
       )) {
         const { event, data } = JSON.parse(chunk);

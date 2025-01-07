@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -17,17 +16,25 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { useEffect, useState } from "react";
+import { Model } from "@/types/model";
+import api from "@/lib/api";
 
 interface ModelSelectorProps {
-  selectedModel: string;
-  setSelectedModel: React.Dispatch<React.SetStateAction<string>>;
+  selectedModel: Model;
+  setSelectedModel: any;
 }
 
 const ModelSelector: React.FC<ModelSelectorProps> = ({
   selectedModel,
   setSelectedModel,
 }) => {
-  const [open, setOpen] = React.useState(false);
+  const [open, setOpen] = useState(false);
+  const [models, setModels] = useState<Model[]>([]);
+
+  useEffect(() => {
+    api.getAvailableModels().then((res) => setModels(res));
+  }, []);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -39,8 +46,8 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
           className="w-auto justify-between"
         >
           <div className="flex items-center">
-            {getModelImage(selectedModel)}
-            {MODELS.find((model) => model.model === selectedModel)?.name ||
+            {getModelImage(selectedModel.provider)}
+            {models.find((model) => model.name === selectedModel.name)?.name ||
               "Select model..."}
           </div>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -52,23 +59,23 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
           <CommandList className="max-h-[400px]">
             <CommandEmpty>No model found.</CommandEmpty>
             <CommandGroup>
-              {MODELS.map((model) => (
+              {models.map((model) => (
                 <CommandItem
-                  key={model.model}
-                  value={model.model}
+                  key={model.name}
+                  value={model.name}
                   onSelect={(currentValue) => {
-                    setSelectedModel(currentValue);
+                    setSelectedModel(model);
                     setOpen(false);
                   }}
                 >
                   <div className="flex items-center">
-                    {getModelImage(model.model)}
+                    {getModelImage(model.provider)}
                     <span>{model.name}</span>
                   </div>
                   <Check
                     className={cn(
                       "ml-auto h-4 w-4",
-                      selectedModel === model.model
+                      selectedModel.name === model.name
                         ? "opacity-100"
                         : "opacity-0"
                     )}
@@ -85,11 +92,8 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
 
 export default ModelSelector;
 
-function getModelImage(model: string) {
-  const modelInfo = MODELS.find((m) => m.model === model);
-  if (!modelInfo) return null;
-
-  switch (modelInfo.provider) {
+function getModelImage(provider: string) {
+  switch (provider) {
     case "openai":
       return (
         <img
@@ -139,96 +143,3 @@ function getModelImage(model: string) {
       return null;
   }
 }
-
-const MODELS = [
-  {
-    provider: "openai",
-    model: "gpt-4o",
-    name: "OpenAI GPT-4o",
-  },
-  {
-    provider: "openai",
-    model: "gpt-4o-mini",
-    name: "OpenAI GPT-4o Mini",
-  },
-  {
-    provider: "openai",
-    model: "o1",
-    name: "OpenAI o1",
-  },
-  {
-    provider: "openai",
-    model: "o1-mini",
-    name: "OpenAI o1 Mini",
-  },
-  {
-    provider: "anthropic",
-    model: "claude-3.5-sonnet",
-    name: "Anthropic Claude 3.5 Sonnet",
-  },
-  {
-    provider: "anthropic",
-    model: "claude-3.5-haiku",
-    name: "Anthropic Claude 3.5 Haiku",
-  },
-  {
-    provider: "xai",
-    model: "grok-beta",
-    name: "xAI Grok Beta",
-  },
-  {
-    provider: "google",
-    model: "gemini-2.0-pro",
-    name: "Google Gemini 2.0 Pro",
-  },
-  {
-    provider: "google",
-    model: "gemini-2.0-flash",
-    name: "Google Gemini 2.0 Flash",
-  },
-  {
-    provider: "mistral",
-    model: "mistral-large",
-    name: "Mistral Large",
-  },
-  {
-    provider: "mistral",
-    model: "mistral-small",
-    name: "Mistral Small",
-  },
-  {
-    provider: "mistral",
-    model: "codestral",
-    name: "Mistral Codestral",
-  },
-  {
-    provider: "groq",
-    model: "llama-3.3-70b",
-    name: "Groq Llama 3.3 70b",
-  },
-  {
-    provider: "perplexity",
-    model: "llama-3.1-online-huge",
-    name: "Perplexity Llama 3.1 Online 405B",
-  },
-  {
-    provider: "perplexity",
-    model: "llama-3.1-online-large",
-    name: "Perplexity Llama 3.1 Online 70B",
-  },
-  {
-    provider: "perplexity",
-    model: "llama-3.1-online-small",
-    name: "Perplexity Llama 3.1 Online 8B",
-  },
-  {
-    provider: "perplexity",
-    model: "llama-3.1-8b-instruct",
-    name: "Perplexity Llama 3.1 8b Instruct",
-  },
-  {
-    provider: "perplexity",
-    model: "llama-3.1-70b-instruct",
-    name: "Perplexity Llama 3.1 70b Instruct",
-  },
-];
