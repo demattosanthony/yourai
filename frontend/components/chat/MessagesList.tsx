@@ -10,9 +10,7 @@ export default function ChatMessagesList() {
       <div className="max-w-[1200px] mx-auto p-4 w-full">
         {messages.length === 0 && (
           <div className="flex-1 w-full h-full flex items-center justify-center">
-            <div
-              className={`w-32 h-32 bg-black rounded-full dark:bg-white`}
-            ></div>
+            <Sphere />
           </div>
         )}
 
@@ -57,6 +55,39 @@ export default function ChatMessagesList() {
           </>
         )}
       </div>
+    </div>
+  );
+}
+
+import { Canvas } from "@react-three/fiber";
+import { OrbitControls, Environment } from "@react-three/drei";
+import { useTheme } from "next-themes";
+
+function Sphere() {
+  const { resolvedTheme } = useTheme();
+
+  return (
+    <div className={`w-full h-full`}>
+      <Canvas camera={{ position: [0, 0, 5] }}>
+        <ambientLight intensity={0.1} />
+
+        <directionalLight position={[3, 3, 5]} intensity={0.3} />
+
+        <pointLight position={[-5, -5, -5]} intensity={0.1} color="#ffffff" />
+
+        <mesh>
+          <sphereGeometry args={[1, 64, 64]} />
+          <meshStandardMaterial
+            color={resolvedTheme === "dark" ? "white" : "black"}
+            roughness={0.3}
+            metalness={0.4}
+          />
+        </mesh>
+
+        <Environment preset="warehouse" />
+
+        <OrbitControls enableZoom={false} autoRotate autoRotateSpeed={1} />
+      </Canvas>
     </div>
   );
 }
