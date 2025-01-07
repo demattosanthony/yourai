@@ -3,25 +3,11 @@ services:
   postgres:
     build:
       context: .
-      dockerfile: ./postgres/Dockerfile
+      dockerfile: ./containers/postgres/Dockerfile
     volumes:
       - postgresqldata:/var/lib/postgresql/data
     ports:
       - 5432:5432
-    networks:
-      - local
-
-  grpah:
-    build:
-      context: .
-      dockerfile: ./neo4j/Dockerfile
-    volumes:
-      - neo4jdata:/data
-      - neo4jlogs:/logs
-      - neo4jplugins:/plugins
-    ports:
-      - 7474:7474
-      - 7687:7687
     networks:
       - local
 
@@ -30,6 +16,3 @@ networks:
 
 volumes:
   postgresqldata:
-  neo4jdata:
-  neo4jlogs:
-  neo4jplugins:

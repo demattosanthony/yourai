@@ -15,6 +15,73 @@ import path from "path";
 import { profile } from "../profile";
 import db from "./config/db";
 
+interface inferenceParams {
+  model: keyof typeof MODELS;
+  messages: Message[];
+  maxTokens?: number;
+  temperature?: number;
+}
+
+async function runInference(
+  params: inferenceParams,
+  onToolEvent: (event: string, data: any) => void
+) {
+  const { model, messages, temperature, maxTokens } = params;
+
+  let messagesToSend = [...messages];
+
+  const modelToRun = MODELS[model];
+
+  //   if (modelToRun.supportsSystemMessages !== false) {
+  //     messagesToSend.unshift({
+  //       id: "sysMessage",
+  //       role: "system" as const,
+  //       content: profile.system,
+  //     });
+  //   }
+
+  let generationParams: any = {
+    model: modelToRun.model,
+    temperature: temperature || 0.5,
+    messages: convertToCoreMessages(messagesToSend),
+    maxTokens: maxTokens || undefined,
+  };
+
+  if (modelToRun.supportsToolUse) {
+    generationParams = {
+      ...generationParams,
+      tools: {
+        webSearch: webSearchTool,
+        getWebPageContents: getWebPageContentsTool,
+      },
+      toolChoice: "auto",
+      maxSteps: 5,
+      onChunk({
+        chunk,
+      }: {
+        chunk: { type: string; toolName: string; args: any };
+      }) {
+        if (chunk.type === "tool-call") {
+          const { toolName, args } = chunk;
+          onToolEvent("tool-call-start", { toolName, args });
+        }
+
+        if (chunk.type === "tool-result") {
+          onToolEvent("tool-call-end", { toolName: chunk.toolName });
+        }
+      },
+    };
+  }
+
+  if (modelToRun.supportsStreaming) {
+    const { textStream } = await streamText(generationParams);
+    return textStream;
+  } else {
+    const { text } = await generateText(generationParams);
+    return [text]; // Wrap text in an array to make it iterable
+  }
+}
+
 const upload = multer({
   storage: multer.diskStorage({
     destination: (req, file, cb) => {
@@ -55,73 +122,6 @@ async function main() {
   app.get("/", (req, res) => {
     res.send("Hello World");
   });
-
-  interface inferenceParams {
-    model: keyof typeof MODELS;
-    messages: Message[];
-    maxTokens?: number;
-    temperature?: number;
-  }
-
-  async function runInference(
-    params: inferenceParams,
-    onToolEvent: (event: string, data: any) => void
-  ) {
-    const { model, messages, temperature, maxTokens } = params;
-
-    let messagesToSend = [...messages];
-
-    const modelToRun = MODELS[model];
-
-    if (modelToRun.supportsSystemMessages !== false) {
-      messagesToSend.unshift({
-        id: "sysMessage",
-        role: "system" as const,
-        content: profile.system,
-      });
-    }
-
-    let generationParams: any = {
-      model: modelToRun.model,
-      temperature: temperature || 0.5,
-      messages: convertToCoreMessages(messagesToSend),
-      maxTokens: maxTokens || undefined,
-    };
-
-    if (modelToRun.supportsToolUse) {
-      generationParams = {
-        ...generationParams,
-        tools: {
-          webSearch: webSearchTool,
-          getWebPageContents: getWebPageContentsTool,
-        },
-        toolChoice: "auto",
-        maxSteps: 5,
-        onChunk({
-          chunk,
-        }: {
-          chunk: { type: string; toolName: string; args: any };
-        }) {
-          if (chunk.type === "tool-call") {
-            const { toolName, args } = chunk;
-            onToolEvent("tool-call-start", { toolName, args });
-          }
-
-          if (chunk.type === "tool-result") {
-            onToolEvent("tool-call-end", { toolName: chunk.toolName });
-          }
-        },
-      };
-    }
-
-    if (modelToRun.supportsStreaming) {
-      const { textStream } = await streamText(generationParams);
-      return textStream;
-    } else {
-      const { text } = await generateText(generationParams);
-      return [text]; // Wrap text in an array to make it iterable
-    }
-  }
 
   app.post("/inference", async (req, res) => {
     const { model, messages, maxTokens, temperature } = req.body;
