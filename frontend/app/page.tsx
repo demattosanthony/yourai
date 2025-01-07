@@ -14,7 +14,7 @@ export default function Home() {
 
       <ChatMessagesList />
 
-      <div className="w-full flex items-center justify-center mx-auto p-2 pt-4 pb-4">
+      <div className="w-full flex items-center justify-center mx-auto p-1 pb-2">
         <ChatInputForm onSubmit={handleSubmit} onAbort={handleAbort} />
       </div>
     </div>

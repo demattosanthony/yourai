@@ -42,20 +42,10 @@ const CodeBlock: React.FC<{
   };
 
   return match ? (
-    <div style={{ position: "relative" }}>
+    <div className="relative">
       <button
         onClick={handleCopy}
-        style={{
-          position: "absolute",
-          right: "10px",
-          top: "10px",
-          background: "rgba(0, 0, 0, 0.5)",
-          color: "white",
-          border: "none",
-          borderRadius: "4px",
-          padding: "5px",
-          cursor: "pointer",
-        }}
+        className="absolute right-2.5 top-2.5 bg-black/50 text-white border-none rounded-xl p-1.5 cursor-pointer"
       >
         {buttonText}
       </button>
@@ -107,7 +97,7 @@ const MarkdownViewer: React.FC<{ content: string }> = ({ content }) => (
       img: ({ ...props }) => <img className="max-w-full h-auto" {...props} />,
     }}
     remarkPlugins={[remarkGfm]}
-    className="flex flex-col gap-2"
+    className="flex flex-col gap-0"
   >
     {content}
   </ReactMarkdown>
