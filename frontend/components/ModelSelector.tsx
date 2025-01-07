@@ -153,8 +153,8 @@ const MODELS = [
   },
   {
     provider: "openai",
-    model: "o1-preview",
-    name: "OpenAI o1 Preview",
+    model: "o1",
+    name: "OpenAI o1",
   },
   {
     provider: "openai",
@@ -166,15 +166,10 @@ const MODELS = [
     model: "claude-3.5-sonnet",
     name: "Anthropic Claude 3.5 Sonnet",
   },
-  // {
-  //   provider: "anthropic",
-  //   model: "claude-3.5-haiku",
-  //   name: "Anthropic Claude 3.5 Haiku",
-  // },
   {
     provider: "anthropic",
-    model: "claude-3-opus",
-    name: "Anthropic Claude 3 Opus",
+    model: "claude-3.5-haiku",
+    name: "Anthropic Claude 3.5 Haiku",
   },
   {
     provider: "xai",
@@ -183,13 +178,13 @@ const MODELS = [
   },
   {
     provider: "google",
-    model: "gemini-1.5-pro",
-    name: "Google Gemini 1.5 Pro",
+    model: "gemini-2.0-pro",
+    name: "Google Gemini 2.0 Pro",
   },
   {
     provider: "google",
-    model: "gemini-1.5-flash",
-    name: "Google Gemini 1.5 Flash",
+    model: "gemini-2.0-flash",
+    name: "Google Gemini 2.0 Flash",
   },
   {
     provider: "mistral",
@@ -208,13 +203,8 @@ const MODELS = [
   },
   {
     provider: "groq",
-    model: "llama-3.1-70b-versatile",
-    name: "Groq Llama 3.1 70b",
-  },
-  {
-    provider: "groq",
-    model: "llama-3.2-1b-preview",
-    name: "Groq Llama 3.2 1b",
+    model: "llama-3.3-70b",
+    name: "Groq Llama 3.3 70b",
   },
   {
     provider: "perplexity",

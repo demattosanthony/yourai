@@ -6,8 +6,7 @@ import Header from "@/components/Header";
 import useChat from "@/hooks/useChat";
 
 export default function Home() {
-  const { generatingResponse, input, setInput, handleAbort, handleSubmit } =
-    useChat();
+  const { handleSubmit, handleAbort } = useChat();
 
   return (
     <div className="h-screen w-screen flex flex-col">
@@ -15,14 +14,8 @@ export default function Home() {
 
       <ChatMessagesList />
 
-      <div className="w-full flex items-center justify-center mx-auto p-2 pt-1">
-        <ChatInputForm
-          input={input}
-          setInput={setInput}
-          onSubmit={handleSubmit}
-          onAbort={handleAbort}
-          generating={generatingResponse}
-        />
+      <div className="w-full flex items-center justify-center mx-auto p-2 pt-1 pb-4">
+        <ChatInputForm onSubmit={handleSubmit} onAbort={handleAbort} />
       </div>
     </div>
   );

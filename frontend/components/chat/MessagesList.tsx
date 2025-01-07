@@ -36,10 +36,10 @@ export default function ChatMessagesList() {
                 </>
 
                 <div
-                  className={`max-w-full md:max-w-[70%] rounded-xl p-3 ${
+                  className={`max-w-full md:max-w-[70%] rounded-lg p-2 ${
                     message.role === MessageRole.user
                       ? "bg-primary text-white self-end dark:text-black"
-                      : "bg-secondary self-start"
+                      : "bg-accent self-start"
                   }`}
                   style={{
                     whiteSpace:

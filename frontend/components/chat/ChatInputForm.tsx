@@ -1,128 +1,116 @@
+"use client";
+
+import { Paperclip, SendHorizonal, StopCircle } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Textarea } from "../ui/textarea";
 import { Button } from "../ui/button";
-import { CheckIcon, Paperclip } from "lucide-react";
-import { StopIcon } from "@radix-ui/react-icons";
+import useChat from "@/hooks/useChat";
 
 interface ChatInputFormProps {
-  input: string;
-  setInput: (input: string) => void;
-  onSubmit: () => void;
+  placeholder?: string;
+  onSubmit?: (input: string) => void;
   onAbort?: () => void;
-  generating?: boolean;
-  disabled?: boolean;
 }
 
-const ChatInputForm: React.FC<ChatInputFormProps> = ({
-  input,
-  setInput,
+export default function ChatInputForm({
+  placeholder = "Ask anything...",
   onSubmit,
-  disabled,
   onAbort,
-  generating,
-}) => {
+}: ChatInputFormProps) {
+  const [focused, setFocused] = useState(true);
+
+  const { generatingResponse, input, setInput } = useChat();
+
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
-  const [, setIsTextAreaExpanded] = useState(false);
-
-  const handleKeyDown = async (
-    event: React.KeyboardEvent<HTMLTextAreaElement>
-  ) => {
+  const handleKeyDown = async (event: any) => {
     if (event.key === "Enter" && event.shiftKey) {
       event.preventDefault();
-      const target = event.target as HTMLTextAreaElement;
-      const caretPosition = target.selectionStart;
+      const caretPosition = event.target.selectionStart;
       const textBeforeCaret = input.substring(0, caretPosition);
       const textAfterCaret = input.substring(caretPosition);
       if (setInput) {
         setInput(textBeforeCaret + "\n" + textAfterCaret);
+        // Set cursor position after state update
+        setTimeout(() => {
+          if (textAreaRef.current) {
+            textAreaRef.current.selectionStart = caretPosition + 1;
+            textAreaRef.current.selectionEnd = caretPosition + 1;
+          }
+        }, 0);
       }
     } else if (event.key === "Enter") {
       event.preventDefault();
       if (buttonRef.current) buttonRef.current.click();
     }
-    if (textAreaRef.current) {
-      setIsTextAreaExpanded(textAreaRef.current.clientHeight >= 68);
-    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!input.trim()) return;
+    if (onSubmit) onSubmit(input);
   };
 
   useEffect(() => {
     if (textAreaRef.current) {
-      textAreaRef.current.style.height = "24px";
+      textAreaRef.current.style.height = "50px";
       textAreaRef.current.style.height =
         textAreaRef.current.scrollHeight + "px";
-
-      setIsTextAreaExpanded(textAreaRef.current.clientHeight >= 68);
     }
   }, [input]);
 
-  useEffect(() => {
-    if (!generating) {
-      textAreaRef.current?.focus();
-    }
-  }, [generating]);
-
-  useEffect(() => {
-    const handleGlobalKeyDown = (event: KeyboardEvent) => {
-      if ((event.metaKey || event.ctrlKey) && event.key === "k") {
-        event.preventDefault();
-        textAreaRef.current?.focus();
-      }
-    };
-
-    window.addEventListener("keydown", handleGlobalKeyDown);
-
-    return () => {
-      window.removeEventListener("keydown", handleGlobalKeyDown);
-    };
-  }, []);
-
   return (
     <form
-      onSubmit={(e) => {
-        e.preventDefault();
-
-        onSubmit();
-      }}
-      className="flex items-center relative h-auto gap-2 z-50 max-w-[800px] w-full"
+      className={`relative h-auto min-h-[24px] max-h-[450px] w-full mx-auto rounded-2xl border max-w-[750px] ${
+        focused && "border-primary"
+      }`}
+      onSubmit={handleSubmit}
     >
-      <Paperclip className="p-1 absolute bottom-[13px] left-2 h-8 w-8 rounded-full" />
+      <div className="flex h-full w-full items-end">
+        <Textarea
+          placeholder={placeholder}
+          onChange={(e) => setInput(e.target.value)}
+          ref={textAreaRef}
+          onKeyDown={handleKeyDown}
+          value={input}
+          onBlur={() => setFocused(false)}
+          onFocus={() => setFocused(true)}
+          autoFocus
+          className="resize-none min-h-[24px] h-[50px] max-h-[400px] w-full pt-[14px] text-md rounded-xl border-none focus:ring-0 shadow-none focus-visible:ring-0 flex-1 focus-visible:ring-offset-0 bg-transparent"
+        />
 
-      <Textarea
-        ref={textAreaRef}
-        value={input}
-        role="textbox"
-        autoFocus
-        onChange={(e) => setInput(e.currentTarget.value)}
-        onKeyDown={handleKeyDown}
-        disabled={disabled || generating}
-        placeholder="Ask anything..."
-        className="h-[24px] max-h-[250px] pr-[58px] pt-[17px] pl-11 resize-none w-full text-md overflow-hidden overflow-y-auto rounded-3xl focus:shadow-sm"
-      />
-      <Button
-        size="sm"
-        className="p-1 absolute right-2 bottom-[12px] h-9 w-9 rounded-full"
-        type="submit"
-        ref={buttonRef}
-        onClick={(e) => {
-          e.preventDefault();
-          if (generating) {
-            // If currently generating, abort the ongoing request
-            if (onAbort) onAbort();
-          } else {
-            onSubmit();
-          }
-        }}
-      >
-        {generating ? (
-          <StopIcon className="w-8 h-8" />
-        ) : (
-          <CheckIcon className="w-8 h-8" />
-        )}
-      </Button>
+        <div className="h-full pr-1 flex pb-[9px]">
+          <Button
+            ref={buttonRef}
+            className="h-8 w-8"
+            variant="ghost"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+          >
+            <Paperclip />
+          </Button>
+
+          <Button
+            ref={buttonRef}
+            className="h-8 w-8"
+            variant="ghost"
+            onClick={(e) => {
+              if (generatingResponse) {
+                // If currently generating, abort the ongoing request
+                if (onAbort) onAbort();
+              } else {
+                handleSubmit(e);
+              }
+            }}
+          >
+            {generatingResponse ? <StopCircle /> : <SendHorizonal />}
+          </Button>
+        </div>
+      </div>
     </form>
   );
-};
-
-export default ChatInputForm;
+}

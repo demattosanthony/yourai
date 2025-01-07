@@ -30,19 +30,19 @@ interface ModelConfig {
 export const MODELS: Record<
   | "gpt-4o-mini"
   | "gpt-4o"
-  | "o1-preview"
+  | "o1"
   | "o1-mini"
   | "claude-3.5-sonnet"
   | "claude-3,5-haiku"
   | "claude-3-opus"
-  | "gemini-1.5-pro"
-  | "gemini-1.5-flash"
+  | "gemini-2.0-pro"
+  | "gemini-2.0-flash"
   | "grok-beta"
   | "mistral-large"
   | "mistral-small"
   | "codestral"
   | "ministral-8b"
-  | "llama-3.2-90b-text-preview"
+  | "llama-3.3-70b"
   | "llama-3.2-1b-preview"
   | "llama-3.2-11b-text-preview"
   | "llama-3.1-70b-versatile"
@@ -63,7 +63,7 @@ export const MODELS: Record<
     supportsToolUse: true,
     supportsStreaming: true,
   },
-  "o1-preview": {
+  o1: {
     model: openai("o1-preview"),
     supportsToolUse: false,
     supportsStreaming: false,
@@ -76,7 +76,7 @@ export const MODELS: Record<
     supportsSystemMessages: false,
   },
   "claude-3.5-sonnet": {
-    model: anthropic("claude-3-5-sonnet-20241022"),
+    model: anthropic("claude-3-5-sonnet-latest"),
     supportsToolUse: true,
     supportsStreaming: true,
   },
@@ -90,13 +90,13 @@ export const MODELS: Record<
     supportsToolUse: true,
     supportsStreaming: true,
   },
-  "gemini-1.5-pro": {
-    model: google("gemini-1.5-pro-002"),
+  "gemini-2.0-pro": {
+    model: google("gemini-exp-1206"),
     supportsToolUse: true,
     supportsStreaming: true,
   },
-  "gemini-1.5-flash": {
-    model: google("gemini-1.5-flash-002"),
+  "gemini-2.0-flash": {
+    model: google("gemini-2.0-flash-exp"),
     supportsToolUse: true,
     supportsStreaming: true,
   },
@@ -125,8 +125,8 @@ export const MODELS: Record<
     supportsToolUse: true,
     supportsStreaming: true,
   },
-  "llama-3.2-90b-text-preview": {
-    model: groq("llama-3.2-90b-text-preview"),
+  "llama-3.3-70b": {
+    model: groq("llama-3.3-70b-versatile"),
     supportsToolUse: false,
     supportsStreaming: true,
   },
