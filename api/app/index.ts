@@ -8,10 +8,10 @@ import {
 } from "ai";
 import { MODELS } from "./models";
 import multer from "multer";
-import { migrate } from "drizzle-orm/node-postgres/migrator";
+import { migrate } from "drizzle-orm/bun-sqlite/migrator";
 
 import path from "path";
-import db from "./config/db";
+import { db } from "./config/db";
 
 interface inferenceParams {
   model: keyof typeof MODELS;

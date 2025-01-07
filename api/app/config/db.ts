@@ -1,13 +1,5 @@
-import { Pool } from "pg";
-import { drizzle } from "drizzle-orm/node-postgres";
-import * as schema from "./schema";
+import { drizzle } from "drizzle-orm/bun-sqlite";
+import { Database } from "bun:sqlite";
 
-const pool = new Pool({
-  connectionString:
-    process.env.POSTGRES_CONNECTION_STRING ||
-    "postgresql://postgres:postgres@localhost:5432/postgres",
-});
-
-const db = drizzle(pool, { schema });
-
-export default db;
+const sqlite = new Database(":memory:");
+export const db = drizzle(sqlite);
