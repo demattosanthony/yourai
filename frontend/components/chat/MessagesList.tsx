@@ -73,7 +73,16 @@ export default function ChatMessagesList() {
                             <img
                               src={image}
                               alt="User uploaded image"
-                              className="h-40 w-40 object-cover rounded-lg"
+                              className="h-52 object-cover rounded-lg cursor-pointer hover:opacity-90"
+                              onClick={() => {
+                                const newWindow = window.open();
+                                if (newWindow) {
+                                  newWindow.document.write(
+                                    `<img src="${image}" style="height: 100%; display: block; margin: 0 auto;">`
+                                  );
+                                  newWindow.document.title = "Image Preview";
+                                }
+                              }}
                             />
                           )}
 

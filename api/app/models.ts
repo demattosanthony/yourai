@@ -93,7 +93,7 @@ export const MODELS: Record<
     supportsStreaming: true,
     provider: "anthropic",
     supportsImages: true,
-    supportsPdfs: true,
+    supportsPdfs: false,
   },
   "gemini-2.0-pro": {
     model: google("gemini-exp-1206"),

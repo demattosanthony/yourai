@@ -22,7 +22,7 @@ cp .env.example .env.local
 ./run.sh
 ```
 
-[Open the app](http://localhost:4001)
+Open the app at http://localhost:4001
 
 ## Demo
 

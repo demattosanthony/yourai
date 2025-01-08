@@ -54,8 +54,6 @@ export default function ChatInputForm({
       }
     } else if (event.key === "Enter") {
       event.preventDefault();
-      console.log("Enter pressed");
-      console.log("buttonRef.current", buttonRef.current);
       if (buttonRef.current) buttonRef.current.click();
     }
   };
