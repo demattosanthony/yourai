@@ -42,14 +42,19 @@ const CodeBlock: React.FC<{
   };
 
   return match ? (
-    <div className="relative">
+    <div className="relative max-w-full lg:max-[900px] overflow-x-auto">
       <button
         onClick={handleCopy}
         className="absolute right-2.5 top-2.5 bg-black/50 text-white border-none rounded-xl p-1.5 cursor-pointer"
       >
         {buttonText}
       </button>
-      <SyntaxHighlighter style={vscDarkPlus} language={match[1]} PreTag="div">
+      <SyntaxHighlighter
+        style={vscDarkPlus}
+        language={match[1]}
+        PreTag="div"
+        showLineNumbers
+      >
         {codeString}
       </SyntaxHighlighter>
     </div>
@@ -97,7 +102,7 @@ const MarkdownViewer: React.FC<{ content: string }> = ({ content }) => (
       img: ({ ...props }) => <img className="max-w-full h-auto" {...props} />,
     }}
     remarkPlugins={[remarkGfm]}
-    className="flex flex-col gap-0"
+    className="flex flex-col gap-1"
   >
     {content}
   </ReactMarkdown>

@@ -1,13 +1,17 @@
 {
   "name": "api",
+  "type": "module",
   "module": "index.ts",
   "main": "index.ts",
   "scripts": {
     "dev": "bun run --watch app/index.ts",
+    "start": "bun run app/index.ts",
     "mig": "drizzle-kit generate"
   },
   "devDependencies": {
     "@types/bun": "latest",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
     "@types/pg": "^8.11.10",
     "drizzle-kit": "^0.26.2"
   },
@@ -15,24 +19,16 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
-    "@ai-sdk/anthropic": "^0.0.51",
+    "@ai-sdk/anthropic": "^1.0.7",
     "@ai-sdk/google": "^1.0.12",
     "@ai-sdk/groq": "^0.0.1",
     "@ai-sdk/mistral": "^0.0.44",
     "@ai-sdk/openai": "^1.0.13",
-    "@tavily/core": "^0.0.2",
-    "@types/cors": "^2.8.17",
-    "@types/express": "^5.0.0",
-    "@types/multer": "^1.4.12",
+    "@ai-sdk/xai": "^1.0.15",
     "abort-controller": "^3.0.0",
     "ai": "^4.0.27",
     "cors": "^2.8.5",
     "drizzle-orm": "^0.35.2",
-    "express": "^4.21.1",
-    "i": "^0.3.7",
-    "multer": "^1.4.5-lts.1",
-    "neo4j-driver": "^5.26.0",
-    "pg": "^8.13.0",
-    "serpapi": "^2.1.0"
+    "express": "^4.21.1"
   }
 }

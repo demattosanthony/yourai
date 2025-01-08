@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import { Provider } from "jotai";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import Header from "@/components/Header";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -16,7 +17,10 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Any Agent",
+  title: "Yo",
+  icons: {
+    icon: "/icon.svg",
+  },
 };
 
 export default function RootLayout({
@@ -35,7 +39,13 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <Provider>{children}</Provider>
+          <Provider>
+            <div className="h-screen w-screen flex flex-col">
+              <Header />
+
+              {children}
+            </div>
+          </Provider>
         </ThemeProvider>
       </body>
     </html>

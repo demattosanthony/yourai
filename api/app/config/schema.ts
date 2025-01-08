@@ -1,3 +1,4 @@
+import { relations } from "drizzle-orm";
 import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
 
 // Message roles will be stored as text
@@ -7,7 +8,6 @@ const TOOL_CALL_STATUS = ["pending", "completed", "failed"] as const;
 // Threads table
 export const threads = sqliteTable("threads", {
   id: text("id").primaryKey(), // UUID stored as text
-  title: text("title"),
   created_at: integer("created_at", { mode: "timestamp" }).notNull(),
   updated_at: integer("updated_at", { mode: "timestamp" }).notNull(),
 });
@@ -18,12 +18,22 @@ export const messages = sqliteTable("messages", {
   thread_id: text("thread_id")
     .notNull()
     .references(() => threads.id),
-  role: text("role") // Store role as TEXT without enum in SQLite
-    .notNull(),
-  content: text("content"),
-  name: text("name"),
+  role: text("role").notNull(),
+  content: text("content").notNull(), // stringified JSON that looks like {"type": "text", "text": "Hello"}
   created_at: integer("created_at", { mode: "timestamp" }).notNull(),
 });
+
+// Add relationships
+export const threadsRelations = relations(threads, ({ many }) => ({
+  messages: many(messages),
+}));
+
+export const messagesRelations = relations(messages, ({ one }) => ({
+  thread: one(threads, {
+    fields: [messages.thread_id],
+    references: [threads.id],
+  }),
+}));
 
 // Tool calls table
 export const toolCalls = sqliteTable("tool_calls", {

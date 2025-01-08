@@ -1,27 +1,22 @@
 {
   "compilerOptions": {
-    // Enable latest features
-    "lib": ["ESNext", "DOM"],
+    "lib": ["ESNext"], // Removed "DOM" as it's unnecessary for backend APIs
     "target": "ESNext",
     "module": "ESNext",
     "moduleDetection": "force",
-    "jsx": "react-jsx",
+    // Removed "jsx" as it's not used in an Express API
     "allowJs": true,
-
-    // Bundler mode
-    "moduleResolution": "bundler",
+    "moduleResolution": "bundler", // Retained for Bun.js compatibility
+    "esModuleInterop": true,
     "allowImportingTsExtensions": true,
-    "verbatimModuleSyntax": true,
+    "verbatimModuleSyntax": false,
     "noEmit": true,
-
-    // Best practices
     "strict": true,
     "skipLibCheck": true,
     "noFallthroughCasesInSwitch": true,
-
-    // Some stricter flags (disabled by default)
     "noUnusedLocals": false,
     "noUnusedParameters": false,
-    "noPropertyAccessFromIndexSignature": false
+    "noPropertyAccessFromIndexSignature": false,
+    "types": ["express", "node", "bun-types"]
   }
 }

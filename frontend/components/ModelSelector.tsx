@@ -34,6 +34,17 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
 
   useEffect(() => {
     api.getAvailableModels().then((res) => setModels(res));
+
+    // Add keyboard shortcut listener
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "l") {
+        e.preventDefault();
+        setOpen((prev) => !prev);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
   return (

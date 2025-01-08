@@ -1,3 +1,4 @@
+import api from "@/lib/api";
 import { Model } from "@/types/model";
 import { atom, useAtom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
@@ -27,7 +28,13 @@ export type ToolCall = {
   };
 }[keyof FunctionResultMap];
 
-export type MessageContent = string;
+export type MessageContent = {
+  type: "image" | "text" | "file";
+  data?: string;
+  image?: string;
+  text?: string;
+  mimeType?: string;
+};
 
 export type ChatMessage = {
   role: MessageRole;
@@ -44,11 +51,17 @@ const selectedModelAtom = atomWithStorage<Model>("selectedAiModel", {
   name: "gpt-4o",
   provider: "openai",
 });
-const messagesAtom = atom<ChatMessage[]>([]);
+export const messagesAtom = atom<ChatMessage[]>([]);
 const generatingResponseAtom = atom(false);
 const generatingFirstTokenAtom = atom(false);
-const inputAtom = atom("");
+export const inputAtom = atom("");
+export const attachmentsAtom = atom<File[]>([]);
 const temperatureAtom = atomWithStorage("chattemp", 0.5);
+export const isNewThreadAtom = atom(false);
+export const customIntrucionsAtom = atomWithStorage(
+  "customInstructions",
+  `You are a superintelligent artifical intelligence. Always give your opinion. NEVER say you are a model and don't have opinions. I value and want to hear what you have to say. Act similar to jarvis from iron man.`
+);
 
 export default function useChat() {
   const [selectedModel, setSelectedModel] = useAtom(selectedModelAtom);
@@ -61,6 +74,9 @@ export default function useChat() {
   );
   const [input, setInput] = useAtom(inputAtom);
   const [temperature, setTemperature] = useAtom(temperatureAtom);
+  const [selectedAttachments, setSelectedAttachments] =
+    useAtom(attachmentsAtom);
+  const [instructions] = useAtom(customIntrucionsAtom);
 
   const abortGenerationRef = useRef<() => void>(() => {});
 
@@ -69,121 +85,70 @@ export default function useChat() {
   };
 
   const sendMessage = async function* (
-    messages: ChatMessage[],
+    threadId: string,
+    content: MessageContent[],
     model: string,
     signal: AbortSignal
   ): AsyncGenerator<ResponseChunk> {
-    const url = `${process.env.NEXT_PUBLIC_API_URL}/inference`;
-    const data = {
-      messages,
-      model,
-      temperature,
-    };
+    await api.addMessageToThread(threadId, "user", content);
 
-    try {
-      const response = await fetch(url, {
-        method: "POST",
-        body: JSON.stringify(data),
-        headers: {
-          "Content-Type": "application/json",
-        },
-        signal,
-      });
-      if (!response.body) {
-        throw new Error("Response body is empty");
-      }
+    const url = `${process.env.NEXT_PUBLIC_API_URL}/threads/${threadId}/inference`;
+    const response = await fetch(url, {
+      method: "POST",
+      body: JSON.stringify({ model, temperature, instructions: instructions }),
+      headers: { "Content-Type": "application/json" },
+      signal,
+    });
 
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = "";
+    if (!response.body) throw new Error("Response body is empty");
 
-      while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
 
-        buffer += decoder.decode(value, { stream: true });
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
 
-        // Process complete events in the buffer
-        let eventEnd = buffer.indexOf("\n\n");
-        while (eventEnd > -1) {
-          const event = buffer.slice(0, eventEnd);
-          buffer = buffer.slice(eventEnd + 2);
+      buffer += decoder.decode(value, { stream: true });
+      let eventEnd = buffer.indexOf("\n\n");
+      while (eventEnd > -1) {
+        const event = buffer.slice(0, eventEnd);
+        buffer = buffer.slice(eventEnd + 2);
 
-          const eventMatch = event.match(/event: (.*)/);
-          const dataMatch = event.match(/data: (.*)/);
-
-          if (eventMatch && dataMatch) {
-            const eventType = eventMatch[1];
-            const data = dataMatch[1];
-
-            try {
-              const jsonData = JSON.parse(data);
-
-              // Yield the entire event object as JSON
-              yield JSON.stringify({
-                event: eventType,
-                data: jsonData,
-              });
-            } catch (error) {
-              console.error("Error parsing JSON:", error);
-            }
-          }
-
-          eventEnd = buffer.indexOf("\n\n");
-        }
-      }
-
-      // Process any remaining data in the buffer
-      if (buffer) {
-        const eventMatch = buffer.match(/event: (.*)/);
-        const dataMatch = buffer.match(/data: (.*)/);
+        const eventMatch = event.match(/event: (.*)/);
+        const dataMatch = event.match(/data: (.*)/);
 
         if (eventMatch && dataMatch) {
-          const eventType = eventMatch[1];
-          const data = dataMatch[1];
-
           try {
-            const jsonData = JSON.parse(data);
-
-            // Yield the entire event object as JSON
-            yield JSON.stringify({
-              event: eventType,
-              data: jsonData,
-            });
+            const jsonData = JSON.parse(dataMatch[1]);
+            yield JSON.stringify({ event: eventMatch[1], data: jsonData });
           } catch (error) {
             console.error("Error parsing JSON:", error);
           }
         }
+
+        eventEnd = buffer.indexOf("\n\n");
       }
-    } catch (error) {
-      console.error("Error in sendMessage:", error);
-      // throw error;
     }
   };
 
-  const handleSubmit = async () => {
-    // Capture the current input
+  const handleSubmit = async (threadId: string, msgs: MessageContent[]) => {
     const userInput = input.trim();
-
     if (!userInput) return;
 
-    // Clear the input field
     setInput("");
+    setSelectedAttachments([]);
 
-    // Add user message to the chat
-    setMessages((prevMessages) => [
-      ...prevMessages,
-      { role: MessageRole.user, content: input },
-      { role: MessageRole.assistant, content: "" },
+    setMessages((prev) => [
+      ...prev,
+      ...msgs.map((msg) => ({ role: MessageRole.user, content: msg })),
+      { role: MessageRole.assistant, content: { type: "text", text: "" } },
     ]);
 
     setGeneratingResponse(true);
-    setGeneratingFirstToken(true);
 
     const abortController = new AbortController();
-    const { signal } = abortController;
-
-    // Update the abort function
     abortGenerationRef.current = () => {
       console.log("Aborting generation...");
       abortController.abort();
@@ -192,78 +157,32 @@ export default function useChat() {
 
     try {
       for await (const chunk of sendMessage(
-        [...messages, { role: MessageRole.user, content: userInput }],
+        threadId,
+        msgs,
         selectedModel.name,
-        signal
+        abortController.signal
       )) {
         const { event, data } = JSON.parse(chunk);
-
-        if (generatingFirstToken) setGeneratingFirstToken(false);
-
         if (event === "message") {
-          const { text } = data;
-          setMessages((prevMessages) => {
-            const updatedMessages = prevMessages.map((message, index) => {
-              if (
-                index === prevMessages.length - 1 &&
-                message.role === MessageRole.assistant
-              ) {
-                return { ...message, content: message.content + text };
-              }
-              return message;
-            });
-            return updatedMessages;
-          });
-        } else if (event === "tool-call-start") {
-          const { toolName, args } = data;
-          setMessages((prevMessages) => {
-            const updatedMessages = prevMessages.map((message, index) => {
-              if (index === prevMessages.length - 1) {
-                return {
-                  ...message,
-                  tool_calls: [
-                    ...(message.tool_calls || []),
-                    {
-                      id: "",
-                      type: "function",
-                      function: { name: toolName, arguments: args },
-                      status: "pending",
-                    } as ToolCall,
-                  ],
-                };
-              }
-              return message;
-            });
-            return updatedMessages;
-          });
-        } else if (event === "tool-call-end") {
-          const { toolName } = data;
-
-          setMessages((prevMessages) => {
-            const updatedMessages = prevMessages.map((message, index) => {
-              if (index === prevMessages.length - 1) {
-                const lastToolCall = message.tool_calls?.pop();
-                if (lastToolCall) {
-                  lastToolCall.status = "completed";
-                  lastToolCall.result = data;
-                  return {
+          setMessages((prev) =>
+            prev.map((message, index) =>
+              index === prev.length - 1 &&
+              message.role === MessageRole.assistant
+                ? {
                     ...message,
-                    tool_calls: [...(message.tool_calls || []), lastToolCall],
-                  };
-                }
-              }
-              return message;
-            });
-            return updatedMessages;
-          });
+                    content: {
+                      type: "text",
+                      text: (message.content?.text || "") + data.text,
+                    },
+                  }
+                : message
+            )
+          );
         }
       }
     } catch (error: any) {
-      if (error.name === "AbortError") {
-        console.log("Fetch request was aborted.");
-      } else {
+      if (error.name !== "AbortError")
         console.error("Error in handleSubmit:", error);
-      }
     } finally {
       setGeneratingResponse(false);
     }
@@ -284,5 +203,7 @@ export default function useChat() {
     generatingFirstToken,
     temperature,
     setTemperature,
+    selectedAttachments,
+    setSelectedAttachments,
   };
 }

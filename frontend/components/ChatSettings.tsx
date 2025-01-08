@@ -9,12 +9,15 @@ import {
 import { Settings } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
-import useChat from "@/hooks/useChat";
+import useChat, { customIntrucionsAtom } from "@/hooks/useChat";
 import { useState, useEffect } from "react";
+import { Textarea } from "./ui/textarea";
+import { useAtom } from "jotai";
 
 export default function ChatSettings() {
   const { temperature, setTemperature } = useChat();
   const [inputValue, setInputValue] = useState(temperature.toFixed(2));
+  const [instructions, setInstructions] = useAtom(customIntrucionsAtom);
 
   useEffect(() => {
     setInputValue(temperature.toFixed(1));
@@ -42,38 +45,38 @@ export default function ChatSettings() {
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-80">
-        <div className="space-y-3">
-          <div className="flex justify-between items-center">
-            <h4 className="font-medium leading-none">Randomness</h4>
-            <Input
-              type="number"
+        <div className="space-y-4">
+          <div className="space-y-3">
+            <div className="flex justify-between items-center">
+              <h4 className="font-medium leading-none">Randomness</h4>
+              <Input
+                type="number"
+                min={0}
+                max={1}
+                step={0.01}
+                value={inputValue}
+                onChange={handleInputChange}
+                className="w-20 h-8"
+              />
+            </div>
+            <Slider
               min={0}
               max={1}
               step={0.01}
-              value={inputValue}
-              onChange={handleInputChange}
-              className="w-20 h-8"
+              value={[temperature]}
+              onValueChange={handleTemperatureChange}
             />
           </div>
-          <Slider
-            min={0}
-            max={1}
-            step={0.01}
-            value={[temperature]}
-            onValueChange={handleTemperatureChange}
-          />
-          {/* <div className="flex justify-between items-center">
-            <span className="text-sm text-muted-foreground"></span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                setTemperature(1);
-              }}
-            >
-              Reset
-            </Button>
-          </div> */}
+
+          <div className="space-y-3">
+            <h4 className="font-medium leading-none">Custom Instructions</h4>
+            <Textarea
+              value={instructions}
+              onChange={(e) => setInstructions(e.target.value)}
+              placeholder="Add any custom instructions for the AI..."
+              className="w-full min-h-[200px] p-2 text-sm rounded-md border"
+            />
+          </div>
         </div>
       </PopoverContent>
     </Popover>

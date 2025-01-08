@@ -1,25 +1,5 @@
 import { tool } from "ai";
 import { z } from "zod";
-import { getJson } from "serpapi";
-
-export const webSearchTool = tool({
-  description:
-    "Searches the web using Google and returns structured data. This tool provides comprehensive search results, including titles, snippets, URLs, and other relevant information from various sources like web pages, images, videos, and news. Use this tool when you need to gather information from the web.",
-  parameters: z.object({
-    query: z.string(),
-  }),
-  execute: async ({ query }) => {
-    const results = await getJson({
-      q: query,
-      api_key: process.env.SERP_API_KEY,
-      engine: "google",
-      location: "United States",
-    });
-
-    const limitedResults = JSON.stringify(results).substring(0, 20000);
-    return limitedResults;
-  },
-});
 
 export const getWebPageContentsTool = tool({
   description:

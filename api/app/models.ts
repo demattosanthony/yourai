@@ -3,6 +3,7 @@ import { anthropic } from "@ai-sdk/anthropic";
 import { createGroq } from "@ai-sdk/groq";
 import { google } from "@ai-sdk/google";
 import { mistral } from "@ai-sdk/mistral";
+import { xai } from "@ai-sdk/xai";
 
 const groq = createGroq();
 
@@ -10,12 +11,6 @@ const perplexity = createOpenAI({
   name: "perplexity",
   apiKey: process.env.PPLX_API_KEY ?? "",
   baseURL: "https://api.perplexity.ai/",
-});
-
-const xai = createOpenAI({
-  name: "xai",
-  apiKey: process.env.XAI_API_KEY ?? "",
-  baseURL: "https://api.x.ai/v1/",
 });
 
 interface ModelConfig {
@@ -26,6 +21,8 @@ interface ModelConfig {
   supportsStreaming: boolean;
   provider: string;
   supportsSystemMessages?: boolean;
+  supportsImages?: boolean;
+  supportsPdfs?: boolean;
 }
 
 export const MODELS: Record<
@@ -38,7 +35,8 @@ export const MODELS: Record<
   | "gemini-2.0-pro"
   | "gemini-2.0-flash"
   | "gemini-2.0-flash-online"
-  | "grok-beta"
+  | "grok-2"
+  | "grok-2-vision"
   | "mistral-large"
   | "mistral-small"
   //   | "codestral"
@@ -56,12 +54,16 @@ export const MODELS: Record<
     supportsToolUse: true,
     provider: "openai",
     supportsStreaming: true,
+    supportsImages: true,
+    supportsSystemMessages: true,
   },
   "gpt-4o": {
     model: openai("gpt-4o"),
     supportsToolUse: true,
     supportsStreaming: true,
     provider: "openai",
+    supportsImages: true,
+    supportsSystemMessages: true,
   },
   o1: {
     model: openai("o1-preview"),
@@ -78,34 +80,36 @@ export const MODELS: Record<
     provider: "openai",
   },
   "claude-3.5-sonnet": {
-    model: anthropic("claude-3-5-sonnet-latest"),
+    model: anthropic("claude-3-5-sonnet-20241022"),
     supportsToolUse: true,
     supportsStreaming: true,
     provider: "anthropic",
+    supportsImages: true,
+    supportsPdfs: true,
   },
   "claude-3.5-haiku": {
     model: anthropic("claude-3-5-haiku-latest"),
     supportsToolUse: true,
     supportsStreaming: true,
     provider: "anthropic",
+    supportsImages: true,
+    supportsPdfs: true,
   },
-  //   "claude-3-opus": {
-  //     model: anthropic("claude-3-opus-20240229"),
-  //     supportsToolUse: true,
-  //     supportsStreaming: true,
-  //     provider: "anthropic",
-  //   },
   "gemini-2.0-pro": {
     model: google("gemini-exp-1206"),
     supportsToolUse: true,
     supportsStreaming: true,
     provider: "google",
+    supportsImages: true,
+    supportsPdfs: true,
   },
   "gemini-2.0-flash": {
     model: google("gemini-2.0-flash-exp"),
     supportsToolUse: true,
     supportsStreaming: true,
     provider: "google",
+    supportsImages: true,
+    supportsPdfs: true,
   },
   "gemini-2.0-flash-online": {
     model: google("gemini-2.0-flash-exp", {
@@ -114,12 +118,21 @@ export const MODELS: Record<
     supportsToolUse: true,
     supportsStreaming: true,
     provider: "google",
+    supportsImages: true,
+    supportsPdfs: true,
   },
-  "grok-beta": {
-    model: xai("grok-beta"),
+  "grok-2": {
+    model: xai("grok-2-1212"),
     supportsToolUse: true,
     supportsStreaming: true,
     provider: "xai",
+  },
+  "grok-2-vision": {
+    model: xai("grok-2-vision-1212"),
+    supportsToolUse: true,
+    supportsStreaming: true,
+    provider: "xai",
+    supportsImages: true,
   },
   "mistral-large": {
     model: mistral("mistral-large-latest"),
@@ -133,40 +146,12 @@ export const MODELS: Record<
     supportsStreaming: true,
     provider: "mistral",
   },
-  //   codestral: {
-  //     model: mistral("codestral-latest"),
-  //     supportsToolUse: true,
-  //     supportsStreaming: true,
-  //     provider: "mistral",
-  //   },
-  //   "ministral-8b": {
-  //     model: mistral("ministral-8b-latest"),
-  //     supportsToolUse: true,
-  //     supportsStreaming: true,
-  //     provider: "mistral",
-  //   },
   "llama-3.3-70b": {
     model: groq("llama-3.3-70b-versatile"),
     supportsToolUse: false,
     supportsStreaming: true,
     provider: "groq",
   },
-  //   "llama-3.2-1b-preview": {
-  //     model: groq("llama-3.2-1b-preview"),
-  //     supportsToolUse: false,
-  //     supportsStreaming: true,
-  //     provider: "groq",
-  //   },
-  //   "llama-3.2-11b-text-preview": {
-  //     model: groq("llama-3.2-11b-text-preview"),
-  //     supportsToolUse: false,
-  //     supportsStreaming: true,
-  // //   },
-  //   "llama-3.1-70b-versatile": {
-  //     model: groq("llama-3.1-70b-versatile"),
-  //     supportsToolUse: true,
-  //     supportsStreaming: true,
-  //   },
   "llama-3.1-online-large": {
     model: perplexity("llama-3.1-sonar-large-128k-online"),
     supportsToolUse: false,
