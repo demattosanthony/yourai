@@ -3,8 +3,8 @@ import type { MetadataRoute } from "next";
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Yo",
-    short_name: "Your AI",
-    description: "Chat with any LLM",
+    short_name: "Yo",
+    description: "Your AI",
     start_url: "/",
     display: "standalone",
     background_color: "#ffffff",
@@ -13,9 +13,9 @@ export default function manifest(): MetadataRoute.Manifest {
     icons: [
       {
         src: "/appIcon.svg",
-        sizes: "any", // SVG is scalable
+        sizes: "any",
         type: "image/svg+xml",
-        purpose: "any", // Can also be "maskable" or "any maskable"
+        purpose: "any",
       },
     ],
   };

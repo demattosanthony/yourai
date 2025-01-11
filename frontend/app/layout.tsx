@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import Header from "@/components/Header";
 import { DragAndDropProvider } from "@/components/DragDropProvider";
 import "./globals.css";
+import { ThemeColorManager } from "@/components/ThemeColorManager";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -26,10 +27,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-    { media: "(prefers-color-scheme: dark)", color: "hsl(0 0% 7%)" },
-  ],
+  themeColor: "var(--theme-color)",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -56,6 +54,7 @@ export default function RootLayout({
         >
           <Provider>
             <DragAndDropProvider>
+              <ThemeColorManager />
               <div className="h-screen w-screen flex flex-col max-h-[-webkit-fill-available]">
                 <Header />
 
