@@ -61,6 +61,7 @@ function MessageItem({
               alt="User uploaded image"
               className="h-52 object-cover rounded-lg cursor-pointer hover:opacity-90 max-w-[750px]"
               onClick={() => {
+                if (typeof window === "undefined") return;
                 const newWindow = window.open();
                 if (newWindow) {
                   newWindow.document.write(

@@ -38,6 +38,8 @@ const ModelSelector: React.FC = () => {
       }
     };
 
+    if (typeof window === "undefined") return;
+
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);

@@ -33,7 +33,7 @@ export default function Header() {
   }, [router]);
 
   return (
-    <div className="w-full p-4 h-14 items-center justify-center flex absolute top-0 left-0 right-0 z-10 backdrop-blur-xl bg-background/50 transition-all">
+    <div className="w-full p-4 h-14 items-center justify-center flex absolute top-0 left-0 right-0 z-10 md:backdrop-blur-xl md:bg-background/50 transition-all">
       <div className="absolute right-2 md:right-8 bg-opacity-50 z-10">
         <div className="flex items-center ">
           <ModelSelector />

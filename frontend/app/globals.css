@@ -91,8 +91,26 @@
 @layer base {
   * {
     @apply border-border;
+    /* Prevent text selection highlighting */
+    -webkit-tap-highlight-color: transparent;
+    /* Prevent iOS text size adjustment */
+    -webkit-text-size-adjust: none;
   }
+
   body {
     @apply bg-background text-foreground;
+    /* Prevent overscroll/bounce effects */
+    overscroll-behavior: none;
+    /* Prevent pull-to-refresh */
+    overflow-y: auto;
+    /* Prevent pinch zooming */
+    touch-action: pan-x pan-y;
+  }
+
+  html {
+    /* Prevent zooming on double-tap */
+    touch-action: manipulation;
+    /* Fix viewport on mobile devices */
+    height: -webkit-fill-available;
   }
 }

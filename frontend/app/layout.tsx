@@ -30,6 +30,10 @@ export const viewport: Viewport = {
     { media: "(prefers-color-scheme: light)", color: "#ffffff" },
     { media: "(prefers-color-scheme: dark)", color: "hsl(0 0% 7%)" },
   ],
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default function RootLayout({
@@ -50,7 +54,7 @@ export default function RootLayout({
         >
           <Provider>
             <DragAndDropProvider>
-              <div className="h-screen w-screen flex flex-col">
+              <div className="h-screen w-screen flex flex-col max-h-[-webkit-fill-available]">
                 <Header />
 
                 {children}

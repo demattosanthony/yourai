@@ -66,6 +66,8 @@ export function DragAndDropProvider({
       setUploads((prev) => [...prev, ...newUploads]);
     };
 
+    if (typeof window === "undefined") return;
+
     window.addEventListener("dragover", handleDragOver);
     window.addEventListener("dragleave", handleDragLeave);
     window.addEventListener("drop", handleDrop);
