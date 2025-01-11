@@ -7,7 +7,6 @@ import { useTheme } from "next-themes";
 import api from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { useAtom } from "jotai";
-import { memo } from "react";
 import { useMessageHandler } from "@/hooks/useMessageHandler";
 import { isNewThreadAtom } from "@/atoms/chat";
 
@@ -42,35 +41,35 @@ export default function Home() {
   );
 }
 
-const Sphere = memo(function Sphere() {
-  const { resolvedTheme } = useTheme();
+// const Sphere = memo(function Sphere() {
+//   const { resolvedTheme } = useTheme();
 
-  return (
-    <div className="w-full h-[100px]">
-      <Canvas camera={{ position: [0, 0, 5] }}>
-        <ambientLight intensity={0.1} />
-        <directionalLight position={[3, 3, 5]} intensity={0.3} />
-        <pointLight position={[-5, -5, -5]} intensity={0.1} color="#ffffff" />
-        <mesh>
-          <sphereGeometry args={[1, 64, 64]} />
-          <meshStandardMaterial
-            color={resolvedTheme === "dark" ? "white" : "black"}
-            roughness={0.3}
-            metalness={0.4}
-          />
-        </mesh>
-        <Environment preset="warehouse" />
-        <OrbitControls enableZoom={false} autoRotate autoRotateSpeed={1} />
-      </Canvas>
-    </div>
-  );
-});
+//   return (
+//     <div className="w-full h-[100px]">
+//       <Canvas camera={{ position: [0, 0, 5] }}>
+//         <ambientLight intensity={0.1} />
+//         <directionalLight position={[3, 3, 5]} intensity={0.3} />
+//         <pointLight position={[-5, -5, -5]} intensity={0.1} color="#ffffff" />
+//         <mesh>
+//           <sphereGeometry args={[1, 64, 64]} />
+//           <meshStandardMaterial
+//             color={resolvedTheme === "dark" ? "white" : "black"}
+//             roughness={0.3}
+//             metalness={0.4}
+//           />
+//         </mesh>
+//         <Environment preset="warehouse" />
+//         <OrbitControls enableZoom={false} autoRotate autoRotateSpeed={1} />
+//       </Canvas>
+//     </div>
+//   );
+// });
 
 import { useRef, useMemo } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 
-export function AIOrbScene() {
+function AIOrbScene() {
   return (
     <div className="w-full h-[400px]">
       <Canvas camera={{ position: [0, 0, 2] }}>

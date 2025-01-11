@@ -18,7 +18,6 @@ import {
   TypographyLi,
   TypographyInlineCode,
 } from "./Typography";
-import { useTheme } from "next-themes";
 
 // CodeBlock component for rendering code with copy functionality
 const CodeBlock: React.FC<{
@@ -28,7 +27,6 @@ const CodeBlock: React.FC<{
   const match = /language-(\w+)/.exec(className || "");
   const codeString = String(children).trim();
   const [buttonText, setButtonText] = useState("Copy");
-  const { resolvedTheme } = useTheme();
 
   const handleCopy = () => {
     navigator.clipboard
