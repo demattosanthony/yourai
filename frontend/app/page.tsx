@@ -21,7 +21,7 @@ export default function Home() {
         <AIOrbScene />
       </div>
 
-      <div className="w-full flex items-center justify-center mx-auto p-1 pb-2 absolute bottom-0 left-0 right-0">
+      <div className="w-full flex items-center justify-center mx-auto p-4 md:p-2 absolute bottom-0 left-0 right-0">
         <ChatInputForm
           onSubmit={async () => {
             try {
@@ -71,7 +71,7 @@ import * as THREE from "three";
 
 function AIOrbScene() {
   return (
-    <div className="w-full h-[400px]">
+    <div className="w-full h-[200px] md:h-[200px]">
       <Canvas camera={{ position: [0, 0, 2] }}>
         <ambientLight intensity={0.1} />
         <directionalLight position={[3, 3, 5]} intensity={0.3} />
