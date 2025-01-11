@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import { Provider } from "jotai";
 import { ThemeProvider } from "@/components/ThemeProvider";
@@ -23,7 +23,13 @@ export const metadata: Metadata = {
   icons: {
     icon: "/icon.svg",
   },
-  //   manifest: "/manifest.json",
+};
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "hsl(0 0% 7%)" },
+  ],
 };
 
 export default function RootLayout({
