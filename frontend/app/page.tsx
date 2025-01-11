@@ -3,7 +3,6 @@
 import ChatInputForm from "@/components/chat/ChatInputForm";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls, Environment } from "@react-three/drei";
-import { useTheme } from "next-themes";
 import api from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { useAtom } from "jotai";
@@ -17,6 +16,7 @@ export default function Home() {
 
   return (
     <>
+      <InstallPrompt />
       <div className="h-[90%] w-full flex items-center justify-center">
         <AIOrbScene />
       </div>
@@ -38,6 +38,44 @@ export default function Home() {
         />
       </div>
     </>
+  );
+}
+
+function InstallPrompt() {
+  const [isIOS, setIsIOS] = useState(false);
+  const [isStandalone, setIsStandalone] = useState(false);
+
+  useEffect(() => {
+    // @ts-expect-error: navigator.userAgent type is not fully typed
+    setIsIOS(/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream);
+
+    setIsStandalone(window.matchMedia("(display-mode: standalone)").matches);
+  }, []);
+
+  if (isStandalone) {
+    return null; // Don't show install button if already installed
+  }
+
+  return (
+    <div>
+      <h3>Install App</h3>
+      <button>Add to Home Screen</button>
+      {isIOS && (
+        <p>
+          To install this app on your iOS device, tap the share button
+          <span role="img" aria-label="share icon">
+            {" "}
+            ⎋{" "}
+          </span>
+          and then &ldquo;Add to Home Screen&rdquo;
+          <span role="img" aria-label="plus icon">
+            {" "}
+            ➕{" "}
+          </span>
+          .
+        </p>
+      )}
+    </div>
   );
 }
 
@@ -65,13 +103,13 @@ export default function Home() {
 //   );
 // });
 
-import { useRef, useMemo } from "react";
+import { useRef, useMemo, useState, useEffect } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 
 function AIOrbScene() {
   return (
-    <div className="w-full h-[200px] md:h-[200px]">
+    <div className="w-full h-[200px] md:h-[400px]">
       <Canvas camera={{ position: [0, 0, 2] }}>
         <ambientLight intensity={0.1} />
         <directionalLight position={[3, 3, 5]} intensity={0.3} />
@@ -85,8 +123,6 @@ function AIOrbScene() {
 }
 
 function AIOrbMesh() {
-  const { resolvedTheme } = useTheme();
-
   const meshRef = useRef<THREE.Mesh>(null);
 
   // Custom shader material for the morphing effect
@@ -225,7 +261,7 @@ function AIOrbMesh() {
         }
       `,
     });
-  }, [resolvedTheme]);
+  }, []);
 
   useFrame((state) => {
     if (meshRef.current) {

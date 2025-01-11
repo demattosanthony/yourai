@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { Prism, SyntaxHighlighterProps } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 import {
   TypographyH1,
@@ -18,6 +18,9 @@ import {
   TypographyLi,
   TypographyInlineCode,
 } from "./Typography";
+
+const SyntaxHighlighter =
+  Prism as typeof React.Component<SyntaxHighlighterProps>;
 
 // CodeBlock component for rendering code with copy functionality
 const CodeBlock: React.FC<{

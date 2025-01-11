@@ -7,11 +7,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import useDebounce from "@/hooks/useDebounce";
 import api from "@/lib/api";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function HistoryPage() {
-  const router = useRouter();
   const [search, setSearch] = useState("");
   const [threads, setThreads] = useState<
     {
