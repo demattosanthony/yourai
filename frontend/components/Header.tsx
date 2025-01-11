@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useAtom } from "jotai";
 import { messagesAtom } from "@/atoms/chat";
+import Link from "next/link";
 
 export default function Header() {
   const router = useRouter();
@@ -36,14 +37,11 @@ export default function Header() {
       <div className="absolute right-2 md:right-8 bg-opacity-50 z-10">
         <div className="flex items-center ">
           <ModelSelector />
-          <Button
-            variant={"ghost"}
-            size={"lg"}
-            className=" p-3 rounded-full"
-            onClick={() => router.push("/history")}
-          >
-            <History size={32} />
-          </Button>
+          <Link href="/history" prefetch>
+            <Button variant={"ghost"} size={"lg"} className=" p-3 rounded-full">
+              <History size={32} />
+            </Button>
+          </Link>
 
           <ChatSettings />
 

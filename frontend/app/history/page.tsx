@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import useDebounce from "@/hooks/useDebounce";
 import api from "@/lib/api";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -113,53 +114,51 @@ export default function HistoryPage() {
             const content = lastMessage.content.text;
 
             return (
-              <Card
-                key={i}
-                className="mb-4 cursor-pointer hover:bg-accent"
-                onClick={() => router.push(`/${thread.id}`)}
-              >
-                <CardHeader className="flex flex-row items-center space-x-4 pb-2">
-                  <Avatar>
-                    <AvatarImage
-                      src={
-                        lastMessage.role === "user"
-                          ? "/user-avatar.png"
-                          : "/ai-avatar.png"
-                      }
-                    />
-                    <AvatarFallback>
-                      {lastMessage.role === "user" ? "U" : "AI"}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <CardTitle className="text-sm font-medium">
-                      {lastMessage.role === "user" ? "User" : "AI Assistant"}
-                    </CardTitle>
-                    <p className="text-xs text-gray-500">
-                      {new Date(lastMessage.created_at).toLocaleString(
-                        undefined,
-                        {
-                          year: "numeric",
-                          month: "numeric",
-                          day: "numeric",
-                          hour: "numeric",
-                          minute: "numeric",
-                          hour12: true,
+              <Link key={i} href={`/${thread.id}`} prefetch>
+                <Card key={i} className="mb-4 cursor-pointer hover:bg-accent">
+                  <CardHeader className="flex flex-row items-center space-x-4 pb-2">
+                    <Avatar>
+                      <AvatarImage
+                        src={
+                          lastMessage.role === "user"
+                            ? "/user-avatar.png"
+                            : "/ai-avatar.png"
                         }
-                      )}
-                    </p>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  {type === "text" && content && (
-                    <p className="text-sm">
-                      {content.length > 100
-                        ? `${content.substring(0, 100)}...`
-                        : content}
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
+                      />
+                      <AvatarFallback>
+                        {lastMessage.role === "user" ? "U" : "AI"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <CardTitle className="text-sm font-medium">
+                        {lastMessage.role === "user" ? "User" : "AI Assistant"}
+                      </CardTitle>
+                      <p className="text-xs text-gray-500">
+                        {new Date(lastMessage.created_at).toLocaleString(
+                          undefined,
+                          {
+                            year: "numeric",
+                            month: "numeric",
+                            day: "numeric",
+                            hour: "numeric",
+                            minute: "numeric",
+                            hour12: true,
+                          }
+                        )}
+                      </p>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {type === "text" && content && (
+                      <p className="text-sm">
+                        {content.length > 100
+                          ? `${content.substring(0, 100)}...`
+                          : content}
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
+              </Link>
             );
           })}
 
