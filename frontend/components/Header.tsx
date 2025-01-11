@@ -39,8 +39,8 @@ export default function Header() {
           <ModelSelector />
 
           <Link href="/history" prefetch>
-            <Button variant={"ghost"} size={"lg"} className=" p-3 rounded-full">
-              <History size={32} />
+            <Button variant={"ghost"} className="rounded-full" size={"icon"}>
+              <History size={16} className="min-h-4 min-w-4" />
             </Button>
           </Link>
 
@@ -52,10 +52,10 @@ export default function Header() {
               setMessages([]);
               router.push("/");
             }}
-            size={"lg"}
-            className="p-3 rounded-full"
+            size={"icon"}
+            className="rounded-full"
           >
-            <Plus size={32} />
+            <Plus size={16} className="min-h-4 min-w-4" />
           </Button>
 
           <ModeToggle />

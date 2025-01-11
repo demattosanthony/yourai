@@ -5,7 +5,7 @@ import { Environment, OrbitControls } from "@react-three/drei";
 
 export default function AIOrbScene() {
   return (
-    <div className="w-full h-[300px] md:h-[400px]">
+    <div className="w-full h-[200px] md:h-[400px]">
       <Canvas camera={{ position: [0, 0, 2] }}>
         <ambientLight intensity={0.1} />
         <directionalLight position={[3, 3, 5]} intensity={0.3} />

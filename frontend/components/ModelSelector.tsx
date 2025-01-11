@@ -51,11 +51,11 @@ const ModelSelector: React.FC = () => {
           variant="ghost"
           role="combobox"
           aria-expanded={open}
-          className="h-[40px] justify-between gap-0 p-0"
+          className="h-[36px] justify-between gap-0 p-1"
         >
           <div className="flex items-center">
             {getModelImage(selectedModel.provider)}
-            <div className="hidden md:flex truncate">
+            <div className="hidden md:flex truncate ">
               {selectedModel.name || "Select model..."}
             </div>
           </div>

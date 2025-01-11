@@ -40,8 +40,8 @@ export default function ChatSettings() {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="lg" className="p-3 rounded-full">
-          <Settings size={32} />
+        <Button variant="ghost" size="icon" className="rounded-full">
+          <Settings size={16} className="min-h-4 min-w-4" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-80">
