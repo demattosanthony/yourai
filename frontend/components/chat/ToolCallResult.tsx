@@ -1,10 +1,11 @@
-import { ToolCall } from "@/hooks/useChat";
 import { Check, Loader2 } from "lucide-react";
 
 export default function ToolCallResultComponent({
   toolCall,
 }: {
-  toolCall: ToolCall;
+  toolCall: {
+    status: string;
+  };
 }) {
   const isPending = toolCall.status === "pending";
 

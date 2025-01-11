@@ -4,6 +4,7 @@ import "./globals.css";
 import { Provider } from "jotai";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import Header from "@/components/Header";
+import { DragAndDropProvider } from "@/components/DragDropProvider";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -40,11 +41,13 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <Provider>
-            <div className="h-screen w-screen flex flex-col">
-              <Header />
+            <DragAndDropProvider>
+              <div className="h-screen w-screen flex flex-col">
+                <Header />
 
-              {children}
-            </div>
+                {children}
+              </div>
+            </DragAndDropProvider>
           </Provider>
         </ThemeProvider>
       </body>

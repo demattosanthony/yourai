@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "bun run --watch app/index.ts",
     "start": "bun run app/index.ts",
+    "build": "bun build app/index.ts --target bun",
     "mig": "drizzle-kit generate"
   },
   "devDependencies": {
@@ -23,12 +24,12 @@
     "@ai-sdk/google": "^1.0.12",
     "@ai-sdk/groq": "^0.0.1",
     "@ai-sdk/mistral": "^0.0.44",
-    "@ai-sdk/openai": "^1.0.13",
+    "@ai-sdk/openai": "^1.0.17",
     "@ai-sdk/xai": "^1.0.15",
-    "abort-controller": "^3.0.0",
-    "ai": "^4.0.27",
+    "ai": "^4.0.33",
     "cors": "^2.8.5",
     "drizzle-orm": "^0.35.2",
-    "express": "^4.21.1"
+    "express": "^4.21.1",
+    "llamacpp-ai-provider": "^0.0.9"
   }
 }

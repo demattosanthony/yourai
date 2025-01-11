@@ -18,6 +18,7 @@ import {
   TypographyLi,
   TypographyInlineCode,
 } from "./Typography";
+import { useTheme } from "next-themes";
 
 // CodeBlock component for rendering code with copy functionality
 const CodeBlock: React.FC<{
@@ -27,6 +28,7 @@ const CodeBlock: React.FC<{
   const match = /language-(\w+)/.exec(className || "");
   const codeString = String(children).trim();
   const [buttonText, setButtonText] = useState("Copy");
+  const { resolvedTheme } = useTheme();
 
   const handleCopy = () => {
     navigator.clipboard
@@ -42,21 +44,28 @@ const CodeBlock: React.FC<{
   };
 
   return match ? (
-    <div className="relative max-w-full lg:max-[900px] overflow-x-auto">
+    <div className="relative w-full overflow-x-auto">
       <button
         onClick={handleCopy}
         className="absolute right-2.5 top-2.5 bg-black/50 text-white border-none rounded-xl p-1.5 cursor-pointer"
       >
         {buttonText}
       </button>
-      <SyntaxHighlighter
-        style={vscDarkPlus}
-        language={match[1]}
-        PreTag="div"
-        showLineNumbers
-      >
-        {codeString}
-      </SyntaxHighlighter>
+      <div className="max-w-full break-words">
+        <SyntaxHighlighter
+          style={vscDarkPlus}
+          language={match[1]}
+          PreTag="div"
+          showLineNumbers
+          //   wrapLongLines={true}
+          customStyle={{
+            wordBreak: "break-word",
+            whiteSpace: "pre-wrap",
+          }}
+        >
+          {codeString}
+        </SyntaxHighlighter>
+      </div>
     </div>
   ) : (
     <TypographyInlineCode>{children}</TypographyInlineCode>

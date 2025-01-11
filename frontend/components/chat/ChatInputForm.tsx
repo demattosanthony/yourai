@@ -5,41 +5,49 @@ import {
   Paperclip,
   SendHorizonal,
   StopCircle,
-  Upload,
   X,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Textarea } from "../ui/textarea";
 import { Button } from "../ui/button";
-import useChat, { attachmentsAtom, inputAtom } from "@/hooks/useChat";
 import { useAtom } from "jotai";
+import { useFileUpload } from "@/hooks/useFileUpload";
+import { useMessageHandler } from "@/hooks/useMessageHandler";
+import { inputAtom, modelAtom } from "@/atoms/chat";
 
 interface ChatInputFormProps {
+  onSubmit: () => void;
   placeholder?: string;
-  onSubmit?: () => void;
-  onAbort?: () => void;
 }
 
 export default function ChatInputForm({
-  placeholder = "Ask anything...",
   onSubmit,
-  onAbort,
+  placeholder = "Ask anything...",
 }: ChatInputFormProps) {
-  const [focused, setFocused] = useState(true);
   const [input, setInput] = useAtom(inputAtom);
-  const [attachments, setAttachments] = useAtom(attachmentsAtom);
-  const [isDragging, setIsDragging] = useState(false);
-
-  const { generatingResponse, selectedModel } = useChat();
+  const [selectedModel] = useAtom(modelAtom);
+  const [focused, setFocused] = useState(true);
+  const {
+    uploads,
+    handleFiles,
+    removeUpload,
+    handleDragLeave,
+    handleDragOver,
+    handleDrop,
+  } = useFileUpload(["image/*", "application/pdf"]);
+  const { abortMessage, isGenerating } = useMessageHandler();
 
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleKeyDown = async (event: any) => {
+  const handleKeyDown = async (
+    event: React.KeyboardEvent<HTMLTextAreaElement>
+  ) => {
     if (event.key === "Enter" && event.shiftKey) {
       event.preventDefault();
-      const caretPosition = event.target.selectionStart;
+      const caretPosition = (event.target as HTMLTextAreaElement)
+        .selectionStart;
       const textBeforeCaret = input.substring(0, caretPosition);
       const textAfterCaret = input.substring(caretPosition);
       if (setInput) {
@@ -60,50 +68,12 @@ export default function ChatInputForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!input.trim()) return;
-    if (onSubmit) onSubmit();
+    onSubmit();
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    const validFiles = files.filter(
-      (file) =>
-        file.type.startsWith("image/") ||
-        (selectedModel.supportsPdfs && file.type === "application/pdf")
-    );
-    setAttachments((prev) => [...prev, ...validFiles]);
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInput(e.target.value);
   };
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-  };
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-
-    const files = Array.from(e.dataTransfer.files).filter(
-      (file) =>
-        file.type.startsWith("image/") ||
-        (selectedModel.supportsPdfs && file.type === "application/pdf")
-    );
-    setAttachments((prev) => [...prev, ...files]);
-  };
-
-  useEffect(() => {
-    if (textAreaRef.current) {
-      textAreaRef.current.style.height = "50px";
-      textAreaRef.current.style.height =
-        textAreaRef.current.scrollHeight + "px";
-    }
-  }, [input]);
 
   useEffect(() => {
     // Add keyboard shortcut listener
@@ -119,6 +89,14 @@ export default function ChatInputForm({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
+  useEffect(() => {
+    if (textAreaRef.current) {
+      textAreaRef.current.style.height = "50px";
+      textAreaRef.current.style.height =
+        textAreaRef.current.scrollHeight + "px";
+    }
+  }, [input]);
+
   return (
     <form
       className={`relative h-auto min-h-[24px] max-h-[450px] w-full mx-auto rounded-2xl border max-w-[750px] bg-background ${
@@ -129,22 +107,17 @@ export default function ChatInputForm({
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
-      {/* Add overlay when dragging */}
-      {isDragging && selectedModel.supportsImages && (
-        <div className="absolute inset-0 bg-primary/10 border-2 border-dashed border-primary rounded-xl z-50 flex items-center justify-center" />
-      )}
-
-      {/* Display selected images */}
-      {attachments.length > 0 && (
-        <div className="flex gap-3 p-3 flex-wrap">
-          {attachments.map((file, index) => (
+      {/* File Upload Preview */}
+      {uploads.length > 0 && (
+        <div className="flex gap-3 p-3 flex-wrap h-26 overflow-auto">
+          {uploads.map((upload, index) => (
             <div
               key={index}
               className="relative h-24 w-24 rounded-lg overflow-hidden border border-border shadow-sm group"
             >
-              {file.type.startsWith("image/") ? (
+              {upload.type === "image" ? (
                 <img
-                  src={URL.createObjectURL(file)}
+                  src={upload.preview}
                   alt={`Upload ${index + 1}`}
                   className="h-full w-full object-cover transition-transform group-hover:scale-105"
                 />
@@ -158,18 +131,17 @@ export default function ChatInputForm({
                       PDF
                     </span>
                     <span className="text-[10px] text-muted-foreground max-w-[80px] truncate">
-                      {file.name}
+                      {upload.file.name}
                     </span>
                   </div>
                 </div>
               )}
 
-              {/* Remove button */}
               <button
                 className="absolute top-1 right-1 p-1 rounded-full bg-background/80 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-background"
                 onClick={(e) => {
                   e.preventDefault();
-                  setAttachments(attachments.filter((_, i) => i !== index));
+                  removeUpload(index);
                 }}
               >
                 <X className="w-3 h-3" />
@@ -182,14 +154,16 @@ export default function ChatInputForm({
       <div className="flex h-full w-full items-end">
         <Textarea
           placeholder={placeholder}
-          onChange={(e) => setInput(e.target.value)}
+          onChange={handleInputChange}
           ref={textAreaRef}
           onKeyDown={handleKeyDown}
           value={input}
           onBlur={() => setFocused(false)}
           onFocus={() => setFocused(true)}
           autoFocus
-          className="resize-none min-h-[24px] h-[50px] max-h-[400px] w-full pt-[14px] text-md rounded-xl border-none focus:ring-0 shadow-none focus-visible:ring-0 flex-1 focus-visible:ring-offset-0 bg-transparent"
+          className={`resize-none min-h-[50px] h-[50px]  w-full pt-[14px] text-md rounded-xl border-none focus:ring-0 shadow-none focus-visible:ring-0 flex-1 focus-visible:ring-offset-0 bg-transparent ${
+            uploads.length ? "max-h-[300px]" : "max-h-[400px]"
+          }`}
         />
 
         <div className="h-full pr-1 flex pb-[9px]">
@@ -203,7 +177,7 @@ export default function ChatInputForm({
                   selectedModel.supportsPdfs ? "application/pdf" : ""
                 }`}
                 multiple
-                onChange={handleImageUpload}
+                onChange={handleFiles}
               />
               <Button
                 className="h-8 w-8"
@@ -224,15 +198,15 @@ export default function ChatInputForm({
             className="h-8 w-8"
             variant="ghost"
             onClick={(e) => {
-              if (generatingResponse) {
-                // If currently generating, abort the ongoing request
-                if (onAbort) onAbort();
+              e.preventDefault();
+              if (isGenerating) {
+                abortMessage(); // Call abortMessage when generating
               } else {
                 handleSubmit(e);
               }
             }}
           >
-            {generatingResponse ? <StopCircle /> : <SendHorizonal />}
+            {isGenerating ? <StopCircle /> : <SendHorizonal />}
           </Button>
         </div>
       </div>

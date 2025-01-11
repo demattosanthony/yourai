@@ -19,18 +19,13 @@ import {
 import { useEffect, useState } from "react";
 import { Model } from "@/types/model";
 import api from "@/lib/api";
+import { useAtom } from "jotai";
+import { modelAtom } from "@/atoms/chat";
 
-interface ModelSelectorProps {
-  selectedModel: Model;
-  setSelectedModel: any;
-}
-
-const ModelSelector: React.FC<ModelSelectorProps> = ({
-  selectedModel,
-  setSelectedModel,
-}) => {
+const ModelSelector: React.FC = () => {
   const [open, setOpen] = useState(false);
   const [models, setModels] = useState<Model[]>([]);
+  const [selectedModel, setSelectedModel] = useAtom(modelAtom);
 
   useEffect(() => {
     api.getAvailableModels().then((res) => setModels(res));
@@ -58,8 +53,7 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
         >
           <div className="flex items-center">
             {getModelImage(selectedModel.provider)}
-            {models.find((model) => model.name === selectedModel.name)?.name ||
-              "Select model..."}
+            {selectedModel.name || "Select model..."}
           </div>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
@@ -74,7 +68,7 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
                 <CommandItem
                   key={model.name}
                   value={model.name}
-                  onSelect={(currentValue) => {
+                  onSelect={() => {
                     setSelectedModel(model);
                     setOpen(false);
                   }}
@@ -124,7 +118,7 @@ function getModelImage(provider: string) {
     case "perplexity":
       return (
         <img
-          src="https://www.perplexity.ai/favicon.svg"
+          src="https://www.perplexity.ai/favicon.ico"
           alt="Perplexity"
           className="w-5 h-5 mr-2"
         />
@@ -148,7 +142,7 @@ function getModelImage(provider: string) {
     case "mistral":
       return <img src="/mistral.svg" alt="Mistral" className="w-5 h-5 mr-2" />;
     case "groq":
-      return <img src="/groq.svg" alt="Groq" className="w-5 h-5 mr-2" />;
+      return <img src="/groq.webp" alt="Groq" className="w-5 h-5 mr-2" />;
 
     default:
       return null;

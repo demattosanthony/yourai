@@ -1,9 +1,11 @@
 "use client";
 
+import { isNewThreadAtom, messagesAtom } from "@/atoms/chat";
 import ChatInputForm from "@/components/chat/ChatInputForm";
 import ChatMessagesList from "@/components/chat/MessagesList";
-import useChat, { isNewThreadAtom, MessageRole } from "@/hooks/useChat";
+import { useMessageHandler } from "@/hooks/useMessageHandler";
 import api from "@/lib/api";
+import { MessageRole } from "@/types/chat";
 import { useAtom } from "jotai";
 import { useParams } from "next/navigation";
 import { useEffect } from "react";
@@ -11,7 +13,8 @@ import { useEffect } from "react";
 export default function ChatPage() {
   const params = useParams<{ threadId: string }>();
   const { threadId } = params;
-  const { handleSubmit, handleAbort, setMessages, input } = useChat();
+  const { sendMessage } = useMessageHandler();
+  const [, setMessages] = useAtom(messagesAtom);
   const [isNewThread, setIsNewThread] = useAtom(isNewThreadAtom);
 
   async function loadMessages() {
@@ -45,14 +48,8 @@ export default function ChatPage() {
       <div className="w-full flex items-center justify-center mx-auto p-1 pb-2">
         <ChatInputForm
           onSubmit={() => {
-            handleSubmit(threadId, [
-              {
-                type: "text",
-                text: input,
-              },
-            ]);
+            sendMessage(threadId);
           }}
-          onAbort={handleAbort}
         />
       </div>
     </>

@@ -9,15 +9,15 @@ import {
 import { Settings } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
-import useChat, { customIntrucionsAtom } from "@/hooks/useChat";
 import { useState, useEffect } from "react";
 import { Textarea } from "./ui/textarea";
 import { useAtom } from "jotai";
+import { instructionsAtom, temperatureAtom } from "@/atoms/chat";
 
 export default function ChatSettings() {
-  const { temperature, setTemperature } = useChat();
+  const [temperature, setTemperature] = useAtom(temperatureAtom);
   const [inputValue, setInputValue] = useState(temperature.toFixed(2));
-  const [instructions, setInstructions] = useAtom(customIntrucionsAtom);
+  const [instructions, setInstructions] = useAtom(instructionsAtom);
 
   useEffect(() => {
     setInputValue(temperature.toFixed(1));

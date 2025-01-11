@@ -1,86 +1,19 @@
 import Express from "express";
 import cors from "cors";
-import { generateText, streamText, type CoreMessage } from "ai";
 import path from "path";
 import { migrate } from "drizzle-orm/bun-sqlite/migrator";
-import { eq } from "drizzle-orm";
+import { desc, eq, inArray, sql } from "drizzle-orm";
 
 import { db } from "./config/db";
 import { MODELS } from "./models";
 import { threads, messages } from "./config/schema";
-
-interface inferenceParams {
-  model: keyof typeof MODELS;
-  messages: CoreMessage[];
-  maxTokens?: number;
-  temperature?: number;
-  systemMessage?: string;
-}
-
-async function runInference(
-  params: inferenceParams,
-  onToolEvent: (event: string, data: any) => void
-) {
-  const { model, messages, temperature, maxTokens } = params;
-
-  let messagesToSend = [...messages];
-
-  const modelToRun = MODELS[model];
-
-  if (modelToRun.supportsSystemMessages !== false && params.systemMessage) {
-    messagesToSend.unshift({
-      role: "system" as const,
-      content: params.systemMessage,
-    });
-  }
-
-  let generationParams: any = {
-    model: modelToRun.model,
-    temperature: temperature || 0.5,
-    messages: messagesToSend,
-    maxTokens: maxTokens || undefined,
-  };
-
-  if (modelToRun.supportsToolUse) {
-    generationParams = {
-      ...generationParams,
-      //   tools: {
-      //     webSearch: webSearchTool,
-      //     getWebPageContents: getWebPageContentsTool,
-      //   },
-      //   toolChoice: "auto",
-      //   maxSteps: 5,
-      onChunk({
-        chunk,
-      }: {
-        chunk: { type: string; toolName: string; args: any };
-      }) {
-        if (chunk.type === "tool-call") {
-          const { toolName, args } = chunk;
-          onToolEvent("tool-call-start", { toolName, args });
-        }
-
-        if (chunk.type === "tool-result") {
-          onToolEvent("tool-call-end", { toolName: chunk.toolName });
-        }
-      },
-    };
-  }
-
-  if (modelToRun.supportsStreaming) {
-    const { textStream } = await streamText(generationParams);
-    return textStream;
-  } else {
-    const { text } = await generateText(generationParams);
-    return [text]; // Wrap text in an array to make it iterable
-  }
-}
+import { runInference } from "./inference";
 
 const PORT = process.env.PORT || 4000;
 
 async function main() {
   try {
-    await migrate(db, {
+    migrate(db, {
       migrationsFolder: path.join(__dirname, "../drizzle"),
     });
   } catch (error) {
@@ -89,12 +22,8 @@ async function main() {
   }
 
   const app = Express();
-  app.use(Express.json({ limit: "100gb" }));
+  app.use(Express.json({ limit: "1000gb" })); // Just running locally. Allow for large base64 payloads
   app.use(cors());
-
-  app.get("/", (req, res) => {
-    res.send("Hello World");
-  });
 
   app.get("/models", async (req, res) => {
     res.json(
@@ -128,8 +57,38 @@ async function main() {
   });
 
   app.get("/threads", async (req, res) => {
+    const page = parseInt(req.query.page as string) || 1;
+    const search = (req.query.search as string)?.trim() || "";
+    const limit = 10;
+    const offset = (page - 1) * limit;
+    let query;
     try {
-      const allThreads = await db.query.threads.findMany({
+      query = db
+        .select()
+        .from(threads)
+        .leftJoin(messages, eq(threads.id, messages.thread_id))
+        .orderBy(desc(threads.created_at));
+
+      if (search && search.length > 0) {
+        // Search in message content
+        query = query.where(
+          sql`json_extract(${messages.content}, '$.text') LIKE ${
+            "%" + search + "%"
+          }`
+        );
+      }
+
+      // Get distinct threads that match search
+      const matchingThreads = await query
+        .groupBy(threads.id)
+        .limit(limit)
+        .offset(offset);
+
+      // Fetch complete thread data with all messages for matching threads
+      const threadIds = matchingThreads.map((t) => t.threads.id);
+
+      const completeThreads = await db.query.threads.findMany({
+        where: inArray(threads.id, threadIds),
         orderBy: (threads, { desc }) => [desc(threads.created_at)],
         with: {
           messages: {
@@ -138,7 +97,7 @@ async function main() {
         },
       });
 
-      res.json(allThreads);
+      res.json(completeThreads);
     } catch (error) {
       console.error("Error fetching threads:", error);
       res.status(500).json({ error: "Internal server error" });

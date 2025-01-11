@@ -3,12 +3,13 @@
 - chat with any of the top llms
 - avoid subscription lock in
 - pay by consumption
+- save chats in memory with sqlite
 
 ## Get started
 
 1. Install Bun js runtime: https://bun.sh/docs/installation
 
-2. Add environment variables as needed
+2. Add environment variables as needed.
 
 ```bash
 cd api
@@ -22,7 +23,7 @@ cp .env.example .env.local
 ./run.sh
 ```
 
-Open the app at http://localhost:4001
+Open the app at http://localhost:4001 and start chatting
 
 ## Demo
 

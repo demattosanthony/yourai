@@ -47,14 +47,12 @@ export function TypographyBlockquote({
   );
 }
 
-// Typography.tsx
-
 export function TypographyTable({
   children,
   ...props
 }: React.TableHTMLAttributes<HTMLTableElement>) {
   return (
-    <div className="my-6 w-full overflow-x-auto" {...props}>
+    <div className="my-2 w-full overflow-x-auto" {...props}>
       <table className="w-full border-collapse">{children}</table>
     </div>
   );
