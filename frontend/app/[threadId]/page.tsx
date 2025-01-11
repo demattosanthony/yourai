@@ -45,7 +45,7 @@ export default function ChatPage() {
     <>
       <ChatMessagesList />
 
-      <div className="w-full flex items-center justify-center mx-auto p-6 pb-8 md:pb-2  md:p-2">
+      <div className="w-full flex items-center justify-center mx-auto px-6 pb-8 md:pb-2 md:p-2">
         <ChatInputForm
           onSubmit={() => {
             sendMessage(threadId);
