@@ -37,6 +37,7 @@ export default function Header() {
       <div className="absolute right-2 md:right-8 bg-opacity-50 z-10">
         <div className="flex items-center ">
           <ModelSelector />
+
           <Link href="/history" prefetch>
             <Button variant={"ghost"} size={"lg"} className=" p-3 rounded-full">
               <History size={32} />
@@ -52,7 +53,7 @@ export default function Header() {
               router.push("/");
             }}
             size={"lg"}
-            className=" p-3 rounded-full"
+            className="p-3 rounded-full"
           >
             <Plus size={32} />
           </Button>

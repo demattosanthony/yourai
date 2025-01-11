@@ -20,7 +20,7 @@ export default function Home() {
         <AIOrbScene />
       </div>
 
-      <div className="w-full flex items-center justify-center mx-auto p-6  md:p-2 absolute bottom-0 left-0 right-0">
+      <div className="w-full flex items-center justify-center mx-auto p-6 pb-8 md:pb-2 md:p-2 absolute bottom-0 left-0 right-0">
         <ChatInputForm
           onSubmit={async () => {
             try {

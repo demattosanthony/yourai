@@ -29,10 +29,10 @@ function MessageItem({
             ))}
         </> */}
       <div
-        className={`max-w-full md:max-w-full rounded-lg p-2 ${
+        className={`md:max-w-full rounded-lg p-2 ${
           message.role === MessageRole.user
-            ? "bg-primary text-white self-end dark:text-black"
-            : "self-start"
+            ? "bg-primary text-white self-end dark:text-black max-w-[85%]"
+            : "self-start max-w-full"
         }`}
         style={{
           whiteSpace: message.role === MessageRole.user ? "pre-wrap" : "normal",
