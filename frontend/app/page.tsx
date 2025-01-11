@@ -16,12 +16,11 @@ export default function Home() {
 
   return (
     <>
-      <InstallPrompt />
       <div className="h-[90%] w-full flex items-center justify-center">
         <AIOrbScene />
       </div>
 
-      <div className="w-full flex items-center justify-center mx-auto p-4 md:p-2 absolute bottom-0 left-0 right-0">
+      <div className="w-full flex items-center justify-center mx-auto p-6 md:p-2 absolute bottom-0 left-0 right-0">
         <ChatInputForm
           onSubmit={async () => {
             try {
@@ -41,43 +40,43 @@ export default function Home() {
   );
 }
 
-function InstallPrompt() {
-  const [isIOS, setIsIOS] = useState(false);
-  const [isStandalone, setIsStandalone] = useState(false);
+// function InstallPrompt() {
+//   const [isIOS, setIsIOS] = useState(false);
+//   const [isStandalone, setIsStandalone] = useState(false);
 
-  useEffect(() => {
-    // @ts-expect-error: navigator.userAgent type is not fully typed
-    setIsIOS(/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream);
+//   useEffect(() => {
+//     // @ts-expect-error: navigator.userAgent type is not fully typed
+//     setIsIOS(/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream);
 
-    setIsStandalone(window.matchMedia("(display-mode: standalone)").matches);
-  }, []);
+//     setIsStandalone(window.matchMedia("(display-mode: standalone)").matches);
+//   }, []);
 
-  if (isStandalone) {
-    return null; // Don't show install button if already installed
-  }
+//   if (isStandalone) {
+//     return null; // Don't show install button if already installed
+//   }
 
-  return (
-    <div>
-      <h3>Install App</h3>
-      <button>Add to Home Screen</button>
-      {isIOS && (
-        <p>
-          To install this app on your iOS device, tap the share button
-          <span role="img" aria-label="share icon">
-            {" "}
-            ⎋{" "}
-          </span>
-          and then &ldquo;Add to Home Screen&rdquo;
-          <span role="img" aria-label="plus icon">
-            {" "}
-            ➕{" "}
-          </span>
-          .
-        </p>
-      )}
-    </div>
-  );
-}
+//   return (
+//     <div>
+//       <h3>Install App</h3>
+//       <button>Add to Home Screen</button>
+//       {isIOS && (
+//         <p>
+//           To install this app on your iOS device, tap the share button
+//           <span role="img" aria-label="share icon">
+//             {" "}
+//             ⎋{" "}
+//           </span>
+//           and then &ldquo;Add to Home Screen&rdquo;
+//           <span role="img" aria-label="plus icon">
+//             {" "}
+//             ➕{" "}
+//           </span>
+//           .
+//         </p>
+//       )}
+//     </div>
+//   );
+// }
 
 // const Sphere = memo(function Sphere() {
 //   const { resolvedTheme } = useTheme();
