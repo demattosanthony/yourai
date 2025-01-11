@@ -57,6 +57,7 @@ export default function ChatSettings() {
                 value={inputValue}
                 onChange={handleInputChange}
                 className="w-20 h-8"
+                autoFocus={false}
               />
             </div>
             <Slider

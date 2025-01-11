@@ -46,18 +46,20 @@ const ModelSelector: React.FC = () => {
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild className="p-2">
+      <PopoverTrigger asChild>
         <Button
           variant="ghost"
           role="combobox"
           aria-expanded={open}
-          className="w-auto justify-between"
+          className="h-[40px] justify-between gap-0 p-0"
         >
           <div className="flex items-center">
             {getModelImage(selectedModel.provider)}
-            {selectedModel.name || "Select model..."}
+            <div className="hidden md:flex truncate">
+              {selectedModel.name || "Select model..."}
+            </div>
           </div>
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          <ChevronsUpDown className="md:ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="p-0 ">
