@@ -1,4 +1,4 @@
-import { useRef, useMemo, memo } from "react";
+import { useRef, useMemo } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { Environment, OrbitControls } from "@react-three/drei";
@@ -6,34 +6,19 @@ import { Environment, OrbitControls } from "@react-three/drei";
 export default function AIOrbScene() {
   return (
     <div className="w-full h-[200px] md:h-[400px]">
-      <Canvas
-        camera={{ position: [0, 0, 2] }}
-        dpr={[1, 2]}
-        performance={{ min: 0.5 }}
-        gl={{
-          powerPreference: "high-performance",
-          antialias: false,
-        }}
-      >
+      <Canvas camera={{ position: [0, 0, 2] }}>
         <ambientLight intensity={0.1} />
         <directionalLight position={[3, 3, 5]} intensity={0.3} />
         <pointLight position={[-5, -5, -5]} intensity={0.1} color="#ffffff" />
         <AIOrbMesh />
         <Environment preset="studio" />
-        <OrbitControls
-          enableZoom={false}
-          autoRotate
-          autoRotateSpeed={1}
-          enableDamping={false}
-          maxPolarAngle={Math.PI / 2}
-          minPolarAngle={Math.PI / 2}
-        />
+        <OrbitControls enableZoom={false} autoRotate autoRotateSpeed={1} />
       </Canvas>
     </div>
   );
 }
 
-const AIOrbMesh = memo(function AIOrbMesh() {
+function AIOrbMesh() {
   const meshRef = useRef<THREE.Mesh>(null);
 
   // Custom shader material for the morphing effect
@@ -116,8 +101,14 @@ const AIOrbMesh = memo(function AIOrbMesh() {
           return 42.0 * dot( m*m, vec4( dot(p0,x0), dot(p1,x1), dot(p2,x2), dot(p3,x3) ) );
         }
         
-        void main() {
+          void main() {
+          // Reduced noise amplitude for smoother surface
           float noise = snoise(position * 1.5 + time * 0.15) * 0.2;  
+          
+          // Gentler layered noise
+          noise += snoise(position * 2.0 - time * 0.1) * 0.1;    
+          noise += snoise(position * 3.0 + time * 0.05) * 0.05;   
+          
           vec3 newPosition = position * (1.0 + noise);
           vNormal = normalize(normalMatrix * normal);
           vPosition = newPosition;
@@ -131,12 +122,35 @@ const AIOrbMesh = memo(function AIOrbMesh() {
         
         void main() {
           vec3 viewDirection = normalize(-vPosition);
-          float fresnelTerm = pow(1.0 - max(dot(viewDirection, vNormal), 0.0), 3.0);
           
-          vec3 lightDir = normalize(vec3(1.0, 1.0, 1.0));
-          float diffuse = max(dot(vNormal, lightDir), 0.0);
+          // Softer fresnel effect
+          float fresnelTerm = 1.0 - max(dot(viewDirection, vNormal), 0.0);
+          fresnelTerm = pow(fresnelTerm, 3.0);  // Even softer fresnel falloff
           
-          vec3 finalColor = color * (0.4 + 0.4 * diffuse + 0.5 * fresnelTerm);
+          // Softer lighting
+          vec3 lightDir1 = normalize(vec3(1.0, 1.0, 1.0));
+          vec3 lightDir2 = normalize(vec3(-1.0, -0.5, -0.5));
+          
+          float diffuse1 = max(dot(vNormal, lightDir1), 0.0);
+          float diffuse2 = max(dot(vNormal, lightDir2), 0.0) * 0.5;
+          
+          // Increased ambient for more glow
+          float ao = max(0.7 + dot(vNormal, vec3(0.0, 1.0, 0.0)), 0.0);
+          
+          // Combine lighting effects with more ambient glow
+          vec3 finalColor = color * (
+            0.4 +                    // increased ambient base
+            0.4 * diffuse1 +        // softer primary light
+            0.2 * diffuse2 +        // softer secondary light
+            0.5 * fresnelTerm +     // softer edge highlight
+            0.3 * ao                // increased ambient occlusion
+          );
+          
+          // Softer depth falloff
+          float depth = length(vPosition) * 0.1;
+          finalColor *= 1.0 - depth;
+          
+          // Add subtle glow
           finalColor += color * 0.1;
           
           gl_FragColor = vec4(finalColor, 1.0);
@@ -154,7 +168,7 @@ const AIOrbMesh = memo(function AIOrbMesh() {
 
   return (
     <mesh ref={meshRef} material={material}>
-      <sphereGeometry args={[1, 32, 32]} />
+      <sphereGeometry args={[1, 64, 64]} />{" "}
     </mesh>
   );
-});
+}
