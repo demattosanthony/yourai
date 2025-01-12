@@ -64,7 +64,7 @@ const ModelSelector: React.FC = () => {
       <PopoverContent className="p-0 ">
         <Command>
           {/* <CommandInput placeholder="Search model..." /> */}
-          <CommandList className="max-h-[400px]">
+          <CommandList className="max-h-[450px]">
             <CommandEmpty>No model found.</CommandEmpty>
             <CommandGroup>
               {models.map((model) => (

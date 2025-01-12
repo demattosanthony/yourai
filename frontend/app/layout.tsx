@@ -34,6 +34,7 @@ export const viewport: Viewport = {
   userScalable: false,
   viewportFit: "cover",
   interactiveWidget: "resizes-content",
+  minimumScale: 1,
 };
 
 export const experimental_ppr = true;
@@ -57,7 +58,7 @@ export default function RootLayout({
           <Provider>
             <DragAndDropProvider>
               <ThemeColorManager />
-              <div className="h-screen w-screen flex flex-col max-h-[-webkit-fill-available]">
+              <div className="h-screen w-screen flex flex-col max-h-[-webkit-fill-available] overflow-hidden">
                 <Header />
 
                 {children}
