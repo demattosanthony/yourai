@@ -102,7 +102,7 @@ export default function ChatInputForm({
   return (
     <form
       className={`relative h-auto min-h-[24px] max-h-[450px] w-full mx-auto rounded-2xl border max-w-[750px] bg-background ${
-        focused && "md:border-primary"
+        focused && "md:shadow-md"
       }`}
       onSubmit={handleSubmit}
       onDragOver={handleDragOver}
