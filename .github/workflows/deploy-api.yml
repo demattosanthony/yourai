@@ -1,0 +1,21 @@
+name: Deploy Api
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Deploy to Dokku
+        uses: dokku/github-action@master
+        with:
+          branch: "main"
+          git_remote_url: "ssh://dokku@165.22.46.191:22/yo-api"
+          ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
