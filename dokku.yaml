@@ -1,4 +1,9 @@
----
 version: "1"
 build:
-   workdir: api
+  workdir: api
+ports:
+  - "80:4000"
+  - "443:4000"
+proxy:
+  ssl:
+    force: true
