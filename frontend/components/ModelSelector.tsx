@@ -64,7 +64,7 @@ const ModelSelector: React.FC = () => {
       </PopoverTrigger>
       <PopoverContent className="p-0 ">
         <Command>
-          <CommandInput placeholder="Search model..." />
+          {/* <CommandInput placeholder="Search model..." /> */}
           <CommandList className="max-h-[400px]">
             <CommandEmpty>No model found.</CommandEmpty>
             <CommandGroup>
@@ -77,7 +77,7 @@ const ModelSelector: React.FC = () => {
                     setOpen(false);
                   }}
                 >
-                  <div className="flex items-center">
+                  <div className="flex">
                     {getModelImage(model.provider)}
                     <span>{model.name}</span>
                   </div>
@@ -128,25 +128,15 @@ function getModelImage(provider: string) {
         />
       );
     case "google":
-      return (
-        <img
-          src="https://www.google.com/favicon.ico"
-          alt="Google"
-          className="w-5 h-5 mr-2"
-        />
-      );
+      return <img src="/google.svg" alt="Google" className="w-5 h-5 mr-2" />;
     case "xai":
       return (
-        <img
-          src="https://x.ai/favicon.ico"
-          alt="xAI"
-          className="w-5 h-5 mr-2"
-        />
+        <img src="https://x.ai/icon.svg" alt="xAI" className="w-5 h-5 mr-2" />
       );
     case "mistral":
       return <img src="/mistral.svg" alt="Mistral" className="w-5 h-5 mr-2" />;
     case "groq":
-      return <img src="/groq.webp" alt="Groq" className="w-5 h-5 mr-2" />;
+      return <img src="/meta.svg" alt="Meta" className="w-5 h-5 mr-2" />;
 
     default:
       return null;

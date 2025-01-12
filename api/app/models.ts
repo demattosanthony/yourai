@@ -25,162 +25,162 @@ interface ModelConfig {
   supportsPdfs?: boolean;
 }
 
-export const MODELS: Record<
-  | "gpt-4o-mini"
-  | "gpt-4o"
-  | "o1"
-  | "o1-mini"
-  | "claude-3.5-sonnet"
-  | "claude-3.5-haiku"
-  | "gemini-2.0-pro"
-  | "gemini-2.0-flash"
-  | "gemini-2.0-flash-online"
-  | "grok-2"
-  | "grok-2-vision"
-  | "mistral-large"
-  | "mistral-small"
-  //   | "codestral"
-  //   | "ministral-8b"
-  | "llama-3.3-70b"
-  | "llama-3.1-online-large"
-  | "llama-3.1-online-small"
-  | "llama-3.1-online-huge"
-  //   | "llama-3.1-8b-instruct"
-  | "llama-3.1-70b-instruct",
-  ModelConfig
-> = {
-  "gpt-4o-mini": {
-    model: openai("gpt-4o-mini"),
-    supportsToolUse: true,
-    provider: "openai",
-    supportsStreaming: true,
-    supportsImages: true,
-    supportsSystemMessages: true,
-  },
-  "gpt-4o": {
-    model: openai("gpt-4o"),
-    supportsToolUse: true,
-    supportsStreaming: true,
-    provider: "openai",
-    supportsImages: true,
-    supportsSystemMessages: true,
-  },
-  o1: {
-    model: openai("o1-preview"),
-    supportsToolUse: false,
-    supportsStreaming: false,
-    supportsSystemMessages: false,
-    provider: "openai",
-  },
-  "o1-mini": {
-    model: openai("o1-mini"),
-    supportsToolUse: false,
-    supportsStreaming: false,
-    supportsSystemMessages: false,
-    provider: "openai",
-  },
-  "claude-3.5-sonnet": {
-    model: anthropic("claude-3-5-sonnet-20241022"),
-    supportsToolUse: true,
-    supportsStreaming: true,
-    provider: "anthropic",
-    supportsImages: true,
-    supportsPdfs: true,
-  },
-  "claude-3.5-haiku": {
-    model: anthropic("claude-3-5-haiku-latest"),
-    supportsToolUse: true,
-    supportsStreaming: true,
-    provider: "anthropic",
-    supportsImages: true,
-    supportsPdfs: false,
-  },
-  "gemini-2.0-pro": {
-    model: google("gemini-exp-1206"),
-    supportsToolUse: true,
-    supportsStreaming: true,
-    provider: "google",
-    supportsImages: true,
-    supportsPdfs: true,
-  },
-  "gemini-2.0-flash": {
-    model: google("gemini-2.0-flash-exp"),
-    supportsToolUse: true,
-    supportsStreaming: true,
-    provider: "google",
-    supportsImages: true,
-    supportsPdfs: true,
-  },
-  "gemini-2.0-flash-online": {
-    model: google("gemini-2.0-flash-exp", {
-      useSearchGrounding: true,
-    }),
-    supportsToolUse: true,
-    supportsStreaming: true,
-    provider: "google",
-    supportsImages: true,
-    supportsPdfs: true,
-  },
-  "grok-2": {
-    model: xai("grok-2-1212"),
-    supportsToolUse: true,
-    supportsStreaming: true,
-    provider: "xai",
-  },
-  "grok-2-vision": {
-    model: xai("grok-2-vision-1212"),
-    supportsToolUse: true,
-    supportsStreaming: true,
-    provider: "xai",
-    supportsImages: true,
-  },
-  "mistral-large": {
-    model: mistral("mistral-large-latest"),
-    supportsToolUse: true,
-    supportsStreaming: true,
-    provider: "mistral",
-  },
-  "mistral-small": {
-    model: mistral("mistral-small-latest"),
-    supportsToolUse: true,
-    supportsStreaming: true,
-    provider: "mistral",
-  },
-  "llama-3.3-70b": {
-    model: groq("llama-3.3-70b-versatile"),
-    supportsToolUse: false,
-    supportsStreaming: true,
-    provider: "groq",
-  },
-  "llama-3.1-online-large": {
-    model: perplexity("llama-3.1-sonar-large-128k-online"),
-    supportsToolUse: false,
-    supportsStreaming: true,
-    provider: "perplexity",
-  },
-  "llama-3.1-online-small": {
-    model: perplexity("llama-3.1-sonar-small-128k-online"),
-    supportsToolUse: false,
-    supportsStreaming: true,
-    provider: "perplexity",
-  },
-  "llama-3.1-online-huge": {
-    model: perplexity("llama-3.1-sonar-huge-128k-online"),
-    supportsToolUse: false,
-    supportsStreaming: true,
-    provider: "perplexity",
-  },
-  //   "llama-3.1-8b-instruct": {
-  //     model: perplexity("llama-3.1-8b-instruct"),
-  //     supportsToolUse: false,
-  //     supportsStreaming: true,
-  //     supportsSystemMessages: false,
-  //     provider: "perplexity",
-  //   },
-  "llama-3.1-70b-instruct": {
-    model: perplexity("llama-3.1-70b-instruct"),
-    supportsToolUse: false,
-    supportsStreaming: true,
-    provider: "perplexity",
-  },
+export const MODELS: Record<string, ModelConfig> = {
+  ...(process.env.ANTHROPIC_API_KEY
+    ? {
+        "claude-3.5-sonnet": {
+          model: anthropic("claude-3-5-sonnet-20241022"),
+          supportsToolUse: true,
+          supportsStreaming: true,
+          provider: "anthropic",
+          supportsImages: true,
+          supportsPdfs: true,
+        },
+        "claude-3.5-haiku": {
+          model: anthropic("claude-3-5-haiku-latest"),
+          supportsToolUse: true,
+          supportsStreaming: true,
+          provider: "anthropic",
+          supportsImages: true,
+          supportsPdfs: false,
+        },
+      }
+    : {}),
+  ...(process.env.OPENAI_API_KEY
+    ? {
+        o1: {
+          model: openai("o1-preview"),
+          supportsToolUse: false,
+          supportsStreaming: false,
+          supportsSystemMessages: false,
+          provider: "openai",
+        },
+        "o1-mini": {
+          model: openai("o1-mini"),
+          supportsToolUse: false,
+          supportsStreaming: false,
+          supportsSystemMessages: false,
+          provider: "openai",
+        },
+        "gpt-4o": {
+          model: openai("gpt-4o"),
+          supportsToolUse: true,
+          supportsStreaming: true,
+          provider: "openai",
+          supportsImages: true,
+          supportsSystemMessages: true,
+        },
+        "gpt-4o-mini": {
+          model: openai("gpt-4o-mini"),
+          supportsToolUse: true,
+          provider: "openai",
+          supportsStreaming: true,
+          supportsImages: true,
+          supportsSystemMessages: true,
+        },
+      }
+    : {}),
+  ...(process.env.GOOGLE_GENERATIVE_AI_API_KEY
+    ? {
+        "gemini-2.0-flash-thinking": {
+          model: google("gemini-2.0-flash-thinking-exp-1219"),
+          supportsToolUse: false,
+          supportsStreaming: true,
+          provider: "google",
+          supportsImages: true,
+          supportsPdfs: true,
+        },
+        "gemini-2.0-pro": {
+          model: google("gemini-exp-1206"),
+          supportsToolUse: true,
+          supportsStreaming: true,
+          provider: "google",
+          supportsImages: true,
+          supportsPdfs: true,
+        },
+        "gemini-2.0-flash": {
+          model: google("gemini-2.0-flash-exp"),
+          supportsToolUse: true,
+          supportsStreaming: true,
+          provider: "google",
+          supportsImages: true,
+          supportsPdfs: true,
+        },
+        "gemini-2.0-flash-online": {
+          model: google("gemini-2.0-flash-exp", {
+            useSearchGrounding: true,
+          }),
+          supportsToolUse: true,
+          supportsStreaming: true,
+          provider: "google",
+          supportsImages: true,
+          supportsPdfs: true,
+        },
+      }
+    : {}),
+  ...(process.env.XAI_API_KEY
+    ? {
+        "grok-2": {
+          model: xai("grok-2-1212"),
+          supportsToolUse: true,
+          supportsStreaming: true,
+          provider: "xai",
+        },
+        "grok-2-vision": {
+          model: xai("grok-2-vision-1212"),
+          supportsToolUse: true,
+          supportsStreaming: true,
+          provider: "xai",
+          supportsImages: true,
+        },
+      }
+    : {}),
+  //   ...(process.env.MISTRAL_API_KEY
+  //     ? {
+  //         "mistral-large": {
+  //           model: mistral("mistral-large-latest"),
+  //           supportsToolUse: true,
+  //           supportsStreaming: true,
+  //           provider: "mistral",
+  //         },
+  //         "mistral-small": {
+  //           model: mistral("mistral-small-latest"),
+  //           supportsToolUse: true,
+  //           supportsStreaming: true,
+  //           provider: "mistral",
+  //         },
+  //       }
+  //     : {}),
+  ...(process.env.GROQ_API_KEY
+    ? {
+        "llama-3.3-70b": {
+          model: groq("llama-3.3-70b-versatile"),
+          supportsToolUse: false,
+          supportsStreaming: true,
+          provider: "groq",
+        },
+      }
+    : {}),
+  ...(process.env.PPLX_API_KEY
+    ? {
+        "llama-3.1-sonar-huge-online": {
+          model: perplexity("llama-3.1-sonar-huge-128k-online"),
+          supportsToolUse: false,
+          supportsStreaming: true,
+          provider: "perplexity",
+        },
+        "llama-3.1-sonar-large-online": {
+          model: perplexity("llama-3.1-sonar-large-128k-online"),
+          supportsToolUse: false,
+          supportsStreaming: true,
+          provider: "perplexity",
+        },
+        "llama-3.1-sonar-small-online": {
+          model: perplexity("llama-3.1-sonar-small-128k-online"),
+          supportsToolUse: false,
+          supportsStreaming: true,
+          provider: "perplexity",
+        },
+      }
+    : {}),
 };
