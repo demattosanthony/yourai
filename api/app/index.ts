@@ -6,8 +6,9 @@ import { desc, eq, inArray, sql } from "drizzle-orm";
 
 import db from "./config/db";
 import { MODELS } from "./models";
-import { threads, messages } from "./config/schema";
+import { threads, messages, ContentPart } from "./config/schema";
 import { runInference } from "./inference";
+import client from "./config/s3";
 
 const PORT = process.env.PORT || 4000;
 
@@ -22,8 +23,24 @@ async function main() {
   }
 
   const app = Express();
-  app.use(Express.json({ limit: "1000gb" })); // Just running locally. Allow for large base64 payloads
+  app.use(Express.json({ limit: "50mb" }));
   app.use(cors());
+
+  app.post("/presigned-url", async (req, res) => {
+    try {
+      const { fileName, fileType } = req.body;
+      const url = client.presign(fileName, {
+        expiresIn: 3600, // 1 hour
+        type: fileType,
+        method: "PUT",
+      });
+
+      res.json({ url });
+    } catch (error) {
+      console.error("Error creating presigned URL:", error);
+      res.status(500).json({ error: "Failed to create presigned URL" });
+    }
+  });
 
   app.get("/models", async (req, res) => {
     res.json(
@@ -163,7 +180,7 @@ async function main() {
           id: messageId,
           thread_id: threadId,
           role,
-          content: JSON.stringify(item),
+          content: item,
           created_at: new Date(),
         });
 
@@ -199,6 +216,32 @@ async function main() {
       orderBy: messages.created_at,
     });
 
+    // Format messages for inference
+    const inferenceMessages = await Promise.all(
+      threadMessages.map(async (msg) => ({
+        role: msg.role,
+        content: await (async (content: ContentPart) => {
+          if (content.type === "text") {
+            return content.text; // Return just the text string
+          } else {
+            // Generate temporary URL for file
+            const metadata = client.file(content.file_metadata.file_key);
+            const url = metadata.presign({
+              acl: "public-read",
+              expiresIn: 3600,
+            });
+            return {
+              type: content.type,
+              mimeType: content.file_metadata.mime_type,
+              data: url,
+            };
+          }
+        })(msg.content as ContentPart),
+      }))
+    );
+
+    console.log(inferenceMessages);
+
     const onToolEvent = (event: string, data: any) => {
       res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
     };
@@ -207,10 +250,7 @@ async function main() {
       const textStream = await runInference(
         {
           model,
-          messages: threadMessages.map((msg) => ({
-            role: msg.role as "system" | "user" | "assistant",
-            content: [JSON.parse(msg.content)] as any,
-          })),
+          messages: inferenceMessages as any,
           maxTokens,
           temperature,
           systemMessage: instructions,

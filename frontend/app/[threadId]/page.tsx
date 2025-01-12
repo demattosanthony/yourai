@@ -22,7 +22,7 @@ export default function ChatPage() {
       const thread = await api.getThread(threadId);
       const messages = thread.messages.map((message) => ({
         role: message.role as MessageRole,
-        content: JSON.parse(message.content),
+        content: message.content,
       }));
       setMessages(messages);
     } catch (error) {

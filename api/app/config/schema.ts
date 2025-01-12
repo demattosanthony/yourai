@@ -1,9 +1,12 @@
 import { relations } from "drizzle-orm";
-import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { jsonb, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 
 // Message roles will be stored as text
 const MESSAGE_ROLES = ["system", "user", "assistant", "tool"] as const;
 const TOOL_CALL_STATUS = ["pending", "completed", "failed"] as const;
+
+// Content types
+const CONTENT_TYPES = ["text", "image", "file"] as const;
 
 // Threads table
 export const threads = pgTable("threads", {
@@ -19,7 +22,7 @@ export const messages = pgTable("messages", {
     .notNull()
     .references(() => threads.id),
   role: text("role").notNull(),
-  content: text("content").notNull(), // stringified JSON that looks like {"type": "text", "text": "Hello"}
+  content: jsonb("content").notNull(),
   created_at: timestamp("created_at").notNull(),
 });
 
@@ -48,3 +51,24 @@ export const toolCalls = pgTable("tool_calls", {
   created_at: timestamp("created_at").notNull(),
   updated_at: timestamp("updated_at").notNull(),
 });
+
+type BaseContentPart = {
+  type: (typeof CONTENT_TYPES)[number];
+};
+
+type TextContent = BaseContentPart & {
+  type: "text";
+  text: string;
+};
+
+type FileContent = BaseContentPart & {
+  type: "file" | "image";
+  file_metadata: {
+    filename: string;
+    mime_type: string;
+    file_key: string; // the key/path in storage (S3)
+    size?: number; // size in bytes
+  };
+};
+
+export type ContentPart = TextContent | FileContent;

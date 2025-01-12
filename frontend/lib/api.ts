@@ -55,7 +55,11 @@ class ApiClient {
         thread_id: string;
         role: string;
         content_type: string;
-        content: string;
+        content: {
+          type: "image" | "text" | "file";
+          image?: string;
+          text?: string;
+        };
         created_at: number;
       }[];
     }[]
@@ -80,7 +84,11 @@ class ApiClient {
       id: string;
       thread_id: string;
       role: string;
-      content: string;
+      content: {
+        type: "image" | "text" | "file";
+        image?: string;
+        text?: string;
+      };
       created_at: number;
     }[];
   }> {

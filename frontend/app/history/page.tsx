@@ -21,7 +21,11 @@ export default function HistoryPage() {
         id: string;
         thread_id: string;
         role: string;
-        content: { type: "text" | "image"; text?: string; image?: string };
+        content: {
+          type: "text" | "image" | "file";
+          text?: string;
+          image?: string;
+        };
         created_at: number;
       }[];
     }[]
@@ -54,7 +58,7 @@ export default function HistoryPage() {
             ...thread,
             messages: thread.messages.map((message) => ({
               ...message,
-              content: JSON.parse(message.content),
+              content: message.content,
             })),
           }))
         );
@@ -65,7 +69,7 @@ export default function HistoryPage() {
             ...thread,
             messages: thread.messages.map((message) => ({
               ...message,
-              content: JSON.parse(message.content),
+              content: message.content,
             })),
           })),
         ]);
