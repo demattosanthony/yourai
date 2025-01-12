@@ -1,10 +1,10 @@
 import Express from "express";
 import cors from "cors";
 import path from "path";
-import { migrate } from "drizzle-orm/bun-sqlite/migrator";
+import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { desc, eq, inArray, sql } from "drizzle-orm";
 
-import { db } from "./config/db";
+import db from "./config/db";
 import { MODELS } from "./models";
 import { threads, messages } from "./config/schema";
 import { runInference } from "./inference";
@@ -63,14 +63,18 @@ async function main() {
     const offset = (page - 1) * limit;
     let query;
     try {
+      // Modified query to select only the necessary columns for grouping
       query = db
-        .select()
+        .select({
+          id: threads.id,
+          created_at: threads.created_at,
+          updated_at: threads.updated_at,
+        })
         .from(threads)
         .leftJoin(messages, eq(threads.id, messages.thread_id))
         .orderBy(desc(threads.created_at));
 
       if (search && search.length > 0) {
-        // Search in message content
         query = query.where(
           sql`json_extract(${messages.content}, '$.text') LIKE ${
             "%" + search + "%"
@@ -80,16 +84,16 @@ async function main() {
 
       // Get distinct threads that match search
       const matchingThreads = await query
-        .groupBy(threads.id)
+        .groupBy(threads.id, threads.created_at, threads.updated_at)
         .limit(limit)
         .offset(offset);
 
-      // Fetch complete thread data with all messages for matching threads
-      const threadIds = matchingThreads.map((t) => t.threads.id);
+      // Rest of the code remains the same...
+      const threadIds = matchingThreads.map((t) => t.id);
 
       const completeThreads = await db.query.threads.findMany({
         where: inArray(threads.id, threadIds),
-        orderBy: (threads, { desc }) => [desc(threads.created_at)],
+        orderBy: [desc(threads.created_at)],
         with: {
           messages: {
             orderBy: messages.created_at,
@@ -138,6 +142,7 @@ async function main() {
       // Make sure role is valid
       if (!["system", "user", "assistant"].includes(role)) {
         res.status(400).json({ error: "Invalid role" });
+        return;
       }
 
       // Validate thread exists
@@ -147,6 +152,7 @@ async function main() {
 
       if (!thread) {
         res.status(404).json({ error: "Thread not found" });
+        return;
       }
 
       // Create a message for each content item

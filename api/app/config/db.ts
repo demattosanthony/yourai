@@ -1,12 +1,8 @@
-import { drizzle } from "drizzle-orm/bun-sqlite";
-import { Database } from "bun:sqlite";
+import { drizzle } from "drizzle-orm/node-postgres";
 import * as schema from "./schema";
 
-const sqlite = new Database(
-  process.env.NODE_ENV === "production" ? "/data/db.sqlite" : "db.sqlite",
-  { create: true }
-);
-
-export const db = drizzle(sqlite, {
+const db = drizzle(process.env.DATABASE_URL!, {
   schema,
 });
+
+export default db;

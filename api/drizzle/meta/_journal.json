@@ -1,40 +1,12 @@
 {
   "version": "7",
-  "dialect": "sqlite",
+  "dialect": "postgresql",
   "entries": [
     {
       "idx": 0,
-      "version": "6",
-      "when": 1736257199489,
-      "tag": "0000_rare_rick_jones",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "6",
-      "when": 1736258114502,
-      "tag": "0001_giant_trish_tilby",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "6",
-      "when": 1736259799049,
-      "tag": "0002_violet_squadron_supreme",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "6",
-      "when": 1736261802033,
-      "tag": "0003_burly_dagger",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "6",
-      "when": 1736273126446,
-      "tag": "0004_previous_skaar",
+      "version": "7",
+      "when": 1736715022835,
+      "tag": "0000_yellow_taskmaster",
       "breakpoints": true
     }
   ]
