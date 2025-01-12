@@ -48,7 +48,7 @@ export default function ChatSettings() {
         <div className="space-y-4">
           <div className="space-y-3">
             <div className="flex justify-between items-center">
-              <h4 className="font-medium leading-none">Randomness</h4>
+              <h4 className="font-medium leading-none">Creativity</h4>
               <Input
                 type="number"
                 min={0}
