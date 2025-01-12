@@ -5,7 +5,8 @@ import * as schema from "./schema";
 const sqlite = new Database(
   process.env.NODE_ENV === "production"
     ? "/usr/src/app/data/db.sqlite"
-    : "db.sqlite"
+    : "db.sqlite",
+  { create: true }
 );
 
 export const db = drizzle(sqlite, {

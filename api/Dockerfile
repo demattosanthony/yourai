@@ -31,7 +31,10 @@ COPY --from=prerelease /usr/src/app/. .
 
 # Ensure the data directory exists and has correct permissions in the final stage
 RUN mkdir -p /usr/src/app/data && \
-    chown bun:bun /usr/src/app/data
+    chown -R bun:bun /usr/src/app/data && \
+    touch /usr/src/app/data/db.sqlite && \
+    chown bun:bun /usr/src/app/data/db.sqlite && \
+    chmod 644 /usr/src/app/data/db.sqlite
 
 # run the app
 USER bun
