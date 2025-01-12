@@ -76,7 +76,7 @@ const ModelSelector: React.FC = () => {
                     setOpen(false);
                   }}
                 >
-                  <div className="flex">
+                  <div className="flex items-center">
                     {getModelImage(model.provider)}
                     <span>{model.name}</span>
                   </div>

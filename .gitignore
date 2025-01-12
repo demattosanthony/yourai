@@ -175,3 +175,8 @@ dist
 .DS_Store
 
 *.sqlite
+
+# Any ssh keys
+*.pem
+*.pub
+*.key
