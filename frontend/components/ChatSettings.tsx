@@ -8,7 +8,6 @@ import {
 } from "@/components/ui/popover";
 import { Settings } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
-import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
 import { Textarea } from "./ui/textarea";
 import { useAtom } from "jotai";
@@ -16,7 +15,7 @@ import { instructionsAtom, temperatureAtom } from "@/atoms/chat";
 
 export default function ChatSettings() {
   const [temperature, setTemperature] = useAtom(temperatureAtom);
-  const [inputValue, setInputValue] = useState(temperature.toFixed(2));
+  const [, setInputValue] = useState(temperature.toFixed(2));
   const [instructions, setInstructions] = useAtom(instructionsAtom);
 
   useEffect(() => {
@@ -28,14 +27,14 @@ export default function ChatSettings() {
     setTemperature(newTemp);
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setInputValue(value);
-    const numValue = parseFloat(value);
-    if (!isNaN(numValue) && numValue >= 0 && numValue <= 2) {
-      setTemperature(numValue);
-    }
-  };
+  //   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //     const value = e.target.value;
+  //     setInputValue(value);
+  //     const numValue = parseFloat(value);
+  //     if (!isNaN(numValue) && numValue >= 0 && numValue <= 2) {
+  //       setTemperature(numValue);
+  //     }
+  //   };
 
   return (
     <Popover>
@@ -49,16 +48,9 @@ export default function ChatSettings() {
           <div className="space-y-3">
             <div className="flex justify-between items-center">
               <h4 className="font-medium leading-none">Creativity</h4>
-              <Input
-                type="number"
-                min={0}
-                max={1}
-                step={0.01}
-                value={inputValue}
-                onChange={handleInputChange}
-                className="w-20 h-8"
-                autoFocus={false}
-              />
+              <div className="text-base font-medium pr-2">
+                {temperature.toFixed(1)}
+              </div>
             </div>
             <Slider
               min={0}

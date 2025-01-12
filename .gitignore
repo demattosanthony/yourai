@@ -180,3 +180,4 @@ dist
 *.pem
 *.pub
 *.key
+digital_ocean_key

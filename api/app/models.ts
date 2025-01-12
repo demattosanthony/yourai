@@ -35,6 +35,7 @@ export const MODELS: Record<string, ModelConfig> = {
           provider: "anthropic",
           supportsImages: true,
           supportsPdfs: true,
+          supportsSystemMessages: false,
         },
         "claude-3.5-haiku": {
           model: anthropic("claude-3-5-haiku-latest"),
@@ -43,6 +44,7 @@ export const MODELS: Record<string, ModelConfig> = {
           provider: "anthropic",
           supportsImages: true,
           supportsPdfs: false,
+          supportsSystemMessages: false,
         },
       }
     : {}),
@@ -89,6 +91,7 @@ export const MODELS: Record<string, ModelConfig> = {
           provider: "google",
           supportsImages: true,
           supportsPdfs: true,
+          supportsSystemMessages: false,
         },
         "gemini-2.0-pro": {
           model: google("gemini-exp-1206"),
@@ -97,6 +100,7 @@ export const MODELS: Record<string, ModelConfig> = {
           provider: "google",
           supportsImages: true,
           supportsPdfs: true,
+          supportsSystemMessages: false,
         },
         "gemini-2.0-flash": {
           model: google("gemini-2.0-flash-exp"),
@@ -105,6 +109,7 @@ export const MODELS: Record<string, ModelConfig> = {
           provider: "google",
           supportsImages: true,
           supportsPdfs: true,
+          supportsSystemMessages: false,
         },
         "gemini-2.0-flash-online": {
           model: google("gemini-2.0-flash-exp", {
@@ -115,6 +120,7 @@ export const MODELS: Record<string, ModelConfig> = {
           provider: "google",
           supportsImages: true,
           supportsPdfs: true,
+          supportsSystemMessages: false,
         },
       }
     : {}),
@@ -125,6 +131,7 @@ export const MODELS: Record<string, ModelConfig> = {
           supportsToolUse: true,
           supportsStreaming: true,
           provider: "xai",
+          supportsSystemMessages: false,
         },
         "grok-2-vision": {
           model: xai("grok-2-vision-1212"),
@@ -132,6 +139,7 @@ export const MODELS: Record<string, ModelConfig> = {
           supportsStreaming: true,
           provider: "xai",
           supportsImages: true,
+          supportsSystemMessages: false,
         },
       }
     : {}),
@@ -158,6 +166,7 @@ export const MODELS: Record<string, ModelConfig> = {
           supportsToolUse: false,
           supportsStreaming: true,
           provider: "groq",
+          supportsSystemMessages: false,
         },
       }
     : {}),
@@ -168,18 +177,21 @@ export const MODELS: Record<string, ModelConfig> = {
           supportsToolUse: false,
           supportsStreaming: true,
           provider: "perplexity",
+          supportsSystemMessages: false,
         },
         "llama-3.1-sonar-large-online": {
           model: perplexity("llama-3.1-sonar-large-128k-online"),
           supportsToolUse: false,
           supportsStreaming: true,
           provider: "perplexity",
+          supportsSystemMessages: false,
         },
         "llama-3.1-sonar-small-online": {
           model: perplexity("llama-3.1-sonar-small-128k-online"),
           supportsToolUse: false,
           supportsStreaming: true,
           provider: "perplexity",
+          supportsSystemMessages: false,
         },
       }
     : {}),
