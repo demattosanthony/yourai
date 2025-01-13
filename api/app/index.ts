@@ -136,17 +136,30 @@ async function main() {
       // For the file content, we need to generate a temporary URL
       for (const thread of completeThreads) {
         for (const message of thread.messages) {
-          const content = message.content as { type: string };
+          try {
+            const content = message.content as { type: string };
 
-          if (content.type === "file" || content.type === "image") {
-            const metadata = s3.file(
-              (message.content as FileContent).file_metadata.file_key
-            );
-            const url = metadata.presign({
-              acl: "public-read",
-              expiresIn: 3600,
-            });
-            (message.content as FileContent).data = url;
+            if (content.type === "file" || content.type === "image") {
+              const fileContent = message.content as FileContent;
+              if (!fileContent?.file_metadata?.file_key) {
+                console.warn(
+                  "Skipping message - missing file metadata:",
+                  message.id
+                );
+                continue;
+              }
+
+              const metadata = s3.file(fileContent.file_metadata.file_key);
+              const url = metadata.presign({
+                acl: "public-read",
+                expiresIn: 3600,
+              });
+              fileContent.data = url;
+            }
+          } catch (error) {
+            console.error("Error processing message:", message.id, error);
+            // Continue with other messages even if one fails
+            continue;
           }
         }
       }
@@ -176,23 +189,33 @@ async function main() {
         res.status(404).json({ error: "Thread not found" });
         return;
       }
-
-      // For the file content, we need to generate a temporary URL
       for (const message of thread.messages) {
-        const content = message.content as { type: string };
+        try {
+          const content = message.content as { type: string };
 
-        if (content.type === "file" || content.type === "image") {
-          const metadata = s3.file(
-            (message.content as FileContent).file_metadata.file_key
-          );
-          const url = metadata.presign({
-            acl: "public-read",
-            expiresIn: 3600,
-          });
-          (message.content as FileContent).data = url;
+          if (content.type === "file" || content.type === "image") {
+            const fileContent = message.content as FileContent;
+            if (!fileContent?.file_metadata?.file_key) {
+              console.warn(
+                "Skipping message - missing file metadata:",
+                message.id
+              );
+              continue;
+            }
+
+            const metadata = s3.file(fileContent.file_metadata.file_key);
+            const url = metadata.presign({
+              acl: "public-read",
+              expiresIn: 3600,
+            });
+            fileContent.data = url;
+          }
+        } catch (error) {
+          console.error("Error processing message:", message.id, error);
+          // Continue with other messages even if one fails
+          continue;
         }
       }
-
       res.json(thread);
     } catch (error) {
       console.error("Error fetching thread:", error);
