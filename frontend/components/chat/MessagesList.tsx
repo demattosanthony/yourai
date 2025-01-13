@@ -4,8 +4,9 @@ import { File } from "lucide-react";
 import { useAtom } from "jotai";
 import { ChatMessage, MessageRole } from "@/types/chat";
 import { messagesAtom } from "@/atoms/chat";
+import React from "react";
 
-function MessageItem({
+const MessageItem = React.memo(function MessageItem({
   message,
   index,
 }: {
@@ -86,12 +87,11 @@ function MessageItem({
       </div>
     </div>
   );
-}
+});
 
-export default function ChatMessagesList() {
+const ChatMessagesList = React.memo(function ChatMessagesList() {
   const [messages] = useAtom(messagesAtom);
 
-  // Add useEffect to handle scrolling
   useEffect(() => {
     const messageContainer = document.querySelector(".overflow-y-auto");
     if (messageContainer) {
@@ -105,15 +105,15 @@ export default function ChatMessagesList() {
         <div className={`max-w-[840px] mx-auto pt-20 p-4 w-full`}>
           {messages.length > 0 && (
             <>
-              {messages.map((message, index) => {
-                return (
-                  <MessageItem key={index} message={message} index={index} />
-                );
-              })}
+              {messages.map((message, index) => (
+                <MessageItem key={index} message={message} index={index} />
+              ))}
             </>
           )}
         </div>
       </div>
     </div>
   );
-}
+});
+
+export default ChatMessagesList;

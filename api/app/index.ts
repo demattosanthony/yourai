@@ -2,20 +2,26 @@ import Express from "express";
 import cors from "cors";
 import path from "path";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
-import { desc, eq, inArray, sql } from "drizzle-orm";
-
+import { eq } from "drizzle-orm";
 import db from "./config/db";
 import { MODELS } from "./models";
-import { threads, messages, ContentPart, FileContent } from "./config/schema";
+import { messages, ContentPart } from "./config/schema";
 import { runInference } from "./inference";
 import s3 from "./config/s3";
 import { CoreMessage } from "ai";
+import { createThread, getThreads, getThread, createMessage } from "./threads";
 
 const PORT = process.env.PORT || 4000;
 
+// Error Handling
+function handleError(res: Express.Response, error: Error) {
+  console.error(error);
+  res.status(500).json({ error: "Internal server error" });
+}
+
 async function main() {
   try {
-    migrate(db, {
+    await migrate(db, {
       migrationsFolder: path.join(__dirname, "../drizzle"),
     });
   } catch (error) {
@@ -51,9 +57,8 @@ async function main() {
           size,
         },
       });
-    } catch (error) {
-      console.error("Error creating presigned URL:", error);
-      res.status(500).json({ error: "Failed to create presigned URL" });
+    } catch (error: any) {
+      handleError(res, error);
     }
   });
 
@@ -72,154 +77,35 @@ async function main() {
 
   app.post("/threads", async (req, res) => {
     try {
-      const threadId = crypto.randomUUID();
-      const now = new Date();
-
-      await db.insert(threads).values({
-        id: threadId,
-        created_at: now,
-        updated_at: now,
-      });
-
-      res.json({ id: threadId });
-    } catch (error) {
-      console.error("Error creating thread:", error);
-      res.status(500).json({ error: "Failed to create thread" });
+      const result = await createThread();
+      res.json(result);
+    } catch (error: any) {
+      handleError(res, error);
     }
   });
 
   app.get("/threads", async (req, res) => {
-    const page = parseInt(req.query.page as string) || 1;
-    const search = (req.query.search as string)?.trim() || "";
-    const limit = 10;
-    const offset = (page - 1) * limit;
-    let query;
     try {
-      // Modified query to select only the necessary columns for grouping
-      query = db
-        .select({
-          id: threads.id,
-          created_at: threads.created_at,
-          updated_at: threads.updated_at,
-        })
-        .from(threads)
-        .leftJoin(messages, eq(threads.id, messages.thread_id))
-        .orderBy(desc(threads.created_at));
-
-      if (search && search.length > 0) {
-        query = query.where(
-          sql`json_extract(${messages.content}, '$.text') LIKE ${
-            "%" + search + "%"
-          }`
-        );
-      }
-
-      // Get distinct threads that match search
-      const matchingThreads = await query
-        .groupBy(threads.id, threads.created_at, threads.updated_at)
-        .limit(limit)
-        .offset(offset);
-
-      // Rest of the code remains the same...
-      const threadIds = matchingThreads.map((t) => t.id);
-
-      let completeThreads = await db.query.threads.findMany({
-        where: inArray(threads.id, threadIds),
-        orderBy: [desc(threads.created_at)],
-        with: {
-          messages: {
-            orderBy: messages.created_at,
-          },
-        },
-      });
-
-      // For the file content, we need to generate a temporary URL
-      for (const thread of completeThreads) {
-        for (const message of thread.messages) {
-          try {
-            const content = message.content as { type: string };
-
-            if (content.type === "file" || content.type === "image") {
-              const fileContent = message.content as FileContent;
-              if (!fileContent?.file_metadata?.file_key) {
-                console.warn(
-                  "Skipping message - missing file metadata:",
-                  message.id
-                );
-                continue;
-              }
-
-              const metadata = s3.file(fileContent.file_metadata.file_key);
-              const url = metadata.presign({
-                acl: "public-read",
-                expiresIn: 3600,
-              });
-              fileContent.data = url;
-            }
-          } catch (error) {
-            console.error("Error processing message:", message.id, error);
-            // Continue with other messages even if one fails
-            continue;
-          }
-        }
-      }
-
-      res.json(completeThreads);
-    } catch (error) {
-      console.error("Error fetching threads:", error);
-      res.status(500).json({ error: "Internal server error" });
+      const page = parseInt(req.query.page as string) || 1;
+      const search = (req.query.search as string)?.trim() || "";
+      const threads = await getThreads(page, search);
+      res.json(threads);
+    } catch (error: any) {
+      handleError(res, error);
     }
   });
 
   app.get("/threads/:threadId", async (req, res) => {
     try {
       const { threadId } = req.params;
-
-      // Get the thread with messages in a single query
-      const thread = await db.query.threads.findFirst({
-        where: eq(threads.id, threadId),
-        with: {
-          messages: {
-            orderBy: messages.created_at,
-          },
-        },
-      });
-
+      const thread = await getThread(threadId);
       if (!thread) {
         res.status(404).json({ error: "Thread not found" });
         return;
       }
-      for (const message of thread.messages) {
-        try {
-          const content = message.content as { type: string };
-
-          if (content.type === "file" || content.type === "image") {
-            const fileContent = message.content as FileContent;
-            if (!fileContent?.file_metadata?.file_key) {
-              console.warn(
-                "Skipping message - missing file metadata:",
-                message.id
-              );
-              continue;
-            }
-
-            const metadata = s3.file(fileContent.file_metadata.file_key);
-            const url = metadata.presign({
-              acl: "public-read",
-              expiresIn: 3600,
-            });
-            fileContent.data = url;
-          }
-        } catch (error) {
-          console.error("Error processing message:", message.id, error);
-          // Continue with other messages even if one fails
-          continue;
-        }
-      }
       res.json(thread);
-    } catch (error) {
-      console.error("Error fetching thread:", error);
-      res.status(500).json({ error: "Internal server error" });
+    } catch (error: any) {
+      handleError(res, error);
     }
   });
 
@@ -227,46 +113,19 @@ async function main() {
     try {
       const { threadId } = req.params;
       const { role, content } = req.body;
-
-      // Make sure role is valid
       if (!["system", "user", "assistant"].includes(role)) {
         res.status(400).json({ error: "Invalid role" });
         return;
       }
-
-      // Validate thread exists
-      const thread = await db.query.threads.findFirst({
-        where: eq(threads.id, threadId),
-      });
-
+      const thread = await getThread(threadId);
       if (!thread) {
         res.status(404).json({ error: "Thread not found" });
         return;
       }
-
-      // Create a message for each content item
-      for (const item of content) {
-        const messageId = crypto.randomUUID();
-
-        await db.insert(messages).values({
-          id: messageId,
-          thread_id: threadId,
-          role,
-          content: item,
-          created_at: new Date(),
-        });
-
-        await db.query.messages.findFirst({
-          where: eq(messages.id, messageId),
-        });
-      }
-
-      res.status(201).json({
-        message: "Messages created successfully",
-      });
-    } catch (error) {
-      console.error("Error creating message:", error);
-      res.status(500).json({ error: "Failed to create message" });
+      const result = await createMessage(threadId, role, content);
+      res.status(201).json(result);
+    } catch (error: any) {
+      handleError(res, error);
     }
   });
 
@@ -276,70 +135,76 @@ async function main() {
 
     res.setHeader("Content-Type", "text/event-stream");
 
-    // Validate thread exists and get its messages
-    const thread = await db.query.threads.findFirst({
-      where: eq(threads.id, threadId),
-    });
-    if (!thread) {
-      res.status(404).json({ error: "Thread not found" });
-    }
-    const threadMessages = await db.query.messages.findMany({
-      where: eq(messages.thread_id, threadId),
-      orderBy: messages.created_at,
-    });
-
-    // Format messages for inference
-    const inferenceMessages = await Promise.all(
-      threadMessages.map(async (msg) => ({
-        role: msg.role,
-        content: await (async (content: ContentPart) => {
-          if (content.type === "text") {
-            return [
-              {
-                type: content.type,
-                text: content.text,
-              },
-            ];
-          } else {
-            // Generate temporary URL for file
-            const metadata = s3.file(content.file_metadata.file_key);
-            // const url = metadata.presign({
-            //   acl: "public-read",
-            //   expiresIn: 3600,
-            // });
-            // Convert to base64 content
-            const data = await metadata.arrayBuffer();
-            const buffer = Buffer.from(new Uint8Array(data));
-            const base64 = `data:${
-              content.file_metadata.mime_type
-            };base64,${buffer.toString("base64")}`;
-
-            return [
-              {
-                type: content.type,
-                mimeType: content.file_metadata.mime_type,
-                [content.type === "image" ? "image" : "data"]: base64,
-              },
-            ];
-          }
-        })(msg.content as ContentPart),
-      }))
-    );
-
-    const onToolEvent = (event: string, data: any) => {
-      res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
-    };
-
     try {
+      const thread = await getThread(threadId);
+      if (!thread) {
+        res.status(404).json({ error: "Thread not found" });
+        return;
+      }
+      let threadMessages = await db.query.messages.findMany({
+        where: eq(messages.thread_id, threadId),
+        orderBy: messages.created_at,
+      });
+
+      const modelToRun = MODELS[model];
+
+      // If model doesn't support images or files than remove them from the messages
+      if (!modelToRun.supportsImages) {
+        threadMessages = threadMessages.filter(
+          (msg) => (msg.content as ContentPart).type !== "image"
+        );
+      }
+      if (!modelToRun.supportsPdfs) {
+        threadMessages = threadMessages.filter(
+          (msg) => (msg.content as ContentPart).type !== "file"
+        );
+      }
+
+      const inferenceMessages = await Promise.all(
+        threadMessages.map(async (msg) => ({
+          role: msg.role,
+          content: await (async (content: ContentPart) => {
+            if (content.type === "text") {
+              return [
+                {
+                  type: content.type,
+                  text: content.text,
+                },
+              ];
+            } else {
+              const metadata = s3.file(content.file_metadata.file_key);
+              const data = await metadata.arrayBuffer();
+              const buffer = Buffer.from(new Uint8Array(data));
+              const base64 = `data:${
+                content.file_metadata.mime_type
+              };base64,${buffer.toString("base64")}`;
+
+              return [
+                {
+                  type: content.type,
+                  mimeType: content.file_metadata.mime_type,
+                  [content.type === "image" ? "image" : "data"]: base64,
+                },
+              ];
+            }
+          })(msg.content as ContentPart),
+        }))
+      );
+
+      const onToolEvent = (event: string, data: any) => {
+        res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+      };
+
       const textStream = await runInference(
         {
-          model,
+          model: modelToRun.model,
           messages: inferenceMessages as CoreMessage[],
           maxTokens,
           temperature,
-          systemMessage: instructions,
+          system: instructions,
         },
-        onToolEvent
+        onToolEvent,
+        modelToRun.supportsStreaming
       );
 
       let aiResponse = "";
@@ -352,7 +217,6 @@ async function main() {
         aiResponse += message;
       }
 
-      // Update thread to have the assistant's messages
       await db.insert(messages).values({
         id: crypto.randomUUID(),
         thread_id: threadId,
