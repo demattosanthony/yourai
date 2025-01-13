@@ -8,8 +8,7 @@ import db from "./config/db";
 import { MODELS } from "./models";
 import { threads, messages, ContentPart, FileContent } from "./config/schema";
 import { runInference } from "./inference";
-import client from "./config/s3";
-import { file } from "bun";
+import s3 from "./config/s3";
 import { CoreMessage } from "ai";
 
 const PORT = process.env.PORT || 4000;
@@ -32,12 +31,12 @@ async function main() {
     try {
       const { filename, mime_type, size } = req.body;
       const file_key = `uploads/${Date.now()}-${filename}`;
-      const url = client.presign(file_key, {
+      const url = s3.presign(file_key, {
         expiresIn: 3600, // 1 hour
         type: mime_type,
         method: "PUT",
       });
-      const viewUrl = client.file(file_key).presign({
+      const viewUrl = s3.file(file_key).presign({
         expiresIn: 3600,
         method: "GET",
       });
@@ -140,7 +139,7 @@ async function main() {
           const content = message.content as { type: string };
 
           if (content.type === "file" || content.type === "image") {
-            const metadata = client.file(
+            const metadata = s3.file(
               (message.content as FileContent).file_metadata.file_key
             );
             const url = metadata.presign({
@@ -183,7 +182,7 @@ async function main() {
         const content = message.content as { type: string };
 
         if (content.type === "file" || content.type === "image") {
-          const metadata = client.file(
+          const metadata = s3.file(
             (message.content as FileContent).file_metadata.file_key
           );
           const url = metadata.presign({
@@ -280,7 +279,7 @@ async function main() {
             ];
           } else {
             // Generate temporary URL for file
-            const metadata = client.file(content.file_metadata.file_key);
+            const metadata = s3.file(content.file_metadata.file_key);
             // const url = metadata.presign({
             //   acl: "public-read",
             //   expiresIn: 3600,
