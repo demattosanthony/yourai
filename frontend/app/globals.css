@@ -98,8 +98,8 @@
     -webkit-tap-highlight-color: transparent;
     -webkit-text-size-adjust: none;
     /* Prevent element dragging */
-    -webkit-user-drag: none;
-    user-select: none;
+    /* -webkit-user-drag: none; */
+    /* user-select: none; */
   }
 
   body {
@@ -112,6 +112,7 @@
     height: 100%;
     touch-action: none;
     -webkit-overflow-scrolling: none;
+    user-select: text;
   }
 
   html {
@@ -121,12 +122,14 @@
     overflow: hidden;
     position: fixed;
     width: 100%;
+    user-select: text;
   }
 
   #__next {
     height: 100%;
     /* Prevent dragging */
     touch-action: none;
-    -webkit-user-drag: none;
+    /* -webkit-user-drag: none; */
+    user-select: text;
   }
 }

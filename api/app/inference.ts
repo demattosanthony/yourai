@@ -15,14 +15,12 @@ export async function runInference(
 ) {
   const { model, messages, temperature, maxTokens } = params;
 
-  let messagesToSend = [...messages];
-
   const modelToRun = MODELS[model];
 
   let generationParams: any = {
     model: modelToRun.model,
     temperature: temperature || 0.5,
-    messages: messagesToSend,
+    messages: messages,
     maxTokens: maxTokens || undefined,
     system: modelToRun.supportsSystemMessages
       ? params.systemMessage || undefined

@@ -1,26 +1,29 @@
 import { relations } from "drizzle-orm";
-import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
+import { jsonb, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 
 // Message roles will be stored as text
 const MESSAGE_ROLES = ["system", "user", "assistant", "tool"] as const;
 const TOOL_CALL_STATUS = ["pending", "completed", "failed"] as const;
 
+// Content types
+const CONTENT_TYPES = ["text", "image", "file"] as const;
+
 // Threads table
-export const threads = sqliteTable("threads", {
-  id: text("id").primaryKey(), // UUID stored as text
-  created_at: integer("created_at", { mode: "timestamp" }).notNull(),
-  updated_at: integer("updated_at", { mode: "timestamp" }).notNull(),
+export const threads = pgTable("threads", {
+  id: uuid("id").primaryKey().defaultRandom(), // UUID type in Postgres
+  created_at: timestamp("created_at").notNull(),
+  updated_at: timestamp("updated_at").notNull(),
 });
 
 // Messages table
-export const messages = sqliteTable("messages", {
-  id: text("id").primaryKey(),
-  thread_id: text("thread_id")
+export const messages = pgTable("messages", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  thread_id: uuid("thread_id")
     .notNull()
     .references(() => threads.id),
   role: text("role").notNull(),
-  content: text("content").notNull(), // stringified JSON that looks like {"type": "text", "text": "Hello"}
-  created_at: integer("created_at", { mode: "timestamp" }).notNull(),
+  content: jsonb("content").notNull(),
+  created_at: timestamp("created_at").notNull(),
 });
 
 // Add relationships
@@ -36,16 +39,38 @@ export const messagesRelations = relations(messages, ({ one }) => ({
 }));
 
 // Tool calls table
-export const toolCalls = sqliteTable("tool_calls", {
-  id: text("id").primaryKey(),
-  message_id: text("message_id")
+export const toolCalls = pgTable("tool_calls", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  message_id: uuid("message_id")
     .notNull()
     .references(() => messages.id),
   function_name: text("function_name").notNull(),
   function_arguments: text("function_arguments"),
-  status: text("status") // Store status as TEXT without enum in SQLite
-    .notNull(),
+  status: text("status").notNull(), // Store status as text
   result: text("result"),
-  created_at: integer("created_at", { mode: "timestamp" }).notNull(),
-  updated_at: integer("updated_at", { mode: "timestamp" }).notNull(),
+  created_at: timestamp("created_at").notNull(),
+  updated_at: timestamp("updated_at").notNull(),
 });
+
+type BaseContentPart = {
+  type: (typeof CONTENT_TYPES)[number];
+};
+
+type TextContent = BaseContentPart & {
+  type: "text";
+  text: string;
+};
+
+export type FileContent = BaseContentPart & {
+  type: "file" | "image";
+  data?: string; // url for the file
+  image?: string; // base64 encoded image
+  file_metadata: {
+    filename: string;
+    mime_type: string;
+    file_key: string; // the key/path in storage (S3)
+    size?: number; // size in bytes
+  };
+};
+
+export type ContentPart = TextContent | FileContent;

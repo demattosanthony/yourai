@@ -22,7 +22,7 @@ export default function ChatPage() {
       const thread = await api.getThread(threadId);
       const messages = thread.messages.map((message) => ({
         role: message.role as MessageRole,
-        content: JSON.parse(message.content),
+        content: message.content,
       }));
       setMessages(messages);
     } catch (error) {
@@ -45,7 +45,7 @@ export default function ChatPage() {
     <>
       <ChatMessagesList />
 
-      <div className="w-full flex items-center justify-center mx-auto px-6 pb-8 md:pb-2 md:p-2">
+      <div className="w-full flex items-center justify-center mx-auto px-6 pb-8 md:pb-4 md:p-2">
         <ChatInputForm
           onSubmit={() => {
             sendMessage(threadId);

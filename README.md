@@ -8,8 +8,9 @@
 ## Get started
 
 1. Install Bun js runtime: https://bun.sh/docs/installation
+2. Install Docker: https://docs.docker.com/get-docker/
 
-2. Add environment variables as needed.
+3. Add environment variables as needed.
 
 ```bash
 cd api
@@ -17,7 +18,7 @@ cp .env.example .env.local
 # Update .env.local to have correct api keys
 ```
 
-3. Install and run
+5. Install and run
 
 ```bash
 ./run.sh

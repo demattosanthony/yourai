@@ -2,7 +2,6 @@ import { createOpenAI, openai } from "@ai-sdk/openai";
 import { anthropic } from "@ai-sdk/anthropic";
 import { createGroq } from "@ai-sdk/groq";
 import { google } from "@ai-sdk/google";
-import { mistral } from "@ai-sdk/mistral";
 import { xai } from "@ai-sdk/xai";
 
 const groq = createGroq();
@@ -42,7 +41,7 @@ export const MODELS: Record<string, ModelConfig> = {
           supportsToolUse: true,
           supportsStreaming: true,
           provider: "anthropic",
-          supportsImages: true,
+          supportsImages: false,
           supportsPdfs: false,
           supportsSystemMessages: false,
         },
