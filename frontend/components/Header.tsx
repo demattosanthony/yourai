@@ -9,12 +9,16 @@ import { useEffect } from "react";
 import { useAtom } from "jotai";
 import { messagesAtom } from "@/atoms/chat";
 import Link from "next/link";
-import LoginButton from "./LoginButton";
 import { ModeToggle } from "./DarkModeToggle";
+import ProfileMenu from "./ProfileMenu";
+import { useMeQuery } from "@/queries/queries";
 
 export default function Header() {
   const router = useRouter();
   const [, setMessages] = useAtom(messagesAtom);
+
+  const { data } = useMeQuery();
+  const user = data?.user;
 
   // Add useEffect for keyboard shortcut
   useEffect(() => {
@@ -59,9 +63,9 @@ export default function Header() {
             <Plus size={16} className="min-h-4 min-w-4" />
           </Button>
 
-          <ModeToggle />
+          {!user && <ModeToggle />}
 
-          <LoginButton />
+          <ProfileMenu />
         </div>
       </div>
     </div>

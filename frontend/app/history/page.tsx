@@ -6,84 +6,36 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import useDebounce from "@/hooks/useDebounce";
-import api from "@/lib/api";
+import { useThreadsQuery } from "@/queries/queries";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 export default function HistoryPage() {
   const [search, setSearch] = useState("");
-  const [threads, setThreads] = useState<
-    {
-      id: string;
-      created_at: number;
-      updated_at: number;
-      messages: {
-        id: string;
-        thread_id: string;
-        role: string;
-        content: {
-          type: "text" | "image" | "file";
-          text?: string;
-          image?: string;
-        };
-        created_at: number;
-      }[];
-    }[]
-  >([]);
-  const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
 
   const debouncedSearch = useDebounce(search, 300);
 
-  // Reset page when search changes
-  useEffect(() => {
-    setThreads([]);
-    setPage(1);
-    setHasMore(true);
-    loadMoreThreads(1, debouncedSearch);
-  }, [debouncedSearch]);
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+    refetch,
+  } = useThreadsQuery(debouncedSearch);
 
-  async function loadMoreThreads(pageNum = page, searchTerm = debouncedSearch) {
-    if (loading || (!hasMore && pageNum !== 1)) return;
-
-    setLoading(true);
-    try {
-      const newThreads = await api.getThreads(pageNum, searchTerm);
-      setHasMore(newThreads.length === 10);
-
-      if (pageNum === 1) {
-        setThreads(
-          newThreads.map((thread) => ({
-            ...thread,
-            messages: thread.messages.map((message) => ({
-              ...message,
-              content: message.content,
-            })),
-          }))
-        );
-      } else {
-        setThreads((prev) => [
-          ...prev,
-          ...newThreads.map((thread) => ({
-            ...thread,
-            messages: thread.messages.map((message) => ({
-              ...message,
-              content: message.content,
-            })),
-          })),
-        ]);
-      }
-      setPage(pageNum === 1 ? 2 : (prev) => prev + 1);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const target = e.currentTarget;
+    if (
+      target.scrollHeight - target.scrollTop <= target.clientHeight + 100 &&
+      hasNextPage &&
+      !isFetchingNextPage
+    ) {
+      fetchNextPage();
     }
-  }
-  useEffect(() => {
-    loadMoreThreads();
-  }, []);
+  };
+
+  const allThreads = data?.pages.flatMap((page) => page.threads) ?? [];
 
   return (
     <div className="flex-1 w-full h-full relative">
@@ -100,17 +52,9 @@ export default function HistoryPage() {
 
           <ScrollArea
             className="max-h-[calc(100vh-175px)] overflow-y-auto"
-            onScrollCapture={(e) => {
-              const target = e.currentTarget;
-              if (
-                target.scrollHeight - target.scrollTop <=
-                target.clientHeight + 100
-              ) {
-                loadMoreThreads();
-              }
-            }}
+            onScrollCapture={handleScroll}
           >
-            {threads.map((thread, i) => {
+            {allThreads.map((thread, i) => {
               const lastMessage = thread.messages[thread.messages.length - 1];
               if (!lastMessage) return null;
 
@@ -168,7 +112,7 @@ export default function HistoryPage() {
               );
             })}
 
-            {loading && (
+            {(isLoading || isFetchingNextPage) && (
               <>
                 <Skeleton className="h-[120px] mb-4 bg-accent" />
                 <Skeleton className="h-[120px] mb-4 bg-accent" />

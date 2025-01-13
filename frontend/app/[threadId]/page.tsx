@@ -4,53 +4,62 @@ import { isNewThreadAtom, messagesAtom } from "@/atoms/chat";
 import ChatInputForm from "@/components/chat/ChatInputForm";
 import ChatMessagesList from "@/components/chat/MessagesList";
 import { useMessageHandler } from "@/hooks/useMessageHandler";
-import api from "@/lib/api";
+import { useThreadQuery } from "@/queries/queries";
 import { MessageRole } from "@/types/chat";
+import { useQueryClient } from "@tanstack/react-query";
 import { useAtom } from "jotai";
 import { useParams } from "next/navigation";
 import { useEffect } from "react";
 
 export default function ChatPage() {
+  const queryClient = useQueryClient();
   const params = useParams<{ threadId: string }>();
   const { threadId } = params;
   const { sendMessage } = useMessageHandler();
   const [, setMessages] = useAtom(messagesAtom);
   const [isNewThread, setIsNewThread] = useAtom(isNewThreadAtom);
 
-  async function loadMessages() {
-    try {
-      const thread = await api.getThread(threadId);
-      const messages = thread.messages.map((message) => ({
+  const { data: thread, isError } = useThreadQuery(threadId, isNewThread);
+
+  // Update messages atom when thread data changes
+  useEffect(() => {
+    if (thread) {
+      const formattedMessages = thread.messages.map((message) => ({
         role: message.role as MessageRole,
         content: message.content,
       }));
-      setMessages(messages);
-    } catch (error) {
-      console.error("Failed to load messages:", error);
+      setMessages(formattedMessages);
     }
-  }
+  }, [thread, setMessages]);
 
+  // Cleanup effect
   useEffect(() => {
-    if (!isNewThread) {
-      loadMessages();
-    }
-
     return () => {
       setIsNewThread(false);
       setMessages([]);
     };
-  }, [threadId, isNewThread]);
+  }, [threadId, setIsNewThread, setMessages]);
 
+  // Handle message sending
+  const handleSubmit = async () => {
+    await sendMessage(threadId);
+    // Invalidate the thread query to trigger a refetch
+    queryClient.invalidateQueries({ queryKey: ["thread", threadId] });
+  };
+
+  if (isError) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <p className="text-red-500">Error loading messages</p>
+      </div>
+    );
+  }
   return (
     <>
       <ChatMessagesList />
 
       <div className="w-full flex items-center justify-center mx-auto px-6 pb-8 md:pb-4 md:p-2">
-        <ChatInputForm
-          onSubmit={() => {
-            sendMessage(threadId);
-          }}
-        />
+        <ChatInputForm onSubmit={handleSubmit} />
       </div>
     </>
   );

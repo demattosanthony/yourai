@@ -1,4 +1,6 @@
+import { Thread } from "@/types/chat";
 import { Model } from "@/types/model";
+import { User } from "@/types/user";
 
 /**
  * ApiClient class handles all API communication with the backend server
@@ -20,12 +22,7 @@ class ApiClient {
   }
 
   async me(): Promise<{
-    user?: {
-      id: string;
-      name: string;
-      email: string;
-      profilePicture: string;
-    };
+    user?: User;
   }> {
     const response = await fetch(`${this.baseUrl}/auth/me`, {
       method: "GET",
@@ -96,28 +93,7 @@ class ApiClient {
    * Retrieves all conversation threads with their messages
    * @returns Promise containing array of thread objects with messages
    */
-  async getThreads(
-    page: number = 1,
-    search: string = ""
-  ): Promise<
-    {
-      id: string;
-      created_at: number;
-      updated_at: number;
-      messages: {
-        id: string;
-        thread_id: string;
-        role: string;
-        content_type: string;
-        content: {
-          type: "image" | "text" | "file";
-          image?: string;
-          text?: string;
-        };
-        created_at: number;
-      }[];
-    }[]
-  > {
+  async getThreads(page: number = 1, search: string = ""): Promise<Thread[]> {
     const url = `${
       this.baseUrl
     }/threads?page=${page}&search=${encodeURIComponent(search)}`;
@@ -132,22 +108,7 @@ class ApiClient {
    * @param threadId - ID of the thread to retrieve
    * @returns Promise containing thread object with messages
    */
-  async getThread(threadId: string): Promise<{
-    id: string;
-    created_at: number;
-    updated_at: number;
-    messages: {
-      id: string;
-      thread_id: string;
-      role: string;
-      content: {
-        type: "image" | "text" | "file";
-        image?: string;
-        text?: string;
-      };
-      created_at: number;
-    }[];
-  }> {
+  async getThread(threadId: string): Promise<Thread> {
     const url = `${this.baseUrl}/threads/${threadId}`;
 
     const response = await fetch(url, {

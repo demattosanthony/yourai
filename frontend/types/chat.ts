@@ -31,3 +31,20 @@ export type FileUpload = {
   preview: string;
   type: "image" | "pdf";
 };
+
+export interface Thread {
+  id: string;
+  created_at: number;
+  updated_at: number;
+  messages: {
+    id: string;
+    thread_id: string;
+    role: string;
+    content: {
+      type: "text" | "image" | "file";
+      text?: string;
+      image?: string;
+    };
+    created_at: number;
+  }[];
+}

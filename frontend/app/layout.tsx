@@ -1,12 +1,13 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
-import { Provider } from "jotai";
+import { Provider as JotaiProvider } from "jotai";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import Header from "@/components/Header";
 import { DragAndDropProvider } from "@/components/DragDropProvider";
 import "./globals.css";
 import { ThemeColorManager } from "@/components/ThemeColorManager";
-import { LoginOverlay } from "@/components/LoginButton";
+import { LoginOverlay } from "@/components/LoginOverlay";
+import ReactQueryProvider from "./providers";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -50,24 +51,26 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <Provider>
-            <DragAndDropProvider>
-              <ThemeColorManager />
-              <div className="h-screen w-screen flex flex-col max-h-[-webkit-fill-available] overflow-hidden">
-                <LoginOverlay />
-                <Header />
+        <ReactQueryProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <JotaiProvider>
+              <DragAndDropProvider>
+                <ThemeColorManager />
+                <div className="h-screen w-screen flex flex-col max-h-[-webkit-fill-available] overflow-hidden">
+                  <LoginOverlay />
+                  <Header />
 
-                {children}
-              </div>
-            </DragAndDropProvider>
-          </Provider>
-        </ThemeProvider>
+                  {children}
+                </div>
+              </DragAndDropProvider>
+            </JotaiProvider>
+          </ThemeProvider>
+        </ReactQueryProvider>
       </body>
     </html>
   );
