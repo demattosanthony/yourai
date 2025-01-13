@@ -1,5 +1,5 @@
 import { threads, messages, ContentPart, FileContent } from "./config/schema";
-import { desc, eq, inArray, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import db from "./config/db";
 import s3 from "./config/s3";
 
@@ -11,24 +11,26 @@ async function getThread(threadId: string) {
     where: eq(threads.id, threadId),
     with: {
       messages: {
-        orderBy: messages.created_at,
+        orderBy: messages.createdAt,
       },
     },
   });
 }
 
-async function createThread() {
+async function createThread(userId: string) {
   const threadId = crypto.randomUUID();
   const now = new Date();
   await db.insert(threads).values({
     id: threadId,
-    created_at: now,
-    updated_at: now,
+    userId,
+    createdAt: now,
+    updatedAt: now,
   });
   return { id: threadId };
 }
 
 async function createMessage(
+  userId: string,
   threadId: string,
   role: string,
   content: ContentPart[]
@@ -36,43 +38,45 @@ async function createMessage(
   for (const item of content) {
     const messageId = crypto.randomUUID();
     await db.insert(messages).values({
+      userId,
       id: messageId,
-      thread_id: threadId,
-      role,
+      threadId: threadId,
+      role: role as "system" | "user" | "assistant" | "tool", // Type assertion for role
       content: item,
-      created_at: new Date(),
+      createdAt: new Date(),
     });
   }
   return { message: "Messages created successfully" };
 }
 
-async function getThreads(page: number, search: string) {
+async function getThreads(userId: string, page: number, search: string) {
   const offset = (page - 1) * LIMIT;
   const limit = 10;
   let query;
   try {
-    // Modified query to select only the necessary columns for grouping
     query = db
       .select({
         id: threads.id,
-        created_at: threads.created_at,
-        updated_at: threads.updated_at,
+        created_at: threads.createdAt,
+        updated_at: threads.updatedAt,
       })
       .from(threads)
-      .leftJoin(messages, eq(threads.id, messages.thread_id))
-      .orderBy(desc(threads.created_at));
-
-    if (search && search.length > 0) {
-      query = query.where(
-        sql`json_extract(${messages.content}, '$.text') LIKE ${
-          "%" + search + "%"
-        }`
-      );
-    }
+      .leftJoin(messages, eq(threads.id, messages.threadId))
+      .where(
+        search && search.length > 0
+          ? and(
+              eq(threads.userId, userId),
+              sql`json_extract(${messages.content}, '$.text') LIKE ${
+                "%" + search + "%"
+              }`
+            )
+          : eq(threads.userId, userId)
+      )
+      .orderBy(desc(threads.createdAt));
 
     // Get distinct threads that match search
     const matchingThreads = await query
-      .groupBy(threads.id, threads.created_at, threads.updated_at)
+      .groupBy(threads.id, threads.createdAt, threads.updatedAt)
       .limit(limit)
       .offset(offset);
 
@@ -81,10 +85,10 @@ async function getThreads(page: number, search: string) {
 
     let completeThreads = await db.query.threads.findMany({
       where: inArray(threads.id, threadIds),
-      orderBy: [desc(threads.created_at)],
+      orderBy: [desc(threads.createdAt)],
       with: {
         messages: {
-          orderBy: messages.created_at,
+          orderBy: messages.createdAt,
         },
       },
     });

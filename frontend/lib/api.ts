@@ -71,6 +71,7 @@ class ApiClient {
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: "include",
     });
 
     return await response.json();
@@ -85,6 +86,7 @@ class ApiClient {
 
     const response = await fetch(url, {
       method: "POST",
+      credentials: "include",
     });
 
     return await response.json();
@@ -119,7 +121,9 @@ class ApiClient {
     const url = `${
       this.baseUrl
     }/threads?page=${page}&search=${encodeURIComponent(search)}`;
-    const response = await fetch(url);
+    const response = await fetch(url, {
+      credentials: "include",
+    });
     return await response.json();
   }
 
@@ -148,6 +152,7 @@ class ApiClient {
 
     const response = await fetch(url, {
       method: "GET",
+      credentials: "include",
     });
 
     return await response.json();
@@ -190,6 +195,7 @@ class ApiClient {
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: "include",
     });
 
     return await response.json();
@@ -216,6 +222,7 @@ class ApiClient {
       method: "POST",
       body: JSON.stringify({ model: modelName, temperature, instructions }),
       headers: { "Content-Type": "application/json" },
+      credentials: "include",
       signal,
     });
 
