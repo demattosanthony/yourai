@@ -10,6 +10,31 @@ class ApiClient {
     this.baseUrl = baseUrl;
   }
 
+  async logout() {
+    await fetch(`${this.baseUrl}/auth/logout`, {
+      method: "POST",
+      credentials: "include",
+    }).catch((error) => {
+      console.error("Error:", error);
+    });
+  }
+
+  async me(): Promise<{
+    user?: {
+      id: string;
+      name: string;
+      email: string;
+      profilePicture: string;
+    };
+  }> {
+    const response = await fetch(`${this.baseUrl}/auth/me`, {
+      method: "GET",
+      credentials: "include",
+    });
+
+    return await response.json();
+  }
+
   /**
    * Fetches the list of available AI models from the server
    * @returns Promise containing array of Model objects

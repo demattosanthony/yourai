@@ -6,6 +6,7 @@ import Header from "@/components/Header";
 import { DragAndDropProvider } from "@/components/DragDropProvider";
 import "./globals.css";
 import { ThemeColorManager } from "@/components/ThemeColorManager";
+import { LoginOverlay } from "@/components/LoginButton";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -59,6 +60,7 @@ export default function RootLayout({
             <DragAndDropProvider>
               <ThemeColorManager />
               <div className="h-screen w-screen flex flex-col max-h-[-webkit-fill-available] overflow-hidden">
+                <LoginOverlay />
                 <Header />
 
                 {children}
