@@ -11,6 +11,12 @@ export type MessageContent = {
   image?: string;
   text?: string;
   mimeType?: string;
+  file_metadata?: {
+    filename: string;
+    mime_type: string;
+    file_key: string;
+    size: number;
+  };
 };
 
 export type ChatMessage = {

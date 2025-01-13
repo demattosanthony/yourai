@@ -6,9 +6,11 @@ import { desc, eq, inArray, sql } from "drizzle-orm";
 
 import db from "./config/db";
 import { MODELS } from "./models";
-import { threads, messages, ContentPart } from "./config/schema";
+import { threads, messages, ContentPart, FileContent } from "./config/schema";
 import { runInference } from "./inference";
 import client from "./config/s3";
+import { file } from "bun";
+import { CoreMessage } from "ai";
 
 const PORT = process.env.PORT || 4000;
 
@@ -28,14 +30,28 @@ async function main() {
 
   app.post("/presigned-url", async (req, res) => {
     try {
-      const { fileName, fileType } = req.body;
-      const url = client.presign(fileName, {
+      const { filename, mime_type, size } = req.body;
+      const file_key = `uploads/${Date.now()}-${filename}`;
+      const url = client.presign(file_key, {
         expiresIn: 3600, // 1 hour
-        type: fileType,
+        type: mime_type,
         method: "PUT",
       });
+      const viewUrl = client.file(file_key).presign({
+        expiresIn: 3600,
+        method: "GET",
+      });
 
-      res.json({ url });
+      res.json({
+        url,
+        viewUrl,
+        file_metadata: {
+          filename,
+          mime_type,
+          file_key,
+          size,
+        },
+      });
     } catch (error) {
       console.error("Error creating presigned URL:", error);
       res.status(500).json({ error: "Failed to create presigned URL" });
@@ -108,7 +124,7 @@ async function main() {
       // Rest of the code remains the same...
       const threadIds = matchingThreads.map((t) => t.id);
 
-      const completeThreads = await db.query.threads.findMany({
+      let completeThreads = await db.query.threads.findMany({
         where: inArray(threads.id, threadIds),
         orderBy: [desc(threads.created_at)],
         with: {
@@ -117,6 +133,24 @@ async function main() {
           },
         },
       });
+
+      // For the file content, we need to generate a temporary URL
+      for (const thread of completeThreads) {
+        for (const message of thread.messages) {
+          const content = message.content as { type: string };
+
+          if (content.type === "file" || content.type === "image") {
+            const metadata = client.file(
+              (message.content as FileContent).file_metadata.file_key
+            );
+            const url = metadata.presign({
+              acl: "public-read",
+              expiresIn: 3600,
+            });
+            (message.content as FileContent).data = url;
+          }
+        }
+      }
 
       res.json(completeThreads);
     } catch (error) {
@@ -142,6 +176,22 @@ async function main() {
       if (!thread) {
         res.status(404).json({ error: "Thread not found" });
         return;
+      }
+
+      // For the file content, we need to generate a temporary URL
+      for (const message of thread.messages) {
+        const content = message.content as { type: string };
+
+        if (content.type === "file" || content.type === "image") {
+          const metadata = client.file(
+            (message.content as FileContent).file_metadata.file_key
+          );
+          const url = metadata.presign({
+            acl: "public-read",
+            expiresIn: 3600,
+          });
+          (message.content as FileContent).data = url;
+        }
       }
 
       res.json(thread);
@@ -222,25 +272,37 @@ async function main() {
         role: msg.role,
         content: await (async (content: ContentPart) => {
           if (content.type === "text") {
-            return content.text; // Return just the text string
+            return [
+              {
+                type: content.type,
+                text: content.text,
+              },
+            ];
           } else {
             // Generate temporary URL for file
             const metadata = client.file(content.file_metadata.file_key);
-            const url = metadata.presign({
-              acl: "public-read",
-              expiresIn: 3600,
-            });
-            return {
-              type: content.type,
-              mimeType: content.file_metadata.mime_type,
-              data: url,
-            };
+            // const url = metadata.presign({
+            //   acl: "public-read",
+            //   expiresIn: 3600,
+            // });
+            // Convert to base64 content
+            const data = await metadata.arrayBuffer();
+            const buffer = Buffer.from(new Uint8Array(data));
+            const base64 = `data:${
+              content.file_metadata.mime_type
+            };base64,${buffer.toString("base64")}`;
+
+            return [
+              {
+                type: content.type,
+                mimeType: content.file_metadata.mime_type,
+                [content.type === "image" ? "image" : "data"]: base64,
+              },
+            ];
           }
         })(msg.content as ContentPart),
       }))
     );
-
-    console.log(inferenceMessages);
 
     const onToolEvent = (event: string, data: any) => {
       res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
@@ -250,7 +312,7 @@ async function main() {
       const textStream = await runInference(
         {
           model,
-          messages: inferenceMessages as any,
+          messages: inferenceMessages as CoreMessage[],
           maxTokens,
           temperature,
           systemMessage: instructions,

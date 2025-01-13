@@ -14,7 +14,8 @@ function MessageItem({
 }) {
   const messageType = message.content?.type;
   const text = message.content?.text;
-  const image = message.content?.image;
+  const data = message.content?.data;
+  const file_metadata = message.content?.file_metadata;
 
   return (
     <div
@@ -57,18 +58,12 @@ function MessageItem({
 
           {message.role === MessageRole.user && messageType === "image" && (
             <img
-              src={image}
+              src={data}
               alt="User uploaded image"
               className="h-52 object-cover rounded-lg cursor-pointer hover:opacity-90 max-w-[750px]"
               onClick={() => {
                 if (typeof window === "undefined") return;
-                const newWindow = window.open();
-                if (newWindow) {
-                  newWindow.document.write(
-                    `<img src="${image}" style="width: 100%; display: block; margin: 0 auto;">`
-                  );
-                  newWindow.document.title = "Image Preview";
-                }
+                window.open(data, "_blank");
               }}
             />
           )}
@@ -78,34 +73,13 @@ function MessageItem({
             <div
               className="flex items-center gap-1 cursor-pointer hover:opacity-80"
               onClick={() => {
-                // Extract MIME type and base64 data
-                const [header, base64Data] =
-                  message.content?.data?.split(",") || [];
-                const mimeType =
-                  header?.match(/^data:(.*?);/)?.[1] || "application/pdf";
-
-                if (base64Data) {
-                  const byteCharacters = atob(base64Data);
-                  const byteNumbers = new Array(byteCharacters.length);
-                  for (let i = 0; i < byteCharacters.length; i++) {
-                    byteNumbers[i] = byteCharacters.charCodeAt(i);
-                  }
-                  const byteArray = new Uint8Array(byteNumbers);
-                  const blob = new Blob([byteArray], {
-                    type: mimeType,
-                  });
-                  const blobUrl = URL.createObjectURL(blob);
-
-                  // Open in new window
-                  window.open(blobUrl, "_blank");
-
-                  // Clean up the Blob URL when the window closes
-                  setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
-                }
+                if (!data) return;
+                // Open in new window
+                window.open(data, "_blank");
               }}
             >
               <File className="w-4 h-4" />
-              <span>Open file</span>
+              <span>{file_metadata?.filename}</span>
             </div>
           )}
         </div>

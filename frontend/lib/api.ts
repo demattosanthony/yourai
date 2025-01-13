@@ -24,6 +24,33 @@ class ApiClient {
     return await response.json();
   }
 
+  async getPresignedUrl(
+    filename: string,
+    mime_type: string,
+    size: number
+  ): Promise<{
+    url: string;
+    viewUrl: string;
+    file_metadata: {
+      filename: string;
+      mime_type: string;
+      file_key: string;
+      size: number;
+    };
+  }> {
+    const url = `${this.baseUrl}/presigned-url`;
+
+    const response = await fetch(url, {
+      method: "POST",
+      body: JSON.stringify({ filename, mime_type, size }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    return await response.json();
+  }
+
   /**
    * Creates a new conversation thread
    * @returns Promise containing the thread ID
@@ -113,9 +140,13 @@ class ApiClient {
     role: string,
     content: {
       type: "image" | "text" | "file";
-      image?: string;
       text?: string;
-      data?: string;
+      file_metadata?: {
+        filename: string;
+        mime_type: string;
+        file_key: string;
+        size: number;
+      };
     }[]
   ): Promise<
     {

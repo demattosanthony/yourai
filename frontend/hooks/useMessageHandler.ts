@@ -33,11 +33,26 @@ export function useMessageHandler() {
     if (uploads.length > 0) {
       const uploadContents: MessageContent[] = await Promise.all(
         uploads.map(async (upload) => {
-          const base64 = await fileToBase64(upload.file);
+          const { url, file_metadata, viewUrl } = await api.getPresignedUrl(
+            upload.file.name,
+            upload.file.type,
+            upload.file.size
+          );
+
+          // upload directly to storage
+          await fetch(url, {
+            method: "PUT",
+            body: upload.file,
+            headers: {
+              "Content-Type": upload.file.type,
+            },
+          });
+
           return {
             type: upload.type === "image" ? "image" : "file",
-            [upload.type === "image" ? "image" : "data"]: base64,
+            data: viewUrl,
             mimeType: upload.file.type,
+            file_metadata,
           };
         })
       );

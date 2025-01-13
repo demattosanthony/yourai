@@ -61,8 +61,10 @@ type TextContent = BaseContentPart & {
   text: string;
 };
 
-type FileContent = BaseContentPart & {
+export type FileContent = BaseContentPart & {
   type: "file" | "image";
+  data?: string; // url for the file
+  image?: string; // base64 encoded image
   file_metadata: {
     filename: string;
     mime_type: string;
