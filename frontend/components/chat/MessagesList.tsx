@@ -90,10 +90,7 @@ const MessageItem = React.memo(function MessageItem({
 
           {/** User Files */}
           {message.role === MessageRole.user && messageType === "file" && (
-            <Link
-              href={`/files/pdf/${encodeURIComponent(data || "")}`}
-              target="_blank"
-            >
+            <Link href={data || ""} target="_blank">
               <div className="flex items-center gap-1 cursor-pointer hover:opacity-80">
                 <File className="w-4 h-4" />
                 <span>{file_metadata?.filename}</span>

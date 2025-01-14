@@ -15,7 +15,12 @@ const perplexity = createOpenAI({
 
 interface ModelConfig {
   model: ReturnType<
-    typeof openai | typeof anthropic | typeof groq | typeof perplexity
+    | typeof openai
+    | typeof anthropic
+    | typeof groq
+    | typeof perplexity
+    | typeof xai
+    | typeof mistral
   >;
   supportsToolUse: boolean;
   supportsStreaming: boolean;
@@ -86,15 +91,6 @@ export const MODELS: Record<string, ModelConfig> = {
     : {}),
   ...(process.env.GOOGLE_GENERATIVE_AI_API_KEY
     ? {
-        "gemini-2.0-flash-thinking": {
-          model: google("gemini-2.0-flash-thinking-exp-1219"),
-          supportsToolUse: false,
-          supportsStreaming: true,
-          provider: "google",
-          supportsImages: true,
-          supportsPdfs: true,
-          supportsSystemMessages: false,
-        },
         "gemini-2.0-pro": {
           model: google("gemini-exp-1206"),
           supportsToolUse: true,
@@ -118,6 +114,15 @@ export const MODELS: Record<string, ModelConfig> = {
             useSearchGrounding: true,
           }),
           supportsToolUse: true,
+          supportsStreaming: true,
+          provider: "google",
+          supportsImages: true,
+          supportsPdfs: true,
+          supportsSystemMessages: false,
+        },
+        "gemini-2.0-flash-thinking": {
+          model: google("gemini-2.0-flash-thinking-exp-1219"),
+          supportsToolUse: false,
           supportsStreaming: true,
           provider: "google",
           supportsImages: true,
@@ -154,6 +159,12 @@ export const MODELS: Record<string, ModelConfig> = {
           supportsStreaming: true,
           provider: "groq",
           supportsSystemMessages: false,
+        },
+        "llama-3.1-8b": {
+          model: groq("llama-3.1-8b-instant"),
+          supportsToolUse: false,
+          supportsStreaming: true,
+          provider: "groq",
         },
       }
     : {}),

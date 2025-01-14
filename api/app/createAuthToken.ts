@@ -1,6 +1,6 @@
 import * as jwt from "jsonwebtoken";
 import { Response } from "express";
-import { eq, sql } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import db from "./config/db";
 import { users } from "./config/schema";
 
