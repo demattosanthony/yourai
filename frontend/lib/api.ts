@@ -1,4 +1,6 @@
+import { Thread } from "@/types/chat";
 import { Model } from "@/types/model";
+import { User } from "@/types/user";
 
 /**
  * ApiClient class handles all API communication with the backend server
@@ -8,6 +10,26 @@ class ApiClient {
 
   constructor(baseUrl: string) {
     this.baseUrl = baseUrl;
+  }
+
+  async logout() {
+    await fetch(`${this.baseUrl}/auth/logout`, {
+      method: "POST",
+      credentials: "include",
+    }).catch((error) => {
+      console.error("Error:", error);
+    });
+  }
+
+  async me(): Promise<{
+    user?: User;
+  }> {
+    const response = await fetch(`${this.baseUrl}/auth/me`, {
+      method: "GET",
+      credentials: "include",
+    });
+
+    return await response.json();
   }
 
   /**
@@ -46,6 +68,7 @@ class ApiClient {
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: "include",
     });
 
     return await response.json();
@@ -60,6 +83,7 @@ class ApiClient {
 
     const response = await fetch(url, {
       method: "POST",
+      credentials: "include",
     });
 
     return await response.json();
@@ -69,32 +93,13 @@ class ApiClient {
    * Retrieves all conversation threads with their messages
    * @returns Promise containing array of thread objects with messages
    */
-  async getThreads(
-    page: number = 1,
-    search: string = ""
-  ): Promise<
-    {
-      id: string;
-      created_at: number;
-      updated_at: number;
-      messages: {
-        id: string;
-        thread_id: string;
-        role: string;
-        content_type: string;
-        content: {
-          type: "image" | "text" | "file";
-          image?: string;
-          text?: string;
-        };
-        created_at: number;
-      }[];
-    }[]
-  > {
+  async getThreads(page: number = 1, search: string = ""): Promise<Thread[]> {
     const url = `${
       this.baseUrl
     }/threads?page=${page}&search=${encodeURIComponent(search)}`;
-    const response = await fetch(url);
+    const response = await fetch(url, {
+      credentials: "include",
+    });
     return await response.json();
   }
 
@@ -103,26 +108,12 @@ class ApiClient {
    * @param threadId - ID of the thread to retrieve
    * @returns Promise containing thread object with messages
    */
-  async getThread(threadId: string): Promise<{
-    id: string;
-    created_at: number;
-    updated_at: number;
-    messages: {
-      id: string;
-      thread_id: string;
-      role: string;
-      content: {
-        type: "image" | "text" | "file";
-        image?: string;
-        text?: string;
-      };
-      created_at: number;
-    }[];
-  }> {
+  async getThread(threadId: string): Promise<Thread> {
     const url = `${this.baseUrl}/threads/${threadId}`;
 
     const response = await fetch(url, {
       method: "GET",
+      credentials: "include",
     });
 
     return await response.json();
@@ -165,6 +156,7 @@ class ApiClient {
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: "include",
     });
 
     return await response.json();
@@ -191,6 +183,7 @@ class ApiClient {
       method: "POST",
       body: JSON.stringify({ model: modelName, temperature, instructions }),
       headers: { "Content-Type": "application/json" },
+      credentials: "include",
       signal,
     });
 

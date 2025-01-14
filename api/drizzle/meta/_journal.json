@@ -15,6 +15,20 @@
       "when": 1736719165656,
       "tag": "0001_slimy_goblin_queen",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1736785061822,
+      "tag": "0002_lyrical_ultron",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1736803119756,
+      "tag": "0003_third_ultron",
+      "breakpoints": true
     }
   ]
 }

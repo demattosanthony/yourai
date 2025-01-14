@@ -1,63 +1,49 @@
-import { generateText, streamText, type CoreMessage } from "ai";
-import { MODELS } from "./models";
+import { generateText, LanguageModel, streamText, type CoreMessage } from "ai";
 
 interface inferenceParams {
-  model: keyof typeof MODELS;
+  model: LanguageModel;
   messages: CoreMessage[];
   maxTokens?: number;
   temperature?: number;
-  systemMessage?: string;
+  system?: string;
 }
 
 export async function runInference(
   params: inferenceParams,
-  onToolEvent: (event: string, data: any) => void
+  onToolEvent: (event: string, data: any) => void,
+  stream?: boolean
 ) {
-  const { model, messages, temperature, maxTokens } = params;
+  //   if (modelToRun.supportsToolUse) {
+  //     generationParams = {
+  //       ...generationParams,
+  //       //   tools: {
+  //       //     webSearch: webSearchTool,
+  //       //     getWebPageContents: getWebPageContentsTool,
+  //       //   },
+  //       //   toolChoice: "auto",
+  //       //   maxSteps: 5,
+  //       onChunk({
+  //         chunk,
+  //       }: {
+  //         chunk: { type: string; toolName: string; args: any };
+  //       }) {
+  //         if (chunk.type === "tool-call") {
+  //           const { toolName, args } = chunk;
+  //           onToolEvent("tool-call-start", { toolName, args });
+  //         }
 
-  const modelToRun = MODELS[model];
+  //         if (chunk.type === "tool-result") {
+  //           onToolEvent("tool-call-end", { toolName: chunk.toolName });
+  //         }
+  //       },
+  //     };
+  //   }
 
-  let generationParams: any = {
-    model: modelToRun.model,
-    temperature: temperature || 0.5,
-    messages: messages,
-    maxTokens: maxTokens || undefined,
-    system: modelToRun.supportsSystemMessages
-      ? params.systemMessage || undefined
-      : undefined,
-  };
-
-  if (modelToRun.supportsToolUse) {
-    generationParams = {
-      ...generationParams,
-      //   tools: {
-      //     webSearch: webSearchTool,
-      //     getWebPageContents: getWebPageContentsTool,
-      //   },
-      //   toolChoice: "auto",
-      //   maxSteps: 5,
-      onChunk({
-        chunk,
-      }: {
-        chunk: { type: string; toolName: string; args: any };
-      }) {
-        if (chunk.type === "tool-call") {
-          const { toolName, args } = chunk;
-          onToolEvent("tool-call-start", { toolName, args });
-        }
-
-        if (chunk.type === "tool-result") {
-          onToolEvent("tool-call-end", { toolName: chunk.toolName });
-        }
-      },
-    };
-  }
-
-  if (modelToRun.supportsStreaming) {
-    const { textStream } = await streamText(generationParams);
+  if (stream) {
+    const { textStream } = streamText(params);
     return textStream;
   } else {
-    const { text } = await generateText(generationParams);
+    const { text } = await generateText(params);
     return [text]; // Wrap text in an array to make it iterable
   }
 }

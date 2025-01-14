@@ -1,11 +1,11 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
-import { Provider } from "jotai";
+import { Provider as JotaiProvider } from "jotai";
 import { ThemeProvider } from "@/components/ThemeProvider";
-import Header from "@/components/Header";
 import { DragAndDropProvider } from "@/components/DragDropProvider";
-import "./globals.css";
 import { ThemeColorManager } from "@/components/ThemeColorManager";
+import ReactQueryProvider from "./providers";
+import "./globals.css";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -49,23 +49,22 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <Provider>
-            <DragAndDropProvider>
-              <ThemeColorManager />
-              <div className="h-screen w-screen flex flex-col max-h-[-webkit-fill-available] overflow-hidden">
-                <Header />
+        <ReactQueryProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <JotaiProvider>
+              <DragAndDropProvider>
+                <ThemeColorManager />
 
                 {children}
-              </div>
-            </DragAndDropProvider>
-          </Provider>
-        </ThemeProvider>
+              </DragAndDropProvider>
+            </JotaiProvider>
+          </ThemeProvider>
+        </ReactQueryProvider>
       </body>
     </html>
   );

@@ -28,7 +28,7 @@ export default function Home() {
               // Create a new thread and navigate to it
               const { id: threadId } = await api.createThread();
               setIsNewThread(true);
-              router.push(`/${threadId}`);
+              router.push(`/threads/${threadId}`);
 
               sendMessage(threadId);
             } catch (error) {
