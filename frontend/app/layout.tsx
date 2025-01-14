@@ -2,12 +2,10 @@ import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import { Provider as JotaiProvider } from "jotai";
 import { ThemeProvider } from "@/components/ThemeProvider";
-import Header from "@/components/Header";
 import { DragAndDropProvider } from "@/components/DragDropProvider";
-import "./globals.css";
 import { ThemeColorManager } from "@/components/ThemeColorManager";
-import { LoginOverlay } from "@/components/LoginOverlay";
 import ReactQueryProvider from "./providers";
+import "./globals.css";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -61,12 +59,8 @@ export default function RootLayout({
             <JotaiProvider>
               <DragAndDropProvider>
                 <ThemeColorManager />
-                <div className="h-screen w-screen flex flex-col max-h-[-webkit-fill-available] overflow-hidden">
-                  <LoginOverlay />
-                  <Header />
 
-                  {children}
-                </div>
+                {children}
               </DragAndDropProvider>
             </JotaiProvider>
           </ThemeProvider>

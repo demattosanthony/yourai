@@ -29,46 +29,40 @@ export function LoginOverlay() {
   }
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4  z-50">
-      <Card className="w-full max-w-[400px] shadow-2xl border-0 bg-white/90 backdrop-blur">
-        <CardHeader className="text-center pb-2">
-          <div className="relative mx-auto w-20 h-20">
+    <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 z-50">
+      <Card className="w-full max-w-[400px] shadow-2xl border-0 bg-background backdrop-blur">
+        <CardHeader className="text-center">
+          <div className="relative mx-auto w-20 h-20 mb-2">
             <img
-              src="/YO_192.png"
+              src="/yo-blob.png"
               alt="logo"
               className="w-full h-full object-contain"
             />
           </div>
 
-          <div>
-            <CardTitle className="text-3xl font-bold">Yo..our AI</CardTitle>
-            <CardDescription className="text-base mt-2 text-gray-600">
-              Sign in or create an account to continue
-            </CardDescription>
-          </div>
+          <CardTitle className="text-3xl font-bold">Yo..ur AI</CardTitle>
+          <CardDescription className="text-base">
+            Sign in or create an account to continue
+          </CardDescription>
         </CardHeader>
 
-        <CardContent className="py-2 flex flex-col items-center">
-          <Button
-            className="font-semibold w-full"
-            onClick={handleGoogleLogin}
-            // size="lg"
-          >
+        <CardContent className="flex flex-col items-center">
+          <Button className="font-semibold w-full" onClick={handleGoogleLogin}>
             <img src="/google.svg" alt="google" className="h-5 w-5 mr-1" />
             Continue with Google
           </Button>
 
-          <p className="text-xs text-center mt-4 text-gray-500 max-w-[300px]">
+          {/* <p className="text-xs text-center mt-4 text-gray-500 max-w-[300px]">
             By logging in, you agree to our{" "}
-            <a href="/legal/terms" className="text-blue-500 underline">
+            <Link href="/legal/terms" className="text-blue-500 underline">
               Terms of Service
-            </a>{" "}
+            </Link>{" "}
             and{" "}
-            <a href="/legal/privacy" className="text-blue-500 underline">
+            <Link href="/legal/privacy" className="text-blue-500 underline">
               Privacy Policy
-            </a>
+            </Link>
             .{" "}
-          </p>
+          </p> */}
         </CardContent>
       </Card>
     </div>

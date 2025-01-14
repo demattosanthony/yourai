@@ -5,6 +5,8 @@ import { useAtom } from "jotai";
 import { ChatMessage, MessageRole } from "@/types/chat";
 import { messagesAtom } from "@/atoms/chat";
 import React from "react";
+import { getModelIconPath } from "../ModelSelector";
+import Link from "next/link";
 
 const MessageItem = React.memo(function MessageItem({
   message,
@@ -17,6 +19,7 @@ const MessageItem = React.memo(function MessageItem({
   const text = message.content?.text;
   const data = message.content?.data;
   const file_metadata = message.content?.file_metadata;
+  const provider = message.provider;
 
   return (
     <div
@@ -40,23 +43,39 @@ const MessageItem = React.memo(function MessageItem({
           whiteSpace: message.role === MessageRole.user ? "pre-wrap" : "normal",
         }}
       >
+        {/** Icon for AI Message */}
         <div className="flex gap-2">
           {message.role === MessageRole.assistant && (
-            <div className="bg-primary h-6 w-6 rounded-full min-h-6 min-w-6 mt-1" />
+            <>
+              {provider && (
+                <img
+                  src={getModelIconPath(provider) || ""}
+                  className="w-6 h-6 rounded mt-1 mr-1"
+                  alt="modelIcon"
+                />
+              )}
+
+              {!provider && (
+                <div className="bg-primary h-6 w-6 rounded-full min-h-6 min-w-6 mt-1" />
+              )}
+            </>
           )}
 
+          {/** AI Plain text response */}
           {message.role === MessageRole.assistant && (
             <div className="max-w-[750px] overflow-hidden">
               <MarkdownViewer content={message.content?.text || ""} />
             </div>
           )}
 
+          {/** User message */}
           {message.role === MessageRole.user && messageType === "text" && (
             <div className="break-words whitespace-pre-wrap max-w-[750px] overflow-hidden">
               {text}
             </div>
           )}
 
+          {/** User images */}
           {message.role === MessageRole.user && messageType === "image" && (
             <img
               src={data}
@@ -69,19 +88,17 @@ const MessageItem = React.memo(function MessageItem({
             />
           )}
 
-          {/** Add a button to view the file */}
+          {/** User Files */}
           {message.role === MessageRole.user && messageType === "file" && (
-            <div
-              className="flex items-center gap-1 cursor-pointer hover:opacity-80"
-              onClick={() => {
-                if (!data) return;
-                // Open in new window
-                window.open(data, "_blank");
-              }}
+            <Link
+              href={`/files/pdf/${encodeURIComponent(data || "")}`}
+              target="_blank"
             >
-              <File className="w-4 h-4" />
-              <span>{file_metadata?.filename}</span>
-            </div>
+              <div className="flex items-center gap-1 cursor-pointer hover:opacity-80">
+                <File className="w-4 h-4" />
+                <span>{file_metadata?.filename}</span>
+              </div>
+            </Link>
           )}
         </div>
       </div>

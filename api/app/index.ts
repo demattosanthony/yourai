@@ -18,6 +18,8 @@ import { authMiddleware } from "./middleware/auth";
 
 const PORT = process.env.PORT || 4000;
 
+const WHITELIST_EMAILS = ["demattosanthony@gmail.com", "mgkurass@gmail.com"];
+
 // Error Handling
 function handleError(res: Express.Response, error: Error) {
   console.error(error);
@@ -65,6 +67,10 @@ async function main() {
         scope: ["profile", "email"],
       },
       async (_accessToken, _refreshToken, profile, done) => {
+        if (!WHITELIST_EMAILS.includes(profile._json.email || "")) {
+          return done(null, false, { message: "Email not authorized" });
+        }
+
         // 1. grab id
         const googleId = profile.id;
 
@@ -104,7 +110,10 @@ async function main() {
 
   app.get(
     "/auth/google/callback",
-    passport.authenticate("google", { session: false }),
+    passport.authenticate("google", {
+      session: false,
+      failureRedirect: process.env.FRONTEND_URL,
+    }),
     (req, res) => {
       sendAuthCookies(res, req.user as DbUser);
       if ((req.user as DbUser).subscriptionStatus === "active") {
@@ -340,6 +349,8 @@ async function main() {
         role: "assistant",
         content: JSON.stringify({ type: "text", text: aiResponse }),
         createdAt: new Date(),
+        model: model,
+        provider: modelToRun.provider,
       });
 
       res.write("event: done\ndata: true\n\n");

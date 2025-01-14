@@ -100,42 +100,31 @@ const ModelSelector: React.FC = () => {
 
 export default ModelSelector;
 
-function getModelImage(provider: string) {
+export function getModelImage(provider: string) {
+  const iconPath = getModelIconPath(provider);
+  if (!iconPath) return null;
+
+  const providerName = provider.charAt(0).toUpperCase() + provider.slice(1);
+
+  return <img src={iconPath} alt={providerName} className="w-5 h-5 mr-2" />;
+}
+
+export function getModelIconPath(provider: string) {
   switch (provider) {
     case "openai":
-      return (
-        <img
-          src="https://openai.com/favicon.ico"
-          alt="OpenAI"
-          className="w-5 h-5 mr-2"
-        />
-      );
+      return "https://openai.com/favicon.ico";
     case "anthropic":
-      return (
-        <img
-          src="https://anthropic.com/favicon.ico"
-          alt="Anthropic"
-          className="w-5 h-5 mr-2"
-        />
-      );
+      return "https://anthropic.com/favicon.ico";
     case "perplexity":
-      return (
-        <img
-          src="https://www.perplexity.ai/favicon.ico"
-          alt="Perplexity"
-          className="w-5 h-5 mr-2"
-        />
-      );
+      return "https://www.perplexity.ai/favicon.ico";
     case "google":
-      return <img src="/google.svg" alt="Google" className="w-5 h-5 mr-2" />;
+      return "/google.svg";
     case "xai":
-      return (
-        <img src="https://x.ai/icon.svg" alt="xAI" className="w-5 h-5 mr-2" />
-      );
+      return "https://x.ai/icon.svg";
     case "mistral":
-      return <img src="/mistral.svg" alt="Mistral" className="w-5 h-5 mr-2" />;
+      return "/mistral.svg";
     case "groq":
-      return <img src="/meta.svg" alt="Meta" className="w-5 h-5 mr-2" />;
+      return "/meta.svg";
 
     default:
       return null;

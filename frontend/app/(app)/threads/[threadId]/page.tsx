@@ -11,7 +11,7 @@ import { useAtom } from "jotai";
 import { useParams } from "next/navigation";
 import { useEffect } from "react";
 
-export default function ChatPage() {
+export default function ThreadPage() {
   const queryClient = useQueryClient();
   const params = useParams<{ threadId: string }>();
   const { threadId } = params;
@@ -27,6 +27,9 @@ export default function ChatPage() {
       const formattedMessages = thread.messages.map((message) => ({
         role: message.role as MessageRole,
         content: message.content,
+        createdAt: message.createdAt,
+        provider: message.provider,
+        model: message.model,
       }));
       setMessages(formattedMessages);
     }

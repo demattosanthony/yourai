@@ -37,7 +37,7 @@ export default function ProfileMenu() {
       {user && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Avatar className="h-6 w-6 cursor-pointer mx-2">
+            <Avatar className="h-6 w-6 cursor-pointer ml-2">
               <AvatarImage
                 referrerPolicy="no-referrer"
                 src={user.profilePicture || ""}
@@ -76,7 +76,7 @@ export default function ProfileMenu() {
             <DropdownMenuSeparator />
 
             <DropdownMenuItem onClick={handleLogout}>
-              <LogOut className="mr-2 h-4 w-4" />
+              <LogOut className="h-4 w-4" />
               <span>Log out</span>
             </DropdownMenuItem>
           </DropdownMenuContent>

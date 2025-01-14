@@ -3,6 +3,7 @@ import { anthropic } from "@ai-sdk/anthropic";
 import { createGroq } from "@ai-sdk/groq";
 import { google } from "@ai-sdk/google";
 import { xai } from "@ai-sdk/xai";
+import { mistral } from "@ai-sdk/mistral";
 
 const groq = createGroq();
 
@@ -50,18 +51,20 @@ export const MODELS: Record<string, ModelConfig> = {
   ...(process.env.OPENAI_API_KEY
     ? {
         o1: {
-          model: openai("o1-preview"),
-          supportsToolUse: false,
-          supportsStreaming: false,
-          supportsSystemMessages: false,
+          model: openai("o1"),
+          supportsToolUse: true,
+          supportsStreaming: true,
+          supportsSystemMessages: true,
           provider: "openai",
+          supportsImages: true,
         },
         "o1-mini": {
           model: openai("o1-mini"),
-          supportsToolUse: false,
-          supportsStreaming: false,
-          supportsSystemMessages: false,
+          supportsToolUse: true,
+          supportsStreaming: true,
+          supportsSystemMessages: true,
           provider: "openai",
+          supportsImages: true,
         },
         "gpt-4o": {
           model: openai("gpt-4o"),
@@ -142,22 +145,7 @@ export const MODELS: Record<string, ModelConfig> = {
         },
       }
     : {}),
-  //   ...(process.env.MISTRAL_API_KEY
-  //     ? {
-  //         "mistral-large": {
-  //           model: mistral("mistral-large-latest"),
-  //           supportsToolUse: true,
-  //           supportsStreaming: true,
-  //           provider: "mistral",
-  //         },
-  //         "mistral-small": {
-  //           model: mistral("mistral-small-latest"),
-  //           supportsToolUse: true,
-  //           supportsStreaming: true,
-  //           provider: "mistral",
-  //         },
-  //       }
-  //     : {}),
+
   ...(process.env.GROQ_API_KEY
     ? {
         "llama-3.3-70b": {
@@ -191,6 +179,28 @@ export const MODELS: Record<string, ModelConfig> = {
           supportsStreaming: true,
           provider: "perplexity",
           supportsSystemMessages: false,
+        },
+      }
+    : {}),
+  ...(process.env.MISTRAL_API_KEY
+    ? {
+        "codestral-latest": {
+          model: mistral("codestral-latest"),
+          supportsToolUse: true,
+          supportsStreaming: true,
+          provider: "mistral",
+        },
+        "mistral-large": {
+          model: mistral("mistral-large-latest"),
+          supportsToolUse: true,
+          supportsStreaming: true,
+          provider: "mistral",
+        },
+        "mistral-small": {
+          model: mistral("mistral-small-latest"),
+          supportsToolUse: true,
+          supportsStreaming: true,
+          provider: "mistral",
         },
       }
     : {}),

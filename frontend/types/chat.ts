@@ -23,7 +23,9 @@ export type ChatMessage = {
   role: MessageRole;
   content: MessageContent | null;
   name?: string;
-  // Include any other properties as needed
+  createdAt?: string;
+  model?: string;
+  provider?: string;
 };
 
 export type FileUpload = {
@@ -34,8 +36,8 @@ export type FileUpload = {
 
 export interface Thread {
   id: string;
-  created_at: number;
-  updated_at: number;
+  createdAt: string;
+  updatedAt: string;
   messages: {
     id: string;
     thread_id: string;
@@ -45,6 +47,8 @@ export interface Thread {
       text?: string;
       image?: string;
     };
-    created_at: number;
+    createdAt: string;
+    model?: string;
+    provider?: string;
   }[];
 }

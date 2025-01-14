@@ -1,5 +1,5 @@
 import { threads, messages, ContentPart, FileContent } from "./config/schema";
-import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import { desc, eq, inArray, sql } from "drizzle-orm";
 import db from "./config/db";
 import s3 from "./config/s3";
 
@@ -51,9 +51,11 @@ async function createMessage(
 
 async function getThreads(userId: string, page: number, search: string) {
   const offset = (page - 1) * LIMIT;
-  const limit = 10;
+
   let query;
+
   try {
+    // Modified query to select only the necessary columns for grouping
     query = db
       .select({
         id: threads.id,
@@ -62,22 +64,24 @@ async function getThreads(userId: string, page: number, search: string) {
       })
       .from(threads)
       .leftJoin(messages, eq(threads.id, messages.threadId))
-      .where(
-        search && search.length > 0
-          ? and(
-              eq(threads.userId, userId),
-              sql`json_extract(${messages.content}, '$.text') LIKE ${
-                "%" + search + "%"
-              }`
-            )
-          : eq(threads.userId, userId)
-      )
       .orderBy(desc(threads.createdAt));
+
+    if (search && search.length > 0) {
+      query = query.where(
+        sql`CASE 
+          WHEN jsonb_typeof(${messages.content}) = 'object' 
+          THEN (${messages.content}->>'text')::text ILIKE ${"%" + search + "%"}
+          WHEN jsonb_typeof(${messages.content}) = 'string' 
+          THEN ${messages.content}::text ILIKE ${"%" + search + "%"}
+          ELSE false 
+        END`
+      );
+    }
 
     // Get distinct threads that match search
     const matchingThreads = await query
       .groupBy(threads.id, threads.createdAt, threads.updatedAt)
-      .limit(limit)
+      .limit(LIMIT)
       .offset(offset);
 
     // Rest of the code remains the same...
@@ -126,7 +130,7 @@ async function getThreads(userId: string, page: number, search: string) {
 
     return completeThreads;
   } catch (error) {
-    console.error("Error fetching threads", error);
+    console.error("Error processing threads:", error);
     return [];
   }
 }

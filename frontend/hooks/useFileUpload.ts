@@ -10,6 +10,8 @@ export function useFileUpload(acceptedTypes: string[]) {
   const { isDragging, setIsDragging } = useDragAndDrop();
 
   const handleFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
+    e.preventDefault();
+
     const files = Array.from(e.target.files || []);
     const validFiles = files.filter(
       (file) =>

@@ -73,7 +73,12 @@ export function useMessageHandler() {
     setMessages((prev) => [
       ...prev,
       ...contents.map((msg) => ({ role: MessageRole.user, content: msg })),
-      { role: MessageRole.assistant, content: { type: "text", text: "" } },
+      {
+        role: MessageRole.assistant,
+        content: { type: "text", text: "" },
+        provider: model.provider,
+        model: model.name,
+      },
     ]);
 
     setIsGenerating(true);
