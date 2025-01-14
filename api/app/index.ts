@@ -52,6 +52,7 @@ async function main() {
         process.env.FRONTEND_URL!,
         "https://yo.syyclops.com",
         "https://www.yo.syyclops.com",
+        "https://yo-syyclops.vercel.app",
       ],
     })
   );
