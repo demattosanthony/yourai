@@ -1,5 +1,5 @@
 import { threads, messages, ContentPart, FileContent } from "./config/schema";
-import { desc, eq, inArray, sql } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import db from "./config/db";
 import s3 from "./config/s3";
 
@@ -52,22 +52,20 @@ async function createMessage(
 async function getThreads(userId: string, page: number, search: string) {
   const offset = (page - 1) * LIMIT;
 
-  let query;
-
   try {
-    // Modified query to select only the necessary columns for grouping
-    query = db
+    let baseQuery = db
       .select({
         id: threads.id,
         created_at: threads.createdAt,
         updated_at: threads.updatedAt,
       })
       .from(threads)
-      .leftJoin(messages, eq(threads.id, messages.threadId))
-      .orderBy(desc(threads.createdAt));
+      .leftJoin(messages, eq(threads.id, messages.threadId));
+
+    const conditions = [eq(threads.userId, userId)];
 
     if (search && search.length > 0) {
-      query = query.where(
+      conditions.push(
         sql`CASE 
           WHEN jsonb_typeof(${messages.content}) = 'object' 
           THEN (${messages.content}->>'text')::text ILIKE ${"%" + search + "%"}
@@ -78,17 +76,18 @@ async function getThreads(userId: string, page: number, search: string) {
       );
     }
 
-    // Get distinct threads that match search
-    const matchingThreads = await query
+    const matchingThreads = await baseQuery
+      .where(and(...conditions))
       .groupBy(threads.id, threads.createdAt, threads.updatedAt)
+      .orderBy(desc(threads.createdAt))
       .limit(LIMIT)
       .offset(offset);
 
-    // Rest of the code remains the same...
     const threadIds = matchingThreads.map((t) => t.id);
 
     let completeThreads = await db.query.threads.findMany({
-      where: inArray(threads.id, threadIds),
+      where: (threads, { and, eq, inArray }) =>
+        and(eq(threads.userId, userId), inArray(threads.id, threadIds)),
       orderBy: [desc(threads.createdAt)],
       with: {
         messages: {
@@ -97,21 +96,14 @@ async function getThreads(userId: string, page: number, search: string) {
       },
     });
 
-    // For the file content, we need to generate a temporary URL
+    // Process files
     for (const thread of completeThreads) {
       for (const message of thread.messages) {
         try {
           const content = message.content as { type: string };
-
           if (content.type === "file" || content.type === "image") {
             const fileContent = message.content as FileContent;
-            if (!fileContent?.file_metadata?.file_key) {
-              console.warn(
-                "Skipping message - missing file metadata:",
-                message.id
-              );
-              continue;
-            }
+            if (!fileContent?.file_metadata?.file_key) continue;
 
             const metadata = s3.file(fileContent.file_metadata.file_key);
             const url = metadata.presign({
@@ -122,7 +114,6 @@ async function getThreads(userId: string, page: number, search: string) {
           }
         } catch (error) {
           console.error("Error processing message:", message.id, error);
-          // Continue with other messages even if one fails
           continue;
         }
       }
