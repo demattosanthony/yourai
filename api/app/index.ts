@@ -22,6 +22,7 @@ const WHITELIST_EMAILS = [
   "mgkurass@gmail.com",
   "demattosanthony@gmail.com",
   "rsetty@gmail.com",
+  "gopal24krishna@gmail.com",
 ];
 
 // Error Handling
