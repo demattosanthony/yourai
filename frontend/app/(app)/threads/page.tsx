@@ -93,7 +93,7 @@ function ThreadItem({ thread }: { thread: Thread }) {
     <Link href={`/threads/${thread.id}`} prefetch>
       <div className="mb-2 hover:bg-accent p-4 rounded-lg transition-colors max-w-full">
         <div className="flex items-center gap-4 min-w-0">
-          <Avatar className="flex-shrink-0 w-10 h-10">
+          <Avatar className="flex-shrink-0 w-6 h-6">
             <AvatarImage
               src={
                 provider ? getModelIconPath(provider) || "" : "/ai-avatar.png"
@@ -112,7 +112,7 @@ function ThreadItem({ thread }: { thread: Thread }) {
                 ? model
                 : "AI Assistant"}
             </p>
-            <p className="text-sm text-muted-foreground line-clamp-2 max-w-[calc(100%-4rem)] md:max-w-full">
+            <p className="text-sm text-muted-foreground line-clamp-2 md:line-clamp-1 max-w-[calc(100%-4rem)] md:max-w-full">
               {lastMessage.content.text}
             </p>
             <time className="text-xs text-muted-foreground">

@@ -43,7 +43,14 @@ export async function runInference(
     const { textStream } = streamText(params);
     return textStream;
   } else {
-    const { text } = await generateText(params);
+    const { text } = await generateText({
+      ...params,
+      experimental_providerMetadata: {
+        openai: {
+          reasoningEffort: "high",
+        },
+      },
+    });
     return [text]; // Wrap text in an array to make it iterable
   }
 }

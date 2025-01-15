@@ -3,19 +3,19 @@
 - chat with any of the top llms
 - avoid subscription lock in
 - pay by consumption
-- save chats in memory with sqlite
+- own your data (don't really want openai to own my memory)
 
 ## Get started
 
 1. Install Bun js runtime: https://bun.sh/docs/installation
-2. Install Docker: https://docs.docker.com/get-docker/
+2. Install and start Docker: https://docs.docker.com/get-docker/
 
 3. Add environment variables as needed.
 
 ```bash
 cd api
-cp .env.example .env.local
-# Update .env.local to have correct api keys
+cp .env.example .env
+# Update .env to have correct api keys
 ```
 
 5. Install and run

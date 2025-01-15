@@ -16,17 +16,15 @@ import { LogOut, Moon, Sun } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTheme } from "next-themes";
 import { useMeQuery } from "@/queries/queries";
-import { useLogout } from "@/hooks/useLogout";
+import { Button } from "./ui/button";
+import Link from "next/link";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function ProfileMenu() {
   const { setTheme } = useTheme();
   const { data, isLoading } = useMeQuery();
   const user = data?.user;
-  const logout = useLogout();
-
-  const handleLogout = () => {
-    logout.logOut();
-  };
+  const { logOut } = useAuth();
 
   if (isLoading) {
     return <Skeleton className="h-6 w-6 rounded-full mx-2" />;
@@ -37,7 +35,7 @@ export default function ProfileMenu() {
       {user && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Avatar className="h-6 w-6 cursor-pointer ml-2">
+            <Avatar className="h-7 w-7 cursor-pointer ml-2">
               <AvatarImage
                 referrerPolicy="no-referrer"
                 src={user.profilePicture || ""}
@@ -75,12 +73,18 @@ export default function ProfileMenu() {
             </DropdownMenuSub>
             <DropdownMenuSeparator />
 
-            <DropdownMenuItem onClick={handleLogout}>
+            <DropdownMenuItem onClick={logOut}>
               <LogOut className="h-4 w-4" />
               <span>Log out</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+      )}
+
+      {!user && (
+        <Link href={"/login"}>
+          <Button className="ml-2">Login</Button>
+        </Link>
       )}
     </>
   );

@@ -67,7 +67,7 @@ export default function ChatSettings() {
               value={instructions}
               onChange={(e) => setInstructions(e.target.value)}
               placeholder="Add any custom instructions for the AI..."
-              className="w-full min-h-[200px] p-2 text-sm rounded-md border"
+              className="w-full min-h-[200px] p-2 text-sm rounded-md max-h-[600px]"
             />
           </div>
         </div>

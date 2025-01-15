@@ -7,6 +7,7 @@ import {
   Command,
   CommandEmpty,
   CommandGroup,
+  CommandInput,
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
@@ -20,11 +21,17 @@ import { Model } from "@/types/model";
 import api from "@/lib/api";
 import { useAtom } from "jotai";
 import { modelAtom } from "@/atoms/chat";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "./ui/hover-card";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { Badge } from "./ui/badge";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const ModelSelector: React.FC = () => {
   const [open, setOpen] = useState(false);
   const [models, setModels] = useState<Model[]>([]);
   const [selectedModel, setSelectedModel] = useAtom(modelAtom);
+
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     api.getAvailableModels().then((res) => setModels(res));
@@ -63,32 +70,73 @@ const ModelSelector: React.FC = () => {
       </PopoverTrigger>
       <PopoverContent className="p-0 ">
         <Command>
-          {/* <CommandInput placeholder="Search model..." /> */}
+          {!isMobile && <CommandInput placeholder="Search models..." />}
+
           <CommandList className="max-h-[450px]">
             <CommandEmpty>No model found.</CommandEmpty>
             <CommandGroup>
               {models.map((model) => (
-                <CommandItem
-                  key={model.name}
-                  value={model.name}
-                  onSelect={() => {
-                    setSelectedModel(model);
-                    setOpen(false);
-                  }}
-                >
-                  <div className="flex items-center">
-                    {getModelImage(model.provider)}
-                    <span>{model.name}</span>
-                  </div>
-                  <Check
-                    className={cn(
-                      "ml-auto h-4 w-4",
-                      selectedModel.name === model.name
-                        ? "opacity-100"
-                        : "opacity-0"
-                    )}
-                  />
-                </CommandItem>
+                <HoverCard key={model.name} openDelay={0.5} closeDelay={0}>
+                  <HoverCardTrigger>
+                    <CommandItem
+                      key={model.name}
+                      value={model.name}
+                      onSelect={() => {
+                        setSelectedModel(model);
+                        setOpen(false);
+                      }}
+                    >
+                      <div className="flex items-center">
+                        {getModelImage(model.provider)}
+                        <span>{model.name}</span>
+                      </div>
+                      <Check
+                        className={cn(
+                          "ml-auto h-4 w-4",
+                          selectedModel.name === model.name
+                            ? "opacity-100"
+                            : "opacity-0"
+                        )}
+                      />
+                    </CommandItem>
+                  </HoverCardTrigger>
+                  <HoverCardContent
+                    side="left"
+                    align="center"
+                    className="w-[400px]"
+                  >
+                    <div className="flex justify-between space-x-2">
+                      <Avatar className="h-6 w-6">
+                        <AvatarImage
+                          src={getModelIconPath(model.provider || "") || ""}
+                        />
+                        <AvatarFallback>
+                          {model.provider.charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+
+                      <div className="space-y-3">
+                        <h4 className="text-sm">
+                          {model.provider.charAt(0).toUpperCase() +
+                            model.provider.slice(1)}{" "}
+                          / <span className="font-semibold">{model.name}</span>
+                        </h4>
+
+                        <p className="text-xs text-muted-foreground">
+                          {model.description}
+                        </p>
+
+                        <div className="flex gap-1">
+                          {model.supportsImages && <Badge>Image Upload</Badge>}
+                          {model.supportsPdfs && <Badge>File Upload</Badge>}
+                          {model.name.includes("online") && (
+                            <Badge>Web Search </Badge>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </HoverCardContent>
+                </HoverCard>
               ))}
             </CommandGroup>
           </CommandList>
@@ -124,6 +172,8 @@ export function getModelIconPath(provider: string) {
     case "mistral":
       return "/mistral.svg";
     case "groq":
+      return "/meta.svg";
+    case "meta":
       return "/meta.svg";
 
     default:

@@ -5,4 +5,5 @@ export interface Model {
   supportsToolUse?: boolean;
   supportsStreaming?: boolean;
   supportsPdfs?: boolean;
+  description?: string;
 }

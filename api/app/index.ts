@@ -18,7 +18,11 @@ import { authMiddleware } from "./middleware/auth";
 
 const PORT = process.env.PORT || 4000;
 
-const WHITELIST_EMAILS = ["demattosanthony@gmail.com", "mgkurass@gmail.com"];
+const WHITELIST_EMAILS = [
+  "mgkurass@gmail.com",
+  "demattosanthony@gmail.com",
+  "rsetty@gmail.com",
+];
 
 // Error Handling
 function handleError(res: Express.Response, error: Error) {
@@ -113,7 +117,7 @@ async function main() {
     "/auth/google/callback",
     passport.authenticate("google", {
       session: false,
-      failureRedirect: process.env.FRONTEND_URL,
+      failureRedirect: process.env.FRONTEND_URL + "?error=unauthorized", // Add error parameter
     }),
     (req, res) => {
       sendAuthCookies(res, req.user as DbUser);
@@ -197,6 +201,7 @@ async function main() {
         provider: config.provider,
         supportsImages: config.supportsImages,
         supportsPdfs: config.supportsPdfs,
+        description: config.description,
       }))
     );
   });
