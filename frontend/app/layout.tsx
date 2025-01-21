@@ -38,7 +38,7 @@ export const viewport: Viewport = {
   minimumScale: 1,
 };
 
-export const experimental_ppr = true;
+// export const experimental_ppr = true;
 
 export default function RootLayout({
   children,

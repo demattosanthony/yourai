@@ -18,12 +18,12 @@ import { authMiddleware } from "./middleware/auth";
 
 const PORT = process.env.PORT || 4000;
 
-const WHITELIST_EMAILS = [
-  "mgkurass@gmail.com",
-  "demattosanthony@gmail.com",
-  "rsetty@gmail.com",
-  "gopal24krishna@gmail.com",
-];
+// const WHITELIST_EMAILS = [
+//   "mgkurass@gmail.com",
+//   "demattosanthony@gmail.com",
+//   "rsetty@gmail.com",
+//   "gopal24krishna@gmail.com",
+// ];
 
 // Error Handling
 function handleError(res: Express.Response, error: Error) {
@@ -73,9 +73,9 @@ async function main() {
         scope: ["profile", "email"],
       },
       async (_accessToken, _refreshToken, profile, done) => {
-        if (!WHITELIST_EMAILS.includes(profile._json.email || "")) {
-          return done(null, false, { message: "Email not authorized" });
-        }
+        // if (!WHITELIST_EMAILS.includes(profile._json.email || "")) {
+        //   return done(null, false, { message: "Email not authorized" });
+        // }
 
         // 1. grab id
         const googleId = profile.id;
@@ -85,13 +85,14 @@ async function main() {
           where: eq(users.googleId, googleId),
         });
 
+        const profilePictureUrl = profile.photos?.[0]?.value;
+
         // 3. create user if not exists
         if (!user) {
-          const picture = profile._json.picture;
           const name = profile._json.name;
           const email = profile._json.email;
 
-          if (!email || !name || !picture) {
+          if (!email || !name) {
             return done(new Error("Missing required fields"));
           }
 
@@ -99,10 +100,17 @@ async function main() {
             .insert(users)
             .values({
               googleId,
-              profilePicture: picture,
+              profilePicture: profilePictureUrl,
               email,
               name,
             })
+            .returning();
+        } else {
+          // Update existing user's profile picture
+          [user] = await db
+            .update(users)
+            .set({ profilePicture: profilePictureUrl })
+            .where(eq(users.id, user.id))
             .returning();
         }
 

@@ -8,11 +8,16 @@ import { useMessageHandler } from "@/hooks/useMessageHandler";
 import { isNewThreadAtom } from "@/atoms/chat";
 import AIOrbScene from "@/components/AiOrbScene";
 import InstallPrompt from "@/components/InstallPrompt";
+import { useMeQuery } from "@/queries/queries";
+import { toast } from "sonner";
 
 export default function Home() {
   const { sendMessage } = useMessageHandler();
   const router = useRouter();
   const [, setIsNewThread] = useAtom(isNewThreadAtom);
+
+  const { data } = useMeQuery();
+  const user = data?.user;
 
   return (
     <>
@@ -25,6 +30,16 @@ export default function Home() {
         <ChatInputForm
           onSubmit={async () => {
             try {
+              if (!user) {
+                toast.error("You must be logged in to create a thread.", {
+                  action: {
+                    label: "Close",
+                    onClick: () => {},
+                  },
+                });
+                return;
+              }
+
               // Create a new thread and navigate to it
               const { id: threadId } = await api.createThread();
               setIsNewThread(true);
