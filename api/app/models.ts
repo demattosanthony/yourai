@@ -199,32 +199,23 @@ export const MODELS: Record<string, ModelConfig> = {
     : {}),
   ...(process.env.PPLX_API_KEY
     ? {
-        "llama-3.1-sonar-huge-online": {
-          model: perplexity("llama-3.1-sonar-huge-128k-online"),
+        "sonar-pro": {
+          model: perplexity("sonar-pro"),
           supportsToolUse: false,
           supportsStreaming: true,
           provider: "perplexity",
           supportsSystemMessages: false,
           description:
-            "Llama-3.1-Sonar-Huge-Online is a large model from Perplexity, designed for tasks that require extensive context and access to real-time information. It's well-suited for complex queries and in-depth analysis. It supports streaming.",
+            "Permier offering with search grounding, supporting advanced queries and follow-ups",
         },
-        "llama-3.1-sonar-large-online": {
-          model: perplexity("llama-3.1-sonar-large-128k-online"),
+        sonar: {
+          model: perplexity("sonar"),
           supportsToolUse: false,
           supportsStreaming: true,
           provider: "perplexity",
           supportsSystemMessages: false,
           description:
-            "Llama-3.1-Sonar-Large-Online is a robust model from Perplexity, offering a balance between performance and efficiency. It's suitable for a wide range of tasks that require access to real-time information. It supports streaming.",
-        },
-        "llama-3.1-sonar-small-online": {
-          model: perplexity("llama-3.1-sonar-small-128k-online"),
-          supportsToolUse: false,
-          supportsStreaming: true,
-          provider: "perplexity",
-          supportsSystemMessages: false,
-          description:
-            "Llama-3.1-Sonar-Small-Online is a smaller, more efficient model from Perplexity, optimized for speed and quick responses. It's ideal for tasks where low latency is a priority and real-time information is needed. It supports streaming.",
+            "Lightweight offering with search grounding, quicker and cheaper than Sonar Pro",
         },
       }
     : {}),
