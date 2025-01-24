@@ -3,7 +3,6 @@ import localFont from "next/font/local";
 import { Provider as JotaiProvider } from "jotai";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { DragAndDropProvider } from "@/components/DragDropProvider";
-import { ThemeColorManager } from "@/components/ThemeColorManager";
 import ReactQueryProvider from "./providers";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
@@ -38,8 +37,6 @@ export const viewport: Viewport = {
   minimumScale: 1,
 };
 
-// export const experimental_ppr = true;
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -59,8 +56,6 @@ export default function RootLayout({
           >
             <JotaiProvider>
               <DragAndDropProvider>
-                <ThemeColorManager />
-
                 <Toaster />
 
                 {children}
