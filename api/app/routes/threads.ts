@@ -1,13 +1,21 @@
 import { Router } from "express";
-import { authMiddleware } from "../middleware/auth";
-import { createMessage, createThread, getThread, getThreads } from "../threads";
-import { handleError } from "..";
-import { CoreMessage, generateText, streamText } from "ai";
-import { s3 } from "bun";
+import {
+  CoreMessage,
+  CoreTool,
+  generateText,
+  GenerateTextResult,
+  streamText,
+  StreamTextResult,
+} from "ai";
 import { eq } from "drizzle-orm";
+
 import db from "../config/db";
 import { messages, ContentPart } from "../config/schema";
 import { MODELS } from "../models";
+import s3 from "../config/s3";
+import { handleError } from "..";
+import { authMiddleware } from "../middleware/auth";
+import { createMessage, createThread, getThread, getThreads } from "../threads";
 
 const router = Router();
 
@@ -77,84 +85,75 @@ router.post("/:threadId/inference", authMiddleware, async (req, res) => {
       res.status(404).json({ error: "Thread not found" });
       return;
     }
-    let threadMessages = await db.query.messages.findMany({
+
+    // Get model config
+    const modelConfig = MODELS[model];
+
+    // Get and filter messages
+    const rawMessages = await db.query.messages.findMany({
       where: eq(messages.threadId, threadId),
       orderBy: messages.createdAt,
     });
+    const filteredMessages = rawMessages.filter((msg) => {
+      const content = msg.content as ContentPart;
+      if (!modelConfig.supportsImages && content.type === "image") return false;
+      if (!modelConfig.supportsPdfs && content.type === "file") return false;
+      return true;
+    });
 
-    const modelToRun = MODELS[model];
+    // Process message content
+    const processMessageContent = async (content: ContentPart) => {
+      if (content.type === "text")
+        return [{ type: "text", text: content.text }];
 
-    // If model doesn't support images or files than remove them from the messages
-    if (!modelToRun.supportsImages) {
-      threadMessages = threadMessages.filter(
-        (msg) => (msg.content as ContentPart).type !== "image"
-      );
-    }
-    if (!modelToRun.supportsPdfs) {
-      threadMessages = threadMessages.filter(
-        (msg) => (msg.content as ContentPart).type !== "file"
-      );
-    }
+      const metadata = s3.file(content.file_metadata.file_key);
+      const data = await metadata.arrayBuffer();
+      const buffer = Buffer.from(new Uint8Array(data));
+      const base64 = `data:${
+        content.file_metadata.mime_type
+      };base64,${buffer.toString("base64")}`;
 
+      return [
+        {
+          type: content.type,
+          mimeType: content.file_metadata.mime_type,
+          [content.type === "image" ? "image" : "data"]: base64,
+        },
+      ];
+    };
+
+    // Build messages array
     const inferenceMessages = await Promise.all(
-      threadMessages.map(async (msg) => ({
+      filteredMessages.map(async (msg) => ({
         role: msg.role,
-        content: await (async (content: ContentPart) => {
-          if (content.type === "text") {
-            return [
-              {
-                type: content.type,
-                text: content.text,
-              },
-            ];
-          } else {
-            const metadata = s3.file(content.file_metadata.file_key);
-            const data = await metadata.arrayBuffer();
-            const buffer = Buffer.from(new Uint8Array(data));
-            const base64 = `data:${
-              content.file_metadata.mime_type
-            };base64,${buffer.toString("base64")}`;
-
-            return [
-              {
-                type: content.type,
-                mimeType: content.file_metadata.mime_type,
-                [content.type === "image" ? "image" : "data"]: base64,
-              },
-            ];
-          }
-        })(msg.content as ContentPart),
+        content: await processMessageContent(msg.content as ContentPart),
       }))
     );
 
     let aiResponse = "";
 
     const inferenceParams = {
-      model: modelToRun.model,
+      model: modelConfig.model,
       messages: inferenceMessages as CoreMessage[],
       temperature,
       system: instructions,
-      experimental_providerMetadata: {
-        openai: {
-          reasoningEffort: "high",
-        },
-      },
+      experimental_providerMetadata: { openai: { reasoningEffort: "high" } },
       maxTokens: maxTokens || undefined,
     };
 
-    if (modelToRun.supportsStreaming) {
-      const result = streamText(inferenceParams);
-
+    const handleStream = async (
+      result: StreamTextResult<Record<string, CoreTool<any, any>>, never>
+    ) => {
       let enteredReasoning = false;
       let enteredText = false;
+
       for await (const part of result.fullStream) {
-        // If model supports reasoning tokens, we need to handle them differently
         if (part.type === "reasoning") {
           if (!enteredReasoning) {
             enteredReasoning = true;
             res.write(
               `event: message\ndata: ${JSON.stringify({
-                text: `<thinking>\n\n`,
+                text: "<thinking>\n\n",
               })}\n\n`
             );
             aiResponse += "<thinking>\n\n";
@@ -168,11 +167,10 @@ router.post("/:threadId/inference", authMiddleware, async (req, res) => {
         } else if (part.type === "text-delta") {
           if (!enteredText) {
             enteredText = true;
-
             if (enteredReasoning) {
               res.write(
                 `event: message\ndata: ${JSON.stringify({
-                  text: `\n\n</thinking>\n\n`,
+                  text: "\n\n</thinking>\n\n",
                 })}\n\n`
               );
               aiResponse += "\n\n</thinking>\n\n";
@@ -186,9 +184,11 @@ router.post("/:threadId/inference", authMiddleware, async (req, res) => {
           aiResponse += part.textDelta;
         }
       }
-    } else {
-      const result = await generateText(inferenceParams);
+    };
 
+    const handleNonStream = async (
+      result: GenerateTextResult<Record<string, CoreTool<any, any>>, never>
+    ) => {
       if (result.reasoning) {
         res.write(
           `event: message\ndata: ${JSON.stringify({
@@ -196,15 +196,18 @@ router.post("/:threadId/inference", authMiddleware, async (req, res) => {
           })}\n\n`
         );
       }
+      res.write(
+        `event: message\ndata: ${JSON.stringify({ text: result.text })}\n\n`
+      );
+      aiResponse += result.text;
+    };
 
-      for await (const message of [result.text]) {
-        res.write(
-          `event: message\ndata: ${JSON.stringify({
-            text: message,
-          })}\n\n`
-        );
-        aiResponse += message;
-      }
+    if (modelConfig.supportsStreaming) {
+      const result = streamText(inferenceParams);
+      await handleStream(result);
+    } else {
+      const result = await generateText(inferenceParams);
+      await handleNonStream(result);
     }
 
     await db.insert(messages).values({
@@ -215,7 +218,7 @@ router.post("/:threadId/inference", authMiddleware, async (req, res) => {
       content: JSON.stringify({ type: "text", text: aiResponse }),
       createdAt: new Date(),
       model: model,
-      provider: modelToRun.provider,
+      provider: modelConfig.provider,
     });
 
     res.write("event: done\ndata: true\n\n");
