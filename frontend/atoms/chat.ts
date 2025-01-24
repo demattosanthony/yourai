@@ -7,6 +7,10 @@ import { ChatMessage, FileUpload } from "@/types/chat";
 export const modelAtom = atomWithStorage<Model>("selectedAiModel", {
   name: "claude-3.5-sonnet",
   provider: "anthropic",
+  supportsImages: true,
+  supportsPdfs: true,
+  supportsToolUse: true,
+  supportsStreaming: true,
 });
 export const temperatureAtom = atomWithStorage("chatTemp", 0.5);
 export const instructionsAtom = atomWithStorage(
