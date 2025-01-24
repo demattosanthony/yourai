@@ -16,6 +16,7 @@ import s3 from "../config/s3";
 import { handleError } from "..";
 import { authMiddleware } from "../middleware/auth";
 import { createMessage, createThread, getThread, getThreads } from "../threads";
+import { CONFIG } from "../config/constants";
 
 const router = Router();
 
@@ -107,17 +108,26 @@ router.post("/:threadId/inference", authMiddleware, async (req, res) => {
         return [{ type: "text", text: content.text }];
 
       const metadata = s3.file(content.file_metadata.file_key);
-      const data = await metadata.arrayBuffer();
-      const buffer = Buffer.from(new Uint8Array(data));
-      const base64 = `data:${
-        content.file_metadata.mime_type
-      };base64,${buffer.toString("base64")}`;
+
+      // Can only generate presigned URLs in production because local url are not accessible to the AI apis
+      const getContentData = async () => {
+        if (CONFIG.__prod__) {
+          return metadata.presign({ expiresIn: 60 * 20 }); // 20 minutes
+        }
+
+        const buffer = Buffer.from(
+          new Uint8Array(await metadata.arrayBuffer())
+        );
+        return `data:${
+          content.file_metadata.mime_type
+        };base64,${buffer.toString("base64")}`;
+      };
 
       return [
         {
           type: content.type,
           mimeType: content.file_metadata.mime_type,
-          [content.type === "image" ? "image" : "data"]: base64,
+          [content.type === "image" ? "image" : "data"]: await getContentData(),
         },
       ];
     };
