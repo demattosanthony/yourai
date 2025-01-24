@@ -1,6 +1,6 @@
 import MarkdownViewer from "../MarkdownViewer";
 import { useEffect } from "react";
-import { File } from "lucide-react";
+import { Check, Copy, File } from "lucide-react";
 import { useAtom } from "jotai";
 import { ChatMessage, MessageRole } from "@/types/chat";
 import { messagesAtom } from "@/atoms/chat";
@@ -21,12 +21,25 @@ const MessageItem = React.memo(function MessageItem({
   const file_metadata = message.content?.file_metadata;
   const provider = message.provider;
 
+  const [copied, setCopied] = React.useState(false);
+
+  const handleCopyToClipboard = () => {
+    if (text) {
+      navigator.clipboard.writeText(text).then(() => {
+        setCopied(true);
+        setTimeout(() => {
+          setCopied(false);
+        }, 2000);
+      });
+    }
+  };
+
   return (
     <div
       key={index}
       className={`flex flex-col ${
         message.role === MessageRole.user ? "justify-end" : "justify-start"
-      } mb-4`}
+      } mb-4 `}
     >
       {/* <>
             {message.tool_calls?.map((toolCall, id) => (
@@ -34,7 +47,7 @@ const MessageItem = React.memo(function MessageItem({
             ))}
         </> */}
       <div
-        className={`md:max-w-full rounded-lg p-2 ${
+        className={`md:max-w-full rounded-lg p-2 group relative ${
           message.role === MessageRole.user
             ? "bg-primary text-white self-end dark:text-black max-w-[85%]"
             : "self-start max-w-full"
@@ -98,6 +111,19 @@ const MessageItem = React.memo(function MessageItem({
             </Link>
           )}
         </div>
+        {/* Copy to clipboard icon for user text messages */}
+        {message.role === MessageRole.user && messageType === "text" && (
+          <div className="absolute -bottom-6 right-0 group-hover:opacity-100 opacity-0 transition-all duration-200">
+            {!copied && (
+              <Copy
+                className="w-4 h-4 cursor-pointer text-primary"
+                onClick={handleCopyToClipboard}
+              />
+            )}
+
+            {copied && <Check className="w-4 h-4 text-green-500" />}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -18,6 +18,8 @@ import {
   TypographyLi,
   TypographyInlineCode,
 } from "./Typography";
+import { Check, Copy } from "lucide-react";
+import { Button } from "./ui/button";
 
 const SyntaxHighlighter =
   Prism as typeof React.Component<SyntaxHighlighterProps>;
@@ -46,12 +48,18 @@ const CodeBlock: React.FC<{
 
   return match ? (
     <div className="relative w-full overflow-x-auto">
-      <button
+      <Button
+        size={"icon"}
+        variant={"ghost"}
+        className="absolute right-0 top-2.5 text-white hover:bg-transparent hover:text-white hover:opacity-90"
         onClick={handleCopy}
-        className="absolute right-2.5 top-2.5 bg-black/50 text-white border-none rounded-xl p-1.5 cursor-pointer"
       >
-        {buttonText}
-      </button>
+        {buttonText === "Copy" ? (
+          <Copy size={16} />
+        ) : (
+          <Check size={16} className="text-green-500" />
+        )}
+      </Button>
       <div className="max-w-full break-words">
         <SyntaxHighlighter
           style={vscDarkPlus}
