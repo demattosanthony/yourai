@@ -4,8 +4,8 @@ import { Provider as JotaiProvider } from "jotai";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { DragAndDropProvider } from "@/components/DragDropProvider";
 import ReactQueryProvider from "./providers";
-import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
+import "./globals.css";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",

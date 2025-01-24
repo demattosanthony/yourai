@@ -19,6 +19,35 @@ export default function Home() {
   const { data } = useMeQuery();
   const user = data?.user;
 
+  // In Home.tsx
+  const handleSubmit = async () => {
+    if (!user) {
+      toast.error("You must be logged in to create a thread.", {
+        action: {
+          label: "Close",
+          onClick: () => {},
+        },
+      });
+      return;
+    }
+
+    setIsNewThread(true);
+    const tempThreadId = crypto.randomUUID(); // Generate temporary ID
+    router.push(`/threads/${tempThreadId}`);
+
+    try {
+      // Create thread in background
+      const { id: threadId } = await api.createThread();
+      // Replace URL without adding to history
+      router.replace(`/threads/${threadId}`);
+      sendMessage(threadId);
+    } catch (error) {
+      console.error("Error creating thread:", error);
+      router.push("/"); // Go back home if error
+      toast.error("Failed to create thread");
+    }
+  };
+
   return (
     <>
       <InstallPrompt />
@@ -27,30 +56,7 @@ export default function Home() {
       </div>
 
       <div className="w-full flex items-center justify-center mx-auto p-6 pb-8 md:pb-4 md:p-2 absolute bottom-0 left-0 right-0">
-        <ChatInputForm
-          onSubmit={async () => {
-            try {
-              if (!user) {
-                toast.error("You must be logged in to create a thread.", {
-                  action: {
-                    label: "Close",
-                    onClick: () => {},
-                  },
-                });
-                return;
-              }
-
-              // Create a new thread and navigate to it
-              const { id: threadId } = await api.createThread();
-              setIsNewThread(true);
-              router.push(`/threads/${threadId}`);
-
-              sendMessage(threadId);
-            } catch (error) {
-              console.error("Error creating thread:", error);
-            }
-          }}
-        />
+        <ChatInputForm onSubmit={handleSubmit} />
       </div>
     </>
   );

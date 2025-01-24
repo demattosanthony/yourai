@@ -10,7 +10,6 @@ import {
   temperatureAtom,
   uploadsAtom,
 } from "@/atoms/chat";
-import { fileToBase64 } from "@/lib/utils";
 import { MessageContent, MessageRole } from "@/types/chat";
 
 export function useMessageHandler() {
