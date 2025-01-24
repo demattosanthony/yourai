@@ -2,12 +2,11 @@ import { Router } from "express";
 import { authMiddleware } from "../middleware/auth";
 import { createMessage, createThread, getThread, getThreads } from "../threads";
 import { handleError } from "..";
-import { CoreMessage } from "ai";
+import { CoreMessage, generateText, streamText } from "ai";
 import { s3 } from "bun";
 import { eq } from "drizzle-orm";
 import db from "../config/db";
 import { messages, ContentPart } from "../config/schema";
-import { runInference } from "../inference";
 import { MODELS } from "../models";
 
 const router = Router();
@@ -128,30 +127,84 @@ router.post("/:threadId/inference", authMiddleware, async (req, res) => {
       }))
     );
 
-    const onToolEvent = (event: string, data: any) => {
-      res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+    let aiResponse = "";
+
+    const inferenceParams = {
+      model: modelToRun.model,
+      messages: inferenceMessages as CoreMessage[],
+      temperature,
+      system: instructions,
+      experimental_providerMetadata: {
+        openai: {
+          reasoningEffort: "high",
+        },
+      },
+      maxTokens: maxTokens || undefined,
     };
 
-    const textStream = await runInference(
-      {
-        model: modelToRun.model,
-        messages: inferenceMessages as CoreMessage[],
-        maxTokens,
-        temperature,
-        system: instructions,
-      },
-      onToolEvent,
-      modelToRun.supportsStreaming
-    );
+    if (modelToRun.supportsStreaming) {
+      const result = streamText(inferenceParams);
 
-    let aiResponse = "";
-    for await (const message of textStream) {
-      res.write(
-        `event: message\ndata: ${JSON.stringify({
-          text: message,
-        })}\n\n`
-      );
-      aiResponse += message;
+      let enteredReasoning = false;
+      let enteredText = false;
+      for await (const part of result.fullStream) {
+        // If model supports reasoning tokens, we need to handle them differently
+        if (part.type === "reasoning") {
+          if (!enteredReasoning) {
+            enteredReasoning = true;
+            res.write(
+              `event: message\ndata: ${JSON.stringify({
+                text: `<thinking>\n\n`,
+              })}\n\n`
+            );
+            aiResponse += "<thinking>\n\n";
+          }
+          res.write(
+            `event: message\ndata: ${JSON.stringify({
+              text: part.textDelta,
+            })}\n\n`
+          );
+          aiResponse += part.textDelta;
+        } else if (part.type === "text-delta") {
+          if (!enteredText) {
+            enteredText = true;
+
+            if (enteredReasoning) {
+              res.write(
+                `event: message\ndata: ${JSON.stringify({
+                  text: `\n\n</thinking>\n\n`,
+                })}\n\n`
+              );
+              aiResponse += "\n\n</thinking>\n\n";
+            }
+          }
+          res.write(
+            `event: message\ndata: ${JSON.stringify({
+              text: part.textDelta,
+            })}\n\n`
+          );
+          aiResponse += part.textDelta;
+        }
+      }
+    } else {
+      const result = await generateText(inferenceParams);
+
+      if (result.reasoning) {
+        res.write(
+          `event: message\ndata: ${JSON.stringify({
+            text: `<thinking>\n\n${result.reasoning}\n\n</thinking>\n\n`,
+          })}\n\n`
+        );
+      }
+
+      for await (const message of [result.text]) {
+        res.write(
+          `event: message\ndata: ${JSON.stringify({
+            text: message,
+          })}\n\n`
+        );
+        aiResponse += message;
+      }
     }
 
     await db.insert(messages).values({

@@ -175,7 +175,8 @@ export function getModelIconPath(provider: string) {
       return "/meta.svg";
     case "meta":
       return "/meta.svg";
-
+    case "deepseek":
+      return "https://www.deepseek.com/favicon.ico";
     default:
       return null;
   }

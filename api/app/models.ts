@@ -4,6 +4,7 @@ import { createGroq } from "@ai-sdk/groq";
 import { google } from "@ai-sdk/google";
 import { xai } from "@ai-sdk/xai";
 import { mistral } from "@ai-sdk/mistral";
+import { deepseek } from "@ai-sdk/deepseek";
 
 const groq = createGroq();
 
@@ -43,7 +44,7 @@ export const MODELS: Record<string, ModelConfig> = {
           supportsPdfs: true,
           supportsSystemMessages: false,
           description:
-            "Claude 3.5 Sonnet is a powerful model excelling at complex reasoning, creative writing, and detailed analysis. It's great for tasks requiring a deep understanding of context and nuanced language. It also supports image and PDF inputs.",
+            "Claude 3.5 Sonnet strikes the ideal balance between intelligence and speed—particularly for enterprise workloads. It delivers strong performance at a lower cost compared to its peers, and is engineered for high endurance in large-scale AI deployments.",
         },
         "claude-3.5-haiku": {
           model: anthropic("claude-3-5-haiku-latest"),
@@ -54,7 +55,7 @@ export const MODELS: Record<string, ModelConfig> = {
           supportsPdfs: false,
           supportsSystemMessages: false,
           description:
-            "Claude 3.5 Haiku is designed for speed and efficiency, providing quick and concise responses. It's ideal for tasks where you need fast results and don't require extensive analysis or creative output. It does not support image or PDF inputs.",
+            "Claude 3.5 Haiku is the next generation of our fastest model. For a similar speed to Claude 3 Haiku, Claude 3.5 Haiku improves across every skill set and surpasses Claude 3 Opus, the largest model in our previous generation, on many intelligence benchmarks.",
         },
       }
     : {}),
@@ -88,7 +89,7 @@ export const MODELS: Record<string, ModelConfig> = {
           supportsImages: true,
           supportsSystemMessages: true,
           description:
-            "GPT-4o is OpenAI's flagship model, offering state-of-the-art performance across a wide range of tasks. It excels in complex reasoning, creative content generation, and understanding nuanced language. It supports tool use, streaming, system messages, and image inputs, making it a top choice for demanding applications.",
+            "GPT-4o from OpenAI has broad general knowledge and domain expertise allowing it to follow complex instructions in natural language and solve difficult problems accurately. It matches GPT-4 Turbo performance with a faster and cheaper API.",
         },
         "gpt-4o-mini": {
           model: openai("gpt-4o-mini"),
@@ -98,7 +99,7 @@ export const MODELS: Record<string, ModelConfig> = {
           supportsImages: true,
           supportsSystemMessages: true,
           description:
-            "GPT-4o-mini is a more compact version of GPT-4o, designed for faster and more efficient performance. It's ideal for applications where speed and resource efficiency are important, while still providing strong capabilities and supporting tool use, streaming, system messages, and image inputs.",
+            "GPT-4o mini from OpenAI is their most advanced and cost-efficient small model. It is multi-modal (accepting text or image inputs and outputting text) and has higher intelligence than gpt-3.5-turbo but is just as fast.",
         },
       }
     : {}),
@@ -124,7 +125,7 @@ export const MODELS: Record<string, ModelConfig> = {
           supportsPdfs: true,
           supportsSystemMessages: false,
           description:
-            "Gemini 2.0 Flash is optimized for speed and efficiency, providing quick responses for tasks where latency is critical. It supports tool use, streaming, image and PDF inputs, making it a great choice for real-time applications.",
+            "Gemini 2.0 Flash delivers next-gen features and improved capabilities, including superior speed, native tool use, multimodal generation, and a 1M token context window.",
         },
         "gemini-2.0-flash-online": {
           model: google("gemini-2.0-flash-exp", {
@@ -148,7 +149,7 @@ export const MODELS: Record<string, ModelConfig> = {
           supportsPdfs: true,
           supportsSystemMessages: false,
           description:
-            "Gemini 2.0 Flash Thinking is designed for tasks that require more complex reasoning and analysis. While it doesn't support tool use, it provides detailed and thoughtful responses, and supports streaming, image and PDF inputs.",
+            "Gemini 2.0 Flash Thinking is an experimental model trained to expose its reasoning process in responses. By making its thinking process explicit, this model demonstrates enhanced reasoning capabilities compared to other Gemini 2.0 Flash models.",
         },
       }
     : {}),
@@ -161,7 +162,7 @@ export const MODELS: Record<string, ModelConfig> = {
           provider: "xai",
           supportsSystemMessages: false,
           description:
-            "Grok-2 is a powerful model from xAI, known for its strong reasoning and conversational abilities. It's well-suited for tasks that require a deep understanding of context and nuanced language. It supports tool use and streaming.",
+            "Grok is an AI modeled after the Hitchhiker’s Guide to the Galaxy. It is intended to answer almost anything and, far harder, even suggest what questions to ask!",
         },
         "grok-2-vision": {
           model: xai("grok-2-vision-1212"),
@@ -171,11 +172,35 @@ export const MODELS: Record<string, ModelConfig> = {
           supportsImages: true,
           supportsSystemMessages: false,
           description:
-            "Grok-2-Vision extends the capabilities of Grok-2 by adding support for image inputs. It's ideal for tasks that require understanding both text and visual information. It supports tool use, streaming, and image inputs.",
+            "In addition to Grok's strong text capabilities, this multimodal model can now process a wide variety of visual information, including documents, diagrams, charts, screenshots, and photographs.",
         },
       }
     : {}),
-
+  ...(process.env.DEEPSEEK_API_KEY
+    ? {
+        "deepseak-r1": {
+          model: deepseek("deepseek-reasoner"),
+          supportsToolUse: false,
+          supportsStreaming: true,
+          provider: "deepseek",
+          description:
+            "DeepSeek Reasoner is a specialized model developed by DeepSeek that uses Chain of Thought (CoT) reasoning to improve response accuracy. Before providing a final answer, it generates detailed reasoning steps that are accessible through the API, allowing users to examine and leverage the model's thought process.",
+          supportsImages: false,
+          supportsPdfs: false,
+          supportsSystemMessages: true,
+        },
+        "deepseek-v3": {
+          model: deepseek("deepseek-chat"),
+          supportsToolUse: true,
+          supportsStreaming: true,
+          provider: "deepseek",
+          description: `DeepSeek-V3 is an open-source large language model that builds upon LLaMA (Meta’s foundational language model) to enable versatile functionalities such as text generation, code completion, and more.`,
+          supportsImages: false,
+          supportsPdfs: false,
+          supportsSystemMessages: true,
+        },
+      }
+    : {}),
   ...(process.env.GROQ_API_KEY
     ? {
         "llama-3.3-70b": {
@@ -185,7 +210,7 @@ export const MODELS: Record<string, ModelConfig> = {
           provider: "meta",
           supportsSystemMessages: false,
           description:
-            "Llama-3.3-70b is a large and versatile model designed for high-performance text generation and complex reasoning tasks. It's suitable for applications that require a deep understanding of language and nuanced responses. It supports streaming.",
+            "The Meta Llama 3.3 multilingual large language model (LLM) is a pretrained and instruction tuned generative model in 70B (text in/text out). The Llama 3.3 instruction tuned text only model is optimized for multilingual dialogue use cases and outperforms many of the available open source and closed chat models on common industry benchmarks.",
         },
         "llama-3.1-8b": {
           model: groq("llama-3.1-8b-instant"),
@@ -193,7 +218,7 @@ export const MODELS: Record<string, ModelConfig> = {
           supportsStreaming: true,
           provider: "meta",
           description:
-            "Llama-3.1-8b is a smaller, more efficient model optimized for speed and quick responses. It's ideal for tasks where low latency is a priority, while still providing good performance. It supports streaming.",
+            "Llama is a 8 billion parameter open source model by Meta fine-tuned for instruction following purposes served by Groq on their LPU hardware.",
         },
       }
     : {}),
@@ -215,7 +240,7 @@ export const MODELS: Record<string, ModelConfig> = {
           provider: "perplexity",
           supportsSystemMessages: false,
           description:
-            "Lightweight offering with search grounding, quicker and cheaper than Sonar Pro",
+            "Perplexity's lightweight offering with search grounding, quicker and cheaper than Sonar Pro.",
         },
       }
     : {}),

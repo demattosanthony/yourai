@@ -39,18 +39,13 @@ export async function runInference(
   //     };
   //   }
 
-  if (stream) {
-    const { textStream } = streamText(params);
-    return textStream;
-  } else {
-    const { text } = await generateText({
-      ...params,
-      experimental_providerMetadata: {
-        openai: {
-          reasoningEffort: "high",
-        },
+  const fn = stream ? streamText : generateText;
+  return fn({
+    ...params,
+    experimental_providerMetadata: {
+      openai: {
+        reasoningEffort: "high",
       },
-    });
-    return [text]; // Wrap text in an array to make it iterable
-  }
+    },
+  });
 }
