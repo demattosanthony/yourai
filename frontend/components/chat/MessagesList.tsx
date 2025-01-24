@@ -1,12 +1,13 @@
 import MarkdownViewer from "../MarkdownViewer";
 import { useEffect } from "react";
-import { Check, Copy, File } from "lucide-react";
+import { Check, Copy, File, Maximize2 } from "lucide-react";
 import { useAtom } from "jotai";
 import { ChatMessage, MessageRole } from "@/types/chat";
 import { messagesAtom } from "@/atoms/chat";
 import React from "react";
 import { getModelIconPath } from "../ModelSelector";
 import Link from "next/link";
+import { Button } from "../ui/button";
 
 const MessageItem = React.memo(function MessageItem({
   message,
@@ -103,14 +104,36 @@ const MessageItem = React.memo(function MessageItem({
 
           {/** User Files */}
           {message.role === MessageRole.user && messageType === "file" && (
-            <Link href={data || ""} target="_blank">
-              <div className="flex items-center gap-1 cursor-pointer hover:opacity-80">
-                <File className="w-4 h-4" />
-                <span>{file_metadata?.filename}</span>
-              </div>
-            </Link>
+            <>
+              {file_metadata?.mime_type === "application/pdf" ? (
+                <div className="relative w-full h-[400px]">
+                  <iframe
+                    src={`${data}#toolbar=0&navpanes=0&scrollbar=0&page=1&view=Fit`}
+                    className="w-full h-full"
+                    title={file_metadata.filename}
+                  />
+                  <Link
+                    href={data || ""}
+                    target="_blank"
+                    className="absolute bottom-2 right-2"
+                  >
+                    <Button size={"icon"} variant={"outline"}>
+                      <Maximize2 className="h-4 w-4 text-primary" />
+                    </Button>
+                  </Link>
+                </div>
+              ) : (
+                <Link href={data || ""} target="_blank">
+                  <div className="flex items-center gap-1 cursor-pointer hover:opacity-80">
+                    <File className="w-4 h-4" />
+                    <span>{file_metadata?.filename}</span>
+                  </div>
+                </Link>
+              )}
+            </>
           )}
         </div>
+
         {/* Copy to clipboard icon for user text messages */}
         {message.role === MessageRole.user && messageType === "text" && (
           <div className="absolute -bottom-6 right-0 group-hover:opacity-100 opacity-0 transition-all duration-200">
