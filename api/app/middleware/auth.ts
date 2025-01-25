@@ -24,6 +24,9 @@ export const authMiddleware = async (
     const { id, rid } = req.cookies;
     const { userId, user } = await checkTokens(id, rid);
 
+    console.log(`User ID: ${userId}`);
+    console.log(`User: ${JSON.stringify(user)}`);
+
     req.userId = userId;
     if (user) {
       sendAuthCookies(res, user);

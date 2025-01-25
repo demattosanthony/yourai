@@ -11,6 +11,7 @@ import InstallPrompt from "@/components/InstallPrompt";
 import { useMeQuery } from "@/queries/queries";
 import { toast } from "sonner";
 import { AnimatedGreeting } from "@/components/AnimatedGreeting";
+import { PricingDialog } from "@/components/PricingDialog";
 
 export default function Home() {
   const { sendMessage } = useMessageHandler();
@@ -19,6 +20,8 @@ export default function Home() {
 
   const { data } = useMeQuery();
   const user = data?.user;
+
+  console.log("user", user);
 
   // In Home.tsx
   const handleSubmit = async () => {
@@ -52,6 +55,9 @@ export default function Home() {
   return (
     <>
       <InstallPrompt />
+
+      {user?.subscriptionStatus === "inactive" ||
+        (user?.subscriptionStatus === "incomplete" && <PricingDialog />)}
 
       <div className="w-full flex flex-1 items-center justify-center">
         <div className="flex flex-col h-[60%] items-center w-full">

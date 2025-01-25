@@ -1,11 +1,12 @@
 "use client";
 
-import { ChevronsUpDown, LogOut } from "lucide-react";
+import { ChevronsUpDown, CreditCard, LogOut } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -31,6 +32,36 @@ export function NavUser({
   const { isMobile } = useSidebar();
 
   const { logOut } = useAuth();
+
+  const handleBillingPortal = async () => {
+    try {
+      //   setIsLoading(true);
+      const response = await fetch(
+        "http://localhost:4000/create-portal-session",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+        }
+      );
+
+      const data = await response.json();
+
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      // Redirect to Stripe Portal
+      window.location.href = data.url;
+    } catch (error) {
+      console.error("Error:", error);
+      // You might want to show an error toast here
+    } finally {
+      //   setIsLoading(false);
+    }
+  };
 
   return (
     <SidebarMenu>
@@ -86,15 +117,15 @@ export function NavUser({
                 <Sparkles />
                 Upgrade to Pro
               </DropdownMenuItem>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
+            </DropdownMenuGroup> */}
+            {/* <DropdownMenuSeparator /> */}
             <DropdownMenuGroup>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={handleBillingPortal}>
                 <CreditCard />
                 Billing
               </DropdownMenuItem>
             </DropdownMenuGroup>
-            <DropdownMenuSeparator /> */}
+            <DropdownMenuSeparator />
             <DropdownMenuItem onClick={logOut}>
               <LogOut />
               Log out

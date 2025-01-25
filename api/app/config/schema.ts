@@ -1,7 +1,9 @@
 import { relations, sql } from "drizzle-orm";
 import {
+  boolean,
   integer,
   jsonb,
+  numeric,
   pgTable,
   text,
   timestamp,
@@ -12,6 +14,16 @@ import {
 const MESSAGE_ROLES = ["system", "user", "assistant", "tool"] as const;
 const TOOL_CALL_STATUS = ["pending", "completed", "failed"] as const;
 const CONTENT_TYPES = ["text", "image", "file"] as const;
+const SUBSCRIPTION_STATUS = [
+  "active",
+  "canceled",
+  "incomplete",
+  "incomplete_expired",
+  "past_due",
+  "trialing",
+  "unpaid",
+] as const;
+const SUBSCRIPTION_PLAN = ["basic"] as const;
 
 // Users table with additional fields
 export const users = pgTable("users", {
@@ -23,11 +35,13 @@ export const users = pgTable("users", {
   googleId: varchar("google_id", { length: 255 }).unique(),
   profilePicture: text("profile_picture"),
   refreshTokenVersion: integer("refresh_token_version").default(1).notNull(),
-  subscriptionStatus: varchar("subscription_status", { length: 50 }).default(
-    "inactive"
-  ),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  stripeCustomerId: varchar("stripe_customer_id", { length: 255 }).unique(),
+  subscriptionStatus: text("subscription_status", {
+    enum: SUBSCRIPTION_STATUS,
+  }).default("incomplete"),
+  subscriptionPlan: text("subscription_plan", { enum: SUBSCRIPTION_PLAN }),
 });
 
 // Threads table with user association
