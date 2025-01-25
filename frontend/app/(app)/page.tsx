@@ -34,6 +34,9 @@ export default function Home() {
 
     setIsNewThread(true);
 
+    // Create random placeholder thread
+    router.push(`/threads/${Math.random().toString(36).substring(7)}`);
+
     try {
       // Create thread in background
       const { id: threadId } = await api.createThread();
@@ -51,7 +54,7 @@ export default function Home() {
     <>
       <InstallPrompt />
 
-      {user?.subscriptionStatus !== "active" && <PricingDialog />}
+      {user && user?.subscriptionStatus !== "active" && <PricingDialog />}
 
       <div className="w-full flex flex-1 items-center justify-center">
         <div className="flex flex-col h-[60%] items-center w-full">

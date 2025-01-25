@@ -42,7 +42,10 @@ export async function syncStripeData(customerId: string) {
     if (stripeSubscriptions.data.length === 0) {
       await db
         .update(users)
-        .set({ subscriptionStatus: "incomplete", subscriptionPlan: null })
+        .set({
+          subscriptionStatus: "incomplete",
+          subscriptionPlan: null,
+        })
         .where(eq(users.stripeCustomerId, customerId));
       return {
         subscriptionId: null,

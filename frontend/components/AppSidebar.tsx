@@ -13,6 +13,7 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarRail,
+  SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
 import { NavUser } from "./NavUser";
@@ -33,16 +34,20 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
         <SidebarMenu>
-          <Link href="/">
-            <div className="flex aspect-square size-8 items-center justify-center">
-              <Image
-                src={"/yo-blob.png"}
-                width={24}
-                height={24}
-                alt="YourOrg"
-              />
-            </div>
-          </Link>
+          <div className="w-full flex justify-between items-center">
+            <Link href="/">
+              <div className="flex aspect-square size-8 items-center justify-center">
+                <Image
+                  src={"/yo-blob.png"}
+                  width={24}
+                  height={24}
+                  alt="YourOrg"
+                />
+              </div>
+            </Link>
+
+            {state === "expanded" && <SidebarTrigger />}
+          </div>
         </SidebarMenu>
       </SidebarHeader>
 
@@ -81,6 +86,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarContent>
 
       <SidebarFooter>
+        {state === "collapsed" && <SidebarTrigger className="w-full" />}
+
         {!user && state === "expanded" && !isLoading && (
           <SidebarMenu>
             <SidebarMenuItem>
