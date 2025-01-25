@@ -10,6 +10,7 @@ import AIOrbScene from "@/components/AiOrbScene";
 import InstallPrompt from "@/components/InstallPrompt";
 import { useMeQuery } from "@/queries/queries";
 import { toast } from "sonner";
+import { AnimatedGreeting } from "@/components/AnimatedGreeting";
 
 export default function Home() {
   const { sendMessage } = useMessageHandler();
@@ -51,8 +52,17 @@ export default function Home() {
   return (
     <>
       <InstallPrompt />
-      <div className="h-[90%] w-full flex items-center justify-center">
-        <AIOrbScene />
+
+      <div className="w-full flex flex-1 items-center justify-center">
+        <div className="flex flex-col h-[60%] items-center w-full">
+          <div className="mb-6 w-full flex items-center justify-center">
+            <AIOrbScene />
+          </div>
+
+          <div>
+            <AnimatedGreeting name={user?.name.split(" ")[0] ?? ""} />
+          </div>
+        </div>
       </div>
 
       <div className="w-full flex items-center justify-center mx-auto p-6 pb-8 md:pb-4 md:p-2 absolute bottom-0 left-0 right-0">

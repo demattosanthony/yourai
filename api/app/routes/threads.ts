@@ -146,7 +146,16 @@ router.post("/:threadId/inference", authMiddleware, async (req, res) => {
       model: modelConfig.model,
       messages: inferenceMessages as CoreMessage[],
       temperature,
-      system: instructions,
+      system: modelConfig.supportsSystemMessages
+        ? `It is currently: ${new Date().toLocaleString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true,
+          })}\n\n${instructions}`
+        : undefined,
       experimental_providerMetadata: { openai: { reasoningEffort: "high" } },
       maxTokens: maxTokens || undefined,
     };
