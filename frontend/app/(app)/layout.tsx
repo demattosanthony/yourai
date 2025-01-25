@@ -2,14 +2,18 @@ import { AppSidebar } from "@/components/AppSidebar";
 import Header from "@/components/Header";
 import { LoginOverlay } from "@/components/LoginOverlay";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { cookies } from "next/headers";
 
-export default function MainAppLayout({
+export default async function MainAppLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const cookieStore = await cookies();
+  const defaultOpen = cookieStore.get("sidebar:state")?.value === "true";
+
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen={defaultOpen}>
       <AppSidebar />
       <SidebarInset>
         <div className="h-full w-full flex flex-col max-h-[-webkit-fill-available] relative">
