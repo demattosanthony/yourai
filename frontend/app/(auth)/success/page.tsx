@@ -1,5 +1,11 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import api from "@/lib/api";
+import { motion } from "framer-motion";
+import { ArrowRight, Check } from "lucide-react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 
@@ -12,23 +18,10 @@ const SuccessPage = () => {
     const syncData = async () => {
       if (session_id) {
         try {
-          const response = await fetch(
-            "http://localhost:4000/sync-after-success",
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              credentials: "include",
-              body: JSON.stringify({ session_id }),
-            }
-          );
-
-          console.log("Response from sync:", response);
+          const response = await api.syncAfterSuccess(session_id);
 
           if (response.ok) {
-            // Redirect the user after successful sync
-            router.push("/"); // Or wherever you want to redirect them
+            console.log("Data synced successfully");
           } else {
             console.error("Failed to sync data after success");
             // Handle error, maybe show a message to the user
@@ -44,10 +37,32 @@ const SuccessPage = () => {
   }, [session_id, router]);
 
   return (
-    <div>
-      <h1>Payment Successful!</h1>
-      {/* You can show a loading indicator while syncing */}
-      <p>Please wait while we update your account...</p>
+    <div className="min-h-screen flex items-center justify-center p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center space-y-4">
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ duration: 0.5 }}
+            className="flex justify-center"
+          >
+            <Check className="w-16 h-16 text-green-500" />
+          </motion.div>
+          <div className="space-y-2">
+            <h1 className="text-2xl font-bold">Thank you!</h1>
+            <p className="text-muted-foreground">
+              We have received your payment.
+            </p>
+          </div>
+        </CardHeader>
+        <CardContent className="flex justify-center pb-6">
+          <Button asChild>
+            <Link href="/">
+              Return to App <ArrowRight className="ml-2 w-4 h-4" />
+            </Link>
+          </Button>
+        </CardContent>
+      </Card>
     </div>
   );
 };

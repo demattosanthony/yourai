@@ -21,9 +21,6 @@ export default function Home() {
   const { data } = useMeQuery();
   const user = data?.user;
 
-  console.log("user", user);
-
-  // In Home.tsx
   const handleSubmit = async () => {
     if (!user) {
       toast.error("You must be logged in to create a thread.", {
@@ -36,8 +33,6 @@ export default function Home() {
     }
 
     setIsNewThread(true);
-    const tempThreadId = crypto.randomUUID(); // Generate temporary ID
-    router.push(`/threads/${tempThreadId}`);
 
     try {
       // Create thread in background
@@ -56,8 +51,7 @@ export default function Home() {
     <>
       <InstallPrompt />
 
-      {user?.subscriptionStatus === "inactive" ||
-        (user?.subscriptionStatus === "incomplete" && <PricingDialog />)}
+      {user?.subscriptionStatus !== "active" && <PricingDialog />}
 
       <div className="w-full flex flex-1 items-center justify-center">
         <div className="flex flex-col h-[60%] items-center w-full">

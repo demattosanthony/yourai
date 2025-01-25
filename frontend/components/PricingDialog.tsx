@@ -9,42 +9,40 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import api from "@/lib/api";
+import { useAtom } from "jotai";
+import { atomWithStorage } from "jotai/utils";
 import { useState } from "react";
 
 const PRICING_PLANS = {
   BASIC: {
-    name: "Basic Plan",
+    name: "Pro Plan",
     price: "$10",
-    features: ["Feature 1", "Feature 2", "Feature 3"],
+    features: [
+      "Chat with all the top AI models",
+      "Upload images and PDFs",
+      "Unlimited messages",
+    ],
     lookup_key: "Yo-a140f7e",
   },
 } as const;
 
+export const pricingPlanDialogOpenAtom = atomWithStorage(
+  "pricingPlanDialogOpen",
+  true
+);
+
 export function PricingDialog() {
   const [isLoading, setIsLoading] = useState(false);
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useAtom(pricingPlanDialogOpenAtom);
 
   const handleSubscribe = async (lookupKey: string) => {
     try {
       setIsLoading(true);
-      const response = await fetch(
-        "http://localhost:4000/create-checkout-session",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-          body: JSON.stringify({
-            lookup_key: lookupKey,
-          }),
-        }
-      );
-
-      const data = await response.json();
+      const url = await api.createCheckoutSession(lookupKey);
 
       // Redirect to Stripe Checkout
-      window.location.href = data.url;
+      window.location.href = url;
     } catch (error) {
       console.error("Error:", error);
     } finally {
@@ -59,17 +57,15 @@ export function PricingDialog() {
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Choose your plan</DialogTitle>
+          <DialogTitle>Upgrade to Pro</DialogTitle>
           <DialogDescription>
-            Select the plan that best fits your needs
+            You are currently on the free plan. Upgrade to access these
+            features.
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
+        <div className="grid gap-4 py-4 bg-card">
           {Object.entries(PRICING_PLANS).map(([key, plan]) => (
-            <div
-              key={key}
-              className="rounded-lg border p-4 hover:border-primary transition-colors"
-            >
+            <div key={key} className="rounded-lg border p-4 transition-colors">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="font-semibold">{plan.name}</h3>
                 <span className="text-xl font-bold">{plan.price}/mo</span>
@@ -93,11 +89,11 @@ export function PricingDialog() {
                 ))}
               </ul>
               <Button
-                className="w-full"
+                className="w-full mt-2"
                 onClick={() => handleSubscribe(plan.lookup_key)}
                 disabled={isLoading}
               >
-                {isLoading ? "Loading..." : `Subscribe to ${plan.name}`}
+                {isLoading ? "Loading..." : `Upgrade to Pro Plan`}
               </Button>
             </div>
           ))}

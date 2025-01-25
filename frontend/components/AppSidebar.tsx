@@ -91,15 +91,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </SidebarMenu>
         )}
 
-        {user && (
-          <NavUser
-            user={{
-              name: user?.name || "",
-              email: user?.email || "",
-              avatar: user?.profilePicture || "",
-            }}
-          />
-        )}
+        {user && <NavUser user={user} />}
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

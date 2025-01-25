@@ -32,6 +32,56 @@ class ApiClient {
     return await response.json();
   }
 
+  async createCheckoutSession(lookupKey: string): Promise<string> {
+    const response = await fetch(
+      `${this.baseUrl}/payments/create-checkout-session`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          lookup_key: lookupKey,
+        }),
+      }
+    );
+
+    const data = await response.json();
+
+    return data.url;
+  }
+
+  async syncAfterSuccess(sessionId: string) {
+    const response = await fetch(
+      `${this.baseUrl}/payments/sync-after-success`,
+      {
+        method: "POST",
+        credentials: "include",
+        body: JSON.stringify({ session_id: sessionId }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    return response;
+  }
+
+  async createPortalSession() {
+    const response = await fetch(
+      `${this.baseUrl}/payments/create-portal-session`,
+      {
+        method: "POST",
+        credentials: "include",
+      }
+    );
+
+    const data = await response.json();
+
+    return data.url;
+  }
+
   /**
    * Fetches the list of available AI models from the server
    * @returns Promise containing array of Model objects
