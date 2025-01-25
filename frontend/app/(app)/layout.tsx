@@ -1,5 +1,7 @@
+import { AppSidebar } from "@/components/AppSidebar";
 import Header from "@/components/Header";
 import { LoginOverlay } from "@/components/LoginOverlay";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 
 export default function MainAppLayout({
   children,
@@ -7,11 +9,16 @@ export default function MainAppLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="h-screen w-screen flex flex-col max-h-[-webkit-fill-available] overflow-hidden">
-      <LoginOverlay />
-      <Header />
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
+        <div className="h-full w-full flex flex-col max-h-[-webkit-fill-available] relative">
+          <LoginOverlay />
+          <Header />
 
-      {children}
-    </div>
+          {children}
+        </div>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }

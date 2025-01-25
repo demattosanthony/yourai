@@ -55,7 +55,7 @@ export default function Home() {
 
       <div className="w-full flex flex-1 items-center justify-center">
         <div className="flex flex-col h-[60%] items-center w-full">
-          <div className="mb-6 w-full flex items-center justify-center">
+          <div className="mb-6 w-[400px] flex items-center justify-center">
             <AIOrbScene />
           </div>
 

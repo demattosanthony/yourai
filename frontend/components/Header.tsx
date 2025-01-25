@@ -1,24 +1,19 @@
 "use client";
 
 import ModelSelector from "./ModelSelector";
-import { Button } from "./ui/button";
-import { History, Plus } from "lucide-react";
 import ChatSettings from "./ChatSettings";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useAtom } from "jotai";
 import { messagesAtom } from "@/atoms/chat";
-import Link from "next/link";
 import { ModeToggle } from "./DarkModeToggle";
-import ProfileMenu from "./ProfileMenu";
-import { useMeQuery } from "@/queries/queries";
+import { SidebarTrigger } from "./ui/sidebar";
+import { Button } from "./ui/button";
+import { Plus } from "lucide-react";
 
 export default function Header() {
   const router = useRouter();
   const [, setMessages] = useAtom(messagesAtom);
-
-  const { data } = useMeQuery();
-  const user = data?.user;
 
   // Add useEffect for keyboard shortcut
   useEffect(() => {
@@ -38,16 +33,19 @@ export default function Header() {
   }, [router]);
 
   return (
-    <div className="w-full p-4 h-14 items-center justify-center flex absolute top-0 left-0 right-0 z-10 bg-background md:backdrop-blur-xl md:bg-background/50 transition-all">
-      <div className="absolute right-4 md:right-6 bg-opacity-50 z-10">
+    <div className="w-full p-4 h-14 items-center justify-center flex absolute top-0 left-0 right-0 z-10 bg-background md:backdrop-blur-xl md:bg-background/50 transition-all ml-2">
+      <div className="absolute left-0">
+        <SidebarTrigger />
+      </div>
+      <div className="absolute right-6 bg-opacity-50 z-10">
         <div className="flex items-center ">
           <ModelSelector />
 
-          <Link href="/threads" prefetch>
+          {/* <Link href="/threads" prefetch>
             <Button variant={"ghost"} className="rounded-full" size={"icon"}>
               <History size={16} className="min-h-4 min-w-4" />
             </Button>
-          </Link>
+          </Link> */}
 
           <ChatSettings />
 
@@ -58,14 +56,14 @@ export default function Header() {
               router.push("/");
             }}
             size={"icon"}
-            className="rounded-full"
+            className="rounded-full md:hidden"
           >
             <Plus size={16} className="min-h-4 min-w-4" />
           </Button>
 
-          {!user && <ModeToggle />}
+          <ModeToggle />
 
-          <ProfileMenu />
+          {/* <ProfileMenu /> */}
         </div>
       </div>
     </div>
