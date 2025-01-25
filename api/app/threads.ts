@@ -7,7 +7,7 @@ const LIMIT = 10;
 
 // Database Queries
 async function getThread(threadId: string) {
-  return db.query.threads.findFirst({
+  const thread = await db.query.threads.findFirst({
     where: eq(threads.id, threadId),
     with: {
       messages: {
@@ -15,6 +15,32 @@ async function getThread(threadId: string) {
       },
     },
   });
+
+  if (!thread) return null;
+
+  // Process files in messages
+  for (const message of thread.messages) {
+    try {
+      const content = message.content as { type: string };
+      if (content.type === "file" || content.type === "image") {
+        const fileContent = message.content as FileContent;
+        if (!fileContent?.file_metadata?.file_key) continue;
+
+        const metadata = s3.file(fileContent.file_metadata.file_key);
+        const url = metadata.presign({
+          acl: "public-read",
+          expiresIn: 3600, // 1 hour
+          method: "GET",
+        });
+        fileContent.data = url;
+      }
+    } catch (error) {
+      console.error("Error processing message:", message.id, error);
+      continue;
+    }
+  }
+
+  return thread;
 }
 
 async function createThread(userId: string) {
@@ -50,6 +76,7 @@ async function createMessage(
 }
 
 async function getThreads(userId: string, page: number, search: string) {
+  console.log("Getting threads for user:", userId);
   const offset = (page - 1) * LIMIT;
 
   try {
@@ -108,8 +135,10 @@ async function getThreads(userId: string, page: number, search: string) {
             const metadata = s3.file(fileContent.file_metadata.file_key);
             const url = metadata.presign({
               acl: "public-read",
-              expiresIn: 3600,
+              expiresIn: 3600, // 1 hour
+              method: "GET",
             });
+            console.log("URL:", url);
             fileContent.data = url;
           }
         } catch (error) {
