@@ -138,7 +138,6 @@ async function getThreads(userId: string, page: number, search: string) {
               expiresIn: 3600, // 1 hour
               method: "GET",
             });
-            console.log("URL:", url);
             fileContent.data = url;
           }
         } catch (error) {
