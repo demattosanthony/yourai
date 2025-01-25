@@ -28,10 +28,7 @@ Open the app at http://localhost:4001 and start chatting
 
 ## Demo
 
-<video width="750" height="450" controls>
-  <source src="./demo.mp4" type="video/mp4" />
-  Your browser does not support the video tag.
-</video>
+https://github.com/user-attachments/assets/b8c2bcd8-fc2e-4744-add3-c65405a76838
 
 ## Keyboard shortcuts
 
