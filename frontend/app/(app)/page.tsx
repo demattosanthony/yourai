@@ -33,8 +33,6 @@ export default function Home() {
     }
 
     setIsNewThread(true);
-    const tempThreadId = crypto.randomUUID(); // Generate temporary ID
-    router.push(`/threads/${tempThreadId}`);
 
     try {
       // Create thread in background

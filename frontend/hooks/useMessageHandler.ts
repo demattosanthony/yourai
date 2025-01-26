@@ -11,8 +11,10 @@ import {
   uploadsAtom,
 } from "@/atoms/chat";
 import { MessageContent, MessageRole } from "@/types/chat";
+import { useQueryClient } from "@tanstack/react-query";
 
 export function useMessageHandler() {
+  const queryClient = useQueryClient();
   const [, setMessages] = useAtom(messagesAtom);
   const [isGenerating, setIsGenerating] = useAtom(isGeneratingAtom);
   const [model] = useAtom(modelAtom);
@@ -125,6 +127,7 @@ export function useMessageHandler() {
       }
     } finally {
       setIsGenerating(false);
+      queryClient.invalidateQueries({ queryKey: ["threads"] });
     }
   };
 

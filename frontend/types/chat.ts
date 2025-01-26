@@ -38,6 +38,7 @@ export interface Thread {
   id: string;
   createdAt: string;
   updatedAt: string;
+  title?: string;
   messages: {
     id: string;
     thread_id: string;
