@@ -20,7 +20,9 @@ export default function Home() {
   const { sendMessage } = useMessageHandler();
   const router = useRouter();
   const [, setIsNewThread] = useAtom(isNewThreadAtom);
-  const [, showPricingDialog] = useAtom(pricingPlanDialogOpenAtom);
+  const [showPricingDialog, setShowPricingDialog] = useAtom(
+    pricingPlanDialogOpenAtom
+  );
 
   const { data } = useMeQuery();
   const user = data?.user;
@@ -46,7 +48,7 @@ export default function Home() {
       sendMessage(threadId);
     } catch (error: unknown) {
       if (error instanceof Error && error.message === "subscription_required") {
-        showPricingDialog(true);
+        setShowPricingDialog(true);
         toast.error("Pro plan required to create a new thread.");
       } else {
         toast.error("Failed to create thread. Please try again.", {
@@ -64,7 +66,9 @@ export default function Home() {
     <>
       <InstallPrompt />
 
-      {user && user?.subscriptionStatus !== "active" && <PricingDialog />}
+      {user && user?.subscriptionStatus !== "active" && showPricingDialog && (
+        <PricingDialog />
+      )}
 
       <div className="w-full flex flex-1 items-center justify-center">
         <div className="flex flex-col h-[60%] items-center w-full">
