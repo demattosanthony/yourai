@@ -129,7 +129,8 @@ const ModelSelector: React.FC = () => {
                         <div className="flex gap-1">
                           {model.supportsImages && <Badge>Image Upload</Badge>}
                           {model.supportsPdfs && <Badge>File Upload</Badge>}
-                          {model.name.includes("online") && (
+                          {(model.name.includes("online") ||
+                            model.name.includes("sonar")) && (
                             <Badge>Web Search </Badge>
                           )}
                         </div>
