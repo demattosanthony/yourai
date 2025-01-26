@@ -29,6 +29,20 @@
       "when": 1736803119756,
       "tag": "0003_third_ultron",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1737829817069,
+      "tag": "0004_public_loa",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1737836565452,
+      "tag": "0005_ambitious_ezekiel",
+      "breakpoints": true
     }
   ]
 }

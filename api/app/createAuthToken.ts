@@ -62,47 +62,56 @@ export const checkTokens = async (
   accessToken: string,
   refreshToken: string
 ) => {
+  // First try to verify the access token
   try {
-    // verify
     const data = <AccessTokenData>(
       jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET!)
     );
 
-    // get userId from token data
+    const user = await db.query.users.findFirst({
+      where: eq(users.id, data.userId),
+    });
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
     return {
       userId: data.userId,
+      user,
     };
   } catch {
-    // token is expired or signed with a different secret
-    // so now check refresh token
+    // Access token is invalid, expired, or user not found
+    // Fallback to refresh token
+    if (!refreshToken) {
+      throw new Error("No refresh token provided");
+    }
+
+    // Verify refresh token
+    let refreshTokenData;
+    try {
+      refreshTokenData = <RefreshTokenData>(
+        jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET!)
+      );
+    } catch {
+      throw new Error("Invalid refresh token");
+    }
+
+    // Get user and verify refresh token version
+    const user = await db.query.users.findFirst({
+      where: eq(users.id, refreshTokenData.userId),
+    });
+
+    if (
+      !user ||
+      user.refreshTokenVersion !== refreshTokenData.refreshTokenVersion
+    ) {
+      throw new Error("Invalid refresh token");
+    }
+
+    return {
+      userId: refreshTokenData.userId,
+      user,
+    };
   }
-
-  if (!refreshToken) {
-    throw new Error("No refresh token provided");
-  }
-
-  // 1. verify refresh token
-  let data;
-  try {
-    data = <RefreshTokenData>(
-      jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET!)
-    );
-  } catch {
-    throw new Error("Invalid refresh token");
-  }
-
-  // 2. get user
-  const user = await db.query.users.findFirst({
-    where: eq(users.id, data.userId),
-  });
-
-  // 3.check refresh token version
-  if (!user || user.refreshTokenVersion !== data.refreshTokenVersion) {
-    throw new Error("Invalid refresh token");
-  }
-
-  return {
-    userId: data.userId,
-    user,
-  };
 };

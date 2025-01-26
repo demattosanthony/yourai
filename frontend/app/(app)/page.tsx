@@ -11,16 +11,20 @@ import InstallPrompt from "@/components/InstallPrompt";
 import { useMeQuery } from "@/queries/queries";
 import { toast } from "sonner";
 import { AnimatedGreeting } from "@/components/AnimatedGreeting";
+import {
+  PricingDialog,
+  pricingPlanDialogOpenAtom,
+} from "@/components/PricingDialog";
 
 export default function Home() {
   const { sendMessage } = useMessageHandler();
   const router = useRouter();
   const [, setIsNewThread] = useAtom(isNewThreadAtom);
+  const [, showPricingDialog] = useAtom(pricingPlanDialogOpenAtom);
 
   const { data } = useMeQuery();
   const user = data?.user;
 
-  // In Home.tsx
   const handleSubmit = async () => {
     if (!user) {
       toast.error("You must be logged in to create a thread.", {
@@ -40,16 +44,27 @@ export default function Home() {
       // Replace URL without adding to history
       router.replace(`/threads/${threadId}`);
       sendMessage(threadId);
-    } catch (error) {
-      console.error("Error creating thread:", error);
-      router.push("/"); // Go back home if error
-      toast.error("Failed to create thread");
+    } catch (error: unknown) {
+      if (error instanceof Error && error.message === "subscription_required") {
+        showPricingDialog(true);
+        toast.error("Pro plan required to create a new thread.");
+      } else {
+        toast.error("Failed to create thread. Please try again.", {
+          action: {
+            label: "Retry",
+            onClick: () => handleSubmit(),
+          },
+        });
+      }
+      setIsNewThread(false);
     }
   };
 
   return (
     <>
       <InstallPrompt />
+
+      {user && user?.subscriptionStatus !== "active" && <PricingDialog />}
 
       <div className="w-full flex flex-1 items-center justify-center">
         <div className="flex flex-col h-[60%] items-center w-full">
