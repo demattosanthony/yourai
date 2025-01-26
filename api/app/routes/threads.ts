@@ -10,13 +10,14 @@ import {
 import { eq } from "drizzle-orm";
 
 import db from "../config/db";
-import { messages, ContentPart } from "../config/schema";
+import { messages, ContentPart, threads } from "../config/schema";
 import { MODELS } from "../models";
 import s3 from "../config/s3";
 import { handleError } from "..";
 import { authMiddleware } from "../middleware/auth";
 import { createMessage, createThread, getThread, getThreads } from "../threads";
 import { CONFIG } from "../config/constants";
+import { generateThreadTitle } from "../utils/generateThreadTitle";
 
 const router = Router();
 
@@ -95,6 +96,30 @@ router.post("/:threadId/inference", authMiddleware, async (req, res) => {
       where: eq(messages.threadId, threadId),
       orderBy: messages.createdAt,
     });
+
+    // If thread has no title, find first user text message and generate title
+    if (!thread.title) {
+      const firstUserTextMessage = rawMessages.find(
+        (msg) =>
+          msg.role === "user" &&
+          "type" in (msg.content as ContentPart) &&
+          (msg.content as ContentPart).type === "text" &&
+          "text" in (msg.content as ContentPart)
+      );
+
+      if (firstUserTextMessage) {
+        const content = firstUserTextMessage.content as ContentPart;
+        generateThreadTitle((content as any).text).then((title) => {
+          db.update(threads)
+            .set({ title })
+            .where(eq(threads.id, threadId))
+            .catch((error) => {
+              console.error("Error generating title", error);
+            });
+        });
+      }
+    }
+
     const filteredMessages = rawMessages.filter((msg) => {
       const content = msg.content as ContentPart;
       if (!modelConfig.supportsImages && content.type === "image") return false;

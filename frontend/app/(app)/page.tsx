@@ -34,9 +34,6 @@ export default function Home() {
 
     setIsNewThread(true);
 
-    // Create random placeholder thread
-    router.push(`/threads/${Math.random().toString(36).substring(7)}`);
-
     try {
       // Create thread in background
       const { id: threadId } = await api.createThread();

@@ -87,6 +87,7 @@ function ThreadItem({ thread }: { thread: Thread }) {
   const lastMessage = thread.messages[thread.messages.length - 1];
   const provider = lastMessage?.provider;
   const model = lastMessage?.model;
+  const title = thread.title;
   if (!lastMessage) return null;
 
   return (
@@ -106,7 +107,9 @@ function ThreadItem({ thread }: { thread: Thread }) {
 
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium">
-              {lastMessage.role === "user"
+              {title
+                ? title
+                : lastMessage.role === "user"
                 ? "You"
                 : model
                 ? model
