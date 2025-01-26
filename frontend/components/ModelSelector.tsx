@@ -155,7 +155,9 @@ export function getModelImage(provider: string) {
 
   const providerName = provider.charAt(0).toUpperCase() + provider.slice(1);
 
-  return <img src={iconPath} alt={providerName} className="w-5 h-5 mr-2" />;
+  return (
+    <img src={iconPath} alt={providerName} className="w-5 h-5 mr-2 rounded" />
+  );
 }
 
 export function getModelIconPath(provider: string) {

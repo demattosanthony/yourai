@@ -35,4 +35,5 @@ https://github.com/user-attachments/assets/b8c2bcd8-fc2e-4744-add3-c65405a76838
 - CMD + L = toggle model selector
 - CMD + K = focus on keyboard
 - CMD + H = go to history
-- CMD + B = new chat
+- CMD + B = toggle sidebare
+- CMD + M = new chat

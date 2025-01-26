@@ -21,7 +21,7 @@ export default function Header() {
       if (e.metaKey && e.key === "h") {
         e.preventDefault();
         router.push("/threads");
-      } else if ((e.metaKey || e.ctrlKey) && e.key === "b") {
+      } else if ((e.metaKey || e.ctrlKey) && e.key === "m") {
         e.preventDefault();
         setMessages([]);
         router.push("/");
