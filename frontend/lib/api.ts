@@ -32,6 +32,56 @@ class ApiClient {
     return await response.json();
   }
 
+  async createCheckoutSession(lookupKey: string): Promise<string> {
+    const response = await fetch(
+      `${this.baseUrl}/payments/create-checkout-session`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          lookup_key: lookupKey,
+        }),
+      }
+    );
+
+    const data = await response.json();
+
+    return data.url;
+  }
+
+  async syncAfterSuccess(sessionId: string) {
+    const response = await fetch(
+      `${this.baseUrl}/payments/sync-after-success`,
+      {
+        method: "POST",
+        credentials: "include",
+        body: JSON.stringify({ session_id: sessionId }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    return response;
+  }
+
+  async createPortalSession() {
+    const response = await fetch(
+      `${this.baseUrl}/payments/create-portal-session`,
+      {
+        method: "POST",
+        credentials: "include",
+      }
+    );
+
+    const data = await response.json();
+
+    return data.url;
+  }
+
   /**
    * Fetches the list of available AI models from the server
    * @returns Promise containing array of Model objects
@@ -86,6 +136,14 @@ class ApiClient {
       credentials: "include",
     });
 
+    if (response.status === 402) {
+      throw new Error("subscription_required");
+    }
+
+    if (!response.ok) {
+      throw new Error("failed_to_create_thread");
+    }
+
     return await response.json();
   }
 
@@ -97,10 +155,35 @@ class ApiClient {
     const url = `${
       this.baseUrl
     }/threads?page=${page}&search=${encodeURIComponent(search)}`;
-    const response = await fetch(url, {
-      credentials: "include",
-    });
-    return await response.json();
+
+    try {
+      const response = await fetch(url, {
+        credentials: "include",
+      });
+
+      if (response.status === 401) {
+        // Return empty array silently for unauthorized users
+        return [];
+      }
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        throw new Error(
+          errorData?.message ||
+            `Failed to fetch threads: ${response.status} ${response.statusText}`
+        );
+      }
+
+      return await response.json();
+    } catch (error) {
+      // Only log errors that aren't 401
+      if (error instanceof Error && !error.message.includes("401")) {
+        console.error("Error fetching threads:", error);
+      }
+
+      // Return empty array for any error
+      return [];
+    }
   }
 
   /**

@@ -15,9 +15,8 @@ export const CONFIG = {
   },
   EMAIL_WHITELIST: [
     "mgkurass@gmail.com",
-    "demattosanthony@gmail.com",
-    "rsetty@gmail.com",
     "gopal24krishna@gmail.com",
+    "ben.montalbano12@gmail.com",
   ],
   __prod__: process.env.NODE_ENV === "production",
 };

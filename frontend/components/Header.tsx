@@ -37,12 +37,12 @@ export default function Header() {
   return (
     <div className="w-full p-4 h-14 items-center justify-center flex absolute top-0 left-0 right-0 z-10 bg-background md:backdrop-blur-xl md:bg-background/50 transition-all ml-2">
       {isMobile && (
-        <div className="absolute left-0">
+        <div className="absolute left-2">
           <SidebarTrigger />
         </div>
       )}
 
-      <div className="absolute right-6 bg-opacity-50 z-10">
+      <div className="absolute right-4 bg-opacity-50 z-10">
         <div className="flex items-center ">
           <ModelSelector />
 

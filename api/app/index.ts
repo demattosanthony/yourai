@@ -15,6 +15,7 @@ import myPassport from "./config/passport";
 import authRoutes from "./routes/auth";
 import threadRoutes from "./routes/threads";
 import modelRoutes from "./routes/model";
+import paymentRoutes from "./routes/payments";
 
 // Error Handling
 export function handleError(res: Express.Response, error: Error) {
@@ -40,7 +41,9 @@ async function main() {
     app.set("trust proxy", 1);
   }
 
+  app.use("/payments/webhook", Express.raw({ type: "application/json" }));
   app.use(Express.json({ limit: "50mb" }));
+
   app.use(
     cors({
       credentials: true,
@@ -53,6 +56,7 @@ async function main() {
   app.use("/auth", authRoutes);
   app.use("/threads", threadRoutes);
   app.use("/models", modelRoutes);
+  app.use("/payments", paymentRoutes);
 
   app.post("/presigned-url", authMiddleware, async (req, res) => {
     try {

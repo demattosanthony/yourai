@@ -33,7 +33,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const isMobile = useIsMobile();
 
   const { data } = useThreadsQuery();
-
   // Take only the first page of results since that's all we need
   const threads = data?.pages[0]?.threads ?? [];
 
@@ -95,33 +94,36 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               <SidebarGroupLabel>{"Recents"}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {threads.map((thread) => {
-                    if (!thread.title) return null;
-                    return (
-                      <SidebarMenuItem key={thread.id}>
-                        <SidebarMenuButton asChild>
-                          <Link
-                            href={`/threads/${thread.id}`}
-                            className="text-ellipsis overflow-hidden whitespace-nowrap"
-                          >
-                            {thread.title.length > 28
-                              ? thread.title.slice(0, 28) + "..."
-                              : thread.title}
-                          </Link>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    );
-                  })}
+                  {threads &&
+                    threads?.map((thread) => {
+                      if (!thread.title) return null;
+                      return (
+                        <SidebarMenuItem key={thread.id}>
+                          <SidebarMenuButton asChild>
+                            <Link
+                              href={`/threads/${thread.id}`}
+                              className="text-ellipsis overflow-hidden whitespace-nowrap"
+                            >
+                              {thread.title.length > 28
+                                ? thread.title.slice(0, 28) + "..."
+                                : thread.title}
+                            </Link>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      );
+                    })}
 
-                  <Link href={"/threads"}>
-                    <Button
-                      variant={"link"}
-                      className="justify-start px-2"
-                      size={"sm"}
-                    >
-                      View All
-                    </Button>
-                  </Link>
+                  {user && (
+                    <Link href={"/threads"}>
+                      <Button
+                        variant={"link"}
+                        className="justify-start px-2"
+                        size={"sm"}
+                      >
+                        View All
+                      </Button>
+                    </Link>
+                  )}
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
@@ -142,15 +144,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </SidebarMenu>
         )}
 
-        {user && (
-          <NavUser
-            user={{
-              name: user.name,
-              avatar: user.profilePicture,
-              email: user.email,
-            }}
-          />
-        )}
+        {user && <NavUser user={user} />}
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

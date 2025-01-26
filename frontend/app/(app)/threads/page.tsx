@@ -46,7 +46,7 @@ export default function ThreadsPage() {
   const threads = data?.pages.flatMap((page) => page.threads) ?? [];
 
   if (!user && isFetched) {
-    return redirect("/");
+    return redirect("/login");
   }
 
   return (
