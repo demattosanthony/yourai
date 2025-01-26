@@ -66,7 +66,7 @@ export default function ChatSettings() {
             <Textarea
               value={instructions}
               onChange={(e) => setInstructions(e.target.value)}
-              placeholder="Add any custom instructions for the AI..."
+              placeholder="Add personal details or preferences to customize Yo's responses (e.g. 'I'm a beginner programmer' or 'Explain things simply'). You can also add specific instructions like 'Always include code examples' or 'Be more detailed'"
               className="w-full min-h-[200px] p-2 text-sm rounded-md max-h-[600px]"
             />
           </div>

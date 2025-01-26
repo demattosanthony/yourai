@@ -15,6 +15,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
+  SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
 import { NavUser } from "./NavUser";
@@ -33,22 +34,27 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   const { data } = useThreadsQuery();
 
-  const threads = data?.pages.flatMap((page) => page.threads) ?? [];
+  // Take only the first page of results since that's all we need
+  const threads = data?.pages[0]?.threads ?? [];
 
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
         <SidebarMenu>
-          <Link href="/">
-            <div className="flex aspect-square size-8 items-center justify-center">
-              <Image
-                src={"/yo-blob.png"}
-                width={24}
-                height={24}
-                alt="YourOrg"
-              />
-            </div>
-          </Link>
+          <div className="w-full flex justify-between items-center">
+            <Link href="/">
+              <div className="flex aspect-square size-8 items-center justify-center">
+                <Image
+                  src={"/yo-blob.png"}
+                  width={24}
+                  height={24}
+                  alt="YourOrg"
+                />
+              </div>
+            </Link>
+
+            {state === "expanded" && <SidebarTrigger />}
+          </div>
         </SidebarMenu>
       </SidebarHeader>
 
@@ -92,7 +98,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   {threads.map((thread) => {
                     if (!thread.title) return null;
                     return (
-                      <SidebarMenuItem key={thread.title}>
+                      <SidebarMenuItem key={thread.id}>
                         <SidebarMenuButton asChild>
                           <Link
                             href={`/threads/${thread.id}`}
@@ -124,6 +130,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarContent>
 
       <SidebarFooter>
+        {state === "collapsed" && <SidebarTrigger className="w-full" />}
+
         {!user && state === "expanded" && !isLoading && (
           <SidebarMenu>
             <SidebarMenuItem>
@@ -137,9 +145,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         {user && (
           <NavUser
             user={{
-              name: user?.name || "",
-              email: user?.email || "",
-              avatar: user?.profilePicture || "",
+              name: user.name,
+              avatar: user.profilePicture,
+              email: user.email,
             }}
           />
         )}
