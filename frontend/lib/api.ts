@@ -136,6 +136,14 @@ class ApiClient {
       credentials: "include",
     });
 
+    if (response.status === 402) {
+      throw new Error("subscription_required");
+    }
+
+    if (!response.ok) {
+      throw new Error("failed_to_create_thread");
+    }
+
     return await response.json();
   }
 
@@ -147,10 +155,35 @@ class ApiClient {
     const url = `${
       this.baseUrl
     }/threads?page=${page}&search=${encodeURIComponent(search)}`;
-    const response = await fetch(url, {
-      credentials: "include",
-    });
-    return await response.json();
+
+    try {
+      const response = await fetch(url, {
+        credentials: "include",
+      });
+
+      if (response.status === 401) {
+        // Return empty array silently for unauthorized users
+        return [];
+      }
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        throw new Error(
+          errorData?.message ||
+            `Failed to fetch threads: ${response.status} ${response.statusText}`
+        );
+      }
+
+      return await response.json();
+    } catch (error) {
+      // Only log errors that aren't 401
+      if (error instanceof Error && !error.message.includes("401")) {
+        console.error("Error fetching threads:", error);
+      }
+
+      // Return empty array for any error
+      return [];
+    }
   }
 
   /**

@@ -1,92 +1,67 @@
 "use client";
 
-import { Suspense } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import api from "@/lib/api";
-import { motion } from "framer-motion";
-import { ArrowRight, Check, AlertCircle } from "lucide-react";
-import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { Check, Loader2, XCircle } from "lucide-react";
+import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import api from "@/lib/api";
 
 // Animation variants for Framer Motion
-const checkmarkAnimation = {
+const iconAnimation = {
   initial: { scale: 0 },
   animate: { scale: 1 },
-  transition: { duration: 0.5 },
+  transition: { type: "spring", duration: 0.6 },
 };
 
-// Loading component
-const LoadingState = () => (
-  <Card className="w-full max-w-md">
-    <CardHeader className="text-center space-y-4">
-      <div className="h-16 w-16 mx-auto animate-pulse bg-gray-200 rounded-full" />
-      <div className="space-y-2">
-        <div className="h-6 bg-gray-200 rounded animate-pulse" />
-        <div className="h-4 bg-gray-200 rounded animate-pulse w-3/4 mx-auto" />
+type Status = "processing" | "success" | "error";
+
+const ProcessingState = () => (
+  <div className="w-full max-w-md">
+    <div className="text-center space-y-4">
+      <div className="flex justify-center">
+        <Loader2 className="animate-spin h-14 w-14" />
       </div>
-    </CardHeader>
-  </Card>
+      <p className="text-muted-foreground">Processing your payment...</p>
+    </div>
+  </div>
 );
 
-// Error component
-const ErrorState = () => (
-  <Card className="w-full max-w-md">
-    <CardHeader className="text-center space-y-4">
-      <motion.div {...checkmarkAnimation} className="flex justify-center">
-        <AlertCircle className="w-16 h-16 text-red-500" />
-      </motion.div>
-      <div className="space-y-2">
-        <h1 className="text-2xl font-bold">Oops!</h1>
-        <p className="text-muted-foreground">
-          Something went wrong while processing your payment.
-        </p>
-      </div>
-    </CardHeader>
-    <CardContent className="flex justify-center pb-6">
-      <Button asChild>
-        <Link href="/support">
-          Contact Support <ArrowRight className="ml-2 w-4 h-4" />
-        </Link>
-      </Button>
-    </CardContent>
-  </Card>
-);
-
-// Success component
 const SuccessState = () => (
-  <Card className="w-full max-w-md">
-    <CardHeader className="text-center space-y-4">
-      <motion.div {...checkmarkAnimation} className="flex justify-center">
+  <div className="w-full max-w-md">
+    <div className="text-center space-y-4">
+      <motion.div {...iconAnimation} className="flex justify-center">
         <Check className="w-16 h-16 text-green-500" />
       </motion.div>
-      <div className="space-y-2">
-        <h1 className="text-2xl font-bold">Thank you!</h1>
-        <p className="text-muted-foreground">We have received your payment.</p>
-      </div>
-    </CardHeader>
-    <CardContent className="flex justify-center pb-6">
-      <Button asChild>
-        <Link href="/">
-          Return to App <ArrowRight className="ml-2 w-4 h-4" />
-        </Link>
-      </Button>
-    </CardContent>
-  </Card>
+      <p className="text-muted-foreground">Payment successful!</p>
+    </div>
+  </div>
 );
 
-const SuccessPageContent = () => {
+const ErrorState = () => (
+  <div className="w-full max-w-md">
+    <div className="text-center space-y-4">
+      <motion.div {...iconAnimation} className="flex justify-center">
+        <XCircle className="w-16 h-16 text-red-500" />
+      </motion.div>
+      <p className="text-muted-foreground">
+        Something went wrong with your payment
+      </p>
+    </div>
+  </div>
+);
+
+const SuccessPage = () => {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const session_id = searchParams.get("session_id");
-  const [status, setStatus] = useState<"loading" | "success" | "error">(
-    "loading"
-  );
+  const [status, setStatus] = useState<Status>("processing");
 
   useEffect(() => {
     const syncData = async () => {
       if (!session_id) {
         setStatus("error");
+        setTimeout(() => router.push("/"), 2000);
         return;
       }
 
@@ -94,32 +69,27 @@ const SuccessPageContent = () => {
         const response = await api.syncAfterSuccess(session_id);
         if (response.ok) {
           setStatus("success");
+          setTimeout(() => router.push("/"), 1500);
         } else {
           setStatus("error");
+          setTimeout(() => router.push("/"), 2000);
         }
       } catch (error) {
         console.error("Error syncing data:", error);
         setStatus("error");
+        setTimeout(() => router.push("/"), 2000);
       }
     };
 
     syncData();
-  }, [session_id]);
+  }, [session_id, router]);
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
-      {status === "loading" && <LoadingState />}
+      {status === "processing" && <ProcessingState />}
       {status === "success" && <SuccessState />}
       {status === "error" && <ErrorState />}
     </div>
-  );
-};
-
-const SuccessPage = () => {
-  return (
-    <Suspense fallback={<LoadingState />}>
-      <SuccessPageContent />
-    </Suspense>
   );
 };
 

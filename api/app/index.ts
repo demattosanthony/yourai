@@ -41,7 +41,7 @@ async function main() {
     app.set("trust proxy", 1);
   }
 
-  app.use("/webhook", Express.raw({ type: "application/json" }));
+  app.use("/payments/webhook", Express.raw({ type: "application/json" }));
   app.use(Express.json({ limit: "50mb" }));
 
   app.use(
