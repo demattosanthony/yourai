@@ -68,7 +68,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   </Button>
                 </Link>
 
-                <Link href={"/threads"}>
+                <Link href={"/threads"} prefetch>
                   <Button
                     variant={"ghost"}
                     className={`w-full px-2 ${

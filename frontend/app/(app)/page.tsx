@@ -43,6 +43,7 @@ export default function Home() {
     try {
       // Create thread in background
       const { id: threadId } = await api.createThread();
+      router.prefetch(`/threads/${threadId}`);
       // Replace URL without adding to history
       router.replace(`/threads/${threadId}`);
       sendMessage(threadId);
