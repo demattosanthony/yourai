@@ -1,12 +1,10 @@
 "use client";
 
 import ModelSelector from "./ModelSelector";
-import ChatSettings from "./ChatSettings";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useAtom } from "jotai";
 import { messagesAtom } from "@/atoms/chat";
-import { ModeToggle } from "./DarkModeToggle";
 import { SidebarTrigger } from "./ui/sidebar";
 import { Button } from "./ui/button";
 import { Plus } from "lucide-react";
@@ -42,17 +40,9 @@ export default function Header() {
         </div>
       )}
 
-      <div className="absolute right-4 bg-opacity-50 z-10">
+      <div className="absolute left-4 bg-opacity-50 z-10">
         <div className="flex items-center ">
           <ModelSelector />
-
-          {/* <Link href="/threads" prefetch>
-            <Button variant={"ghost"} className="rounded-full" size={"icon"}>
-              <History size={16} className="min-h-4 min-w-4" />
-            </Button>
-          </Link> */}
-
-          <ChatSettings />
 
           <Button
             variant={"ghost"}
@@ -65,8 +55,6 @@ export default function Header() {
           >
             <Plus size={16} className="min-h-4 min-w-4" />
           </Button>
-
-          <ModeToggle />
 
           {/* <ProfileMenu /> */}
         </div>
