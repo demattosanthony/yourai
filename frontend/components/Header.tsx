@@ -40,7 +40,7 @@ export default function Header() {
         </div>
       )}
 
-      <div className="absolute left-4 bg-opacity-50 z-10">
+      <div className="absolute right-6 md:left-4 md:right-none bg-opacity-50 z-10">
         <div className="flex items-center ">
           <ModelSelector />
 
