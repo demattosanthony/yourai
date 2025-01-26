@@ -211,7 +211,7 @@ It is currently: ${new Date().toLocaleString("en-US", {
         system: modelConfig.supportsSystemMessages
           ? yoSystemMessage
           : undefined,
-        experimental_providerMetadata: { openai: { reasoningEffort: "high" } },
+        // experimental_providerMetadata: { openai: { reasoningEffort: "high" } },
         maxTokens: maxTokens || undefined,
       };
 

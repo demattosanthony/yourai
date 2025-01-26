@@ -12,6 +12,11 @@ export const subscriptionCheckMiddleware = async (
       throw new Error("User not authenticated.");
     }
 
+    // Only check if we are in production
+    if (!CONFIG.__prod__) {
+      return next();
+    }
+
     // Check if user is on whitelist - if so, skip subscription check
     if (CONFIG.EMAIL_WHITELIST.includes(req.dbUser.email)) {
       return next();
