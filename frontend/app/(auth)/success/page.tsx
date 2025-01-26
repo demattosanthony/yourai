@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { Check, Loader2, XCircle } from "lucide-react";
 import { motion } from "framer-motion";
-import { useRouter } from "next/navigation";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import api from "@/lib/api";
 
 // Animation variants for Framer Motion
@@ -51,7 +50,7 @@ const ErrorState = () => (
   </div>
 );
 
-const SuccessPage = () => {
+const SuccessPageContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const session_id = searchParams.get("session_id");
@@ -90,6 +89,14 @@ const SuccessPage = () => {
       {status === "success" && <SuccessState />}
       {status === "error" && <ErrorState />}
     </div>
+  );
+};
+
+const SuccessPage = () => {
+  return (
+    <Suspense fallback={<ProcessingState />}>
+      <SuccessPageContent />
+    </Suspense>
   );
 };
 

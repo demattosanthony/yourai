@@ -44,8 +44,8 @@ export default function Home() {
       // Replace URL without adding to history
       router.replace(`/threads/${threadId}`);
       sendMessage(threadId);
-    } catch (error: any) {
-      if (error.message === "subscription_required") {
+    } catch (error: unknown) {
+      if (error instanceof Error && error.message === "subscription_required") {
         showPricingDialog(true);
         toast.error("Pro plan required to create a new thread.");
       } else {
