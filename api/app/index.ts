@@ -5,13 +5,11 @@ import { migrate } from "drizzle-orm/node-postgres/migrator";
 import cookieParser from "cookie-parser";
 import { CONFIG } from "./config/constants";
 import { authMiddleware } from "./middleware/auth";
-import Stripe from "stripe";
 
 // Clients
 import db from "./config/db";
 import s3 from "./config/s3";
 import myPassport from "./config/passport";
-import stripe, { allowedEvents, syncStripeData } from "./config/stripe";
 
 // Routes
 import authRoutes from "./routes/auth";
@@ -87,58 +85,6 @@ async function main() {
     } catch (error: any) {
       handleError(res, error);
     }
-  });
-
-  // Stripe webhook
-  async function processEvent(event: Stripe.Event) {
-    // Skip processing if the event isn't one I'm tracking (list of all events below)
-    if (!allowedEvents.includes(event.type)) return;
-
-    // All the events I track have a customerId
-    const { customer: customerId } = event?.data?.object as {
-      customer: string; // Sadly TypeScript does not know this
-    };
-
-    // This helps make it typesafe and also lets me know if my assumption is wrong
-    if (typeof customerId !== "string") {
-      throw new Error(
-        `[STRIPE HOOK][CANCER] ID isn't string.\nEvent type: ${event.type}`
-      );
-    }
-
-    return await syncStripeData(customerId);
-  }
-
-  app.post("/webhook", async (request, response) => {
-    const sig = request.headers["stripe-signature"];
-    const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
-
-    if (!sig) {
-      response.status(400).send("Missing Stripe signature");
-      return;
-    }
-
-    async function doProcessing() {
-      if (typeof sig !== "string") {
-        throw new Error("[STRIPE HOOK] Header isn't a string???");
-      }
-
-      const event = await stripe.webhooks.constructEventAsync(
-        request.body,
-        sig!,
-        endpointSecret!
-      );
-
-      await processEvent(event);
-    }
-
-    try {
-      await doProcessing();
-    } catch (err) {
-      console.error("Error processing webhook event:", err);
-    }
-
-    response.json({ received: true });
   });
 
   app.listen(CONFIG.PORT, () => {

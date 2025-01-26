@@ -22,8 +22,10 @@ const PRICING_PLANS = {
       "Chat with all the top AI models",
       "Upload images and PDFs",
       "Unlimited messages",
+      "Priority support",
+      "Custom integrations",
     ],
-    lookup_key: "Yo-a140f7e",
+    lookup_key: "yo-pro-plan",
   },
 } as const;
 
