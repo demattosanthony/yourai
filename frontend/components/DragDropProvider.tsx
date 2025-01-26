@@ -1,9 +1,16 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from "react";
 import { useAtom } from "jotai";
 import { modelAtom, uploadsAtom } from "@/atoms/chat";
 import { FileUpload } from "@/types/chat";
+import { toast } from "sonner";
 
 interface DragAndDropContextType {
   isDragging: boolean;
@@ -23,14 +30,47 @@ export function DragAndDropProvider({
   const [, setUploads] = useAtom(uploadsAtom);
   const [model] = useAtom(modelAtom);
 
-  useEffect(() => {
-    const handleDragOver = (e: DragEvent) => {
+  const handleDrop = useCallback(
+    (e: DragEvent) => {
       e.preventDefault();
-      if (!model.supportsImages && !model.supportsPdfs) return;
-      setIsDragging(true);
-    };
+      e.stopPropagation();
+      setIsDragging(false);
 
-    const handleDragLeave = (e: DragEvent) => {
+      if (!model.supportsImages && !model.supportsPdfs) return;
+
+      const files = Array.from(e.dataTransfer?.files || []);
+      const validFiles = files.filter((file) => {
+        if (file.type.startsWith("image/")) {
+          return true;
+        }
+        if (model.supportsPdfs && file.type === "application/pdf") {
+          const isValidSize =
+            !model.maxPdfSize || file.size <= model.maxPdfSize;
+          if (!isValidSize) {
+            toast.error(
+              `PDF file size must be under ${
+                (model.maxPdfSize as number) / (1024 * 1024)
+              }MB for the selected model.`
+            );
+          }
+          return isValidSize;
+        }
+        return false;
+      });
+
+      const newUploads: FileUpload[] = validFiles.map((file) => ({
+        file,
+        preview: URL.createObjectURL(file),
+        type: file.type.startsWith("image/") ? "image" : "pdf",
+      }));
+
+      setUploads((prev) => [...prev, ...newUploads]);
+    },
+    [model, setUploads, setIsDragging]
+  );
+
+  const handleDragLeave = useCallback(
+    (e: DragEvent) => {
       e.preventDefault();
       const rect = document.documentElement.getBoundingClientRect();
       const isLeaving =
@@ -42,30 +82,20 @@ export function DragAndDropProvider({
       if (isLeaving) {
         setIsDragging(false);
       }
-    };
+    },
+    [setIsDragging]
+  );
 
-    const handleDrop = (e: DragEvent) => {
+  const handleDragOver = useCallback(
+    (e: DragEvent) => {
       e.preventDefault();
-      setIsDragging(false);
-
       if (!model.supportsImages && !model.supportsPdfs) return;
+      setIsDragging(true);
+    },
+    [model, setIsDragging]
+  );
 
-      const files = Array.from(e.dataTransfer?.files || []);
-      const validFiles = files.filter(
-        (file) =>
-          (model.supportsImages && file.type.startsWith("image/")) ||
-          (model.supportsPdfs && file.type === "application/pdf")
-      );
-
-      const newUploads: FileUpload[] = validFiles.map((file) => ({
-        file,
-        preview: URL.createObjectURL(file),
-        type: file.type.startsWith("image/") ? "image" : "pdf",
-      }));
-
-      setUploads((prev) => [...prev, ...newUploads]);
-    };
-
+  useEffect(() => {
     if (typeof window === "undefined") return;
 
     window.addEventListener("dragover", handleDragOver);
@@ -77,7 +107,7 @@ export function DragAndDropProvider({
       window.removeEventListener("dragleave", handleDragLeave);
       window.removeEventListener("drop", handleDrop);
     };
-  }, [model.supportsImages, model.supportsPdfs, setUploads]);
+  }, [model, setUploads]);
 
   return (
     <DragAndDropContext.Provider value={{ isDragging, setIsDragging }}>

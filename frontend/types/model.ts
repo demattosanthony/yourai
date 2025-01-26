@@ -6,4 +6,5 @@ export interface Model {
   supportsStreaming?: boolean;
   supportsPdfs?: boolean;
   description?: string;
+  maxPdfSize?: number;
 }

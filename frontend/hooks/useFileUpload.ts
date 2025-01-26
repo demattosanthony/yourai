@@ -3,6 +3,7 @@ import { useDragAndDrop } from "@/components/DragDropProvider";
 import { FileUpload } from "@/types/chat";
 import { useAtom } from "jotai";
 import { useEffect } from "react";
+import { toast } from "sonner";
 
 export function useFileUpload(acceptedTypes: string[]) {
   const [uploads, setUploads] = useAtom(uploadsAtom);
@@ -13,11 +14,23 @@ export function useFileUpload(acceptedTypes: string[]) {
     e.preventDefault();
 
     const files = Array.from(e.target.files || []);
-    const validFiles = files.filter(
-      (file) =>
-        file.type.startsWith("image/") ||
-        (model.supportsPdfs && file.type === "application/pdf")
-    );
+    const validFiles = files.filter((file) => {
+      if (file.type.startsWith("image/")) {
+        return true;
+      }
+      if (model.supportsPdfs && file.type === "application/pdf") {
+        const isValidSize = !model.maxPdfSize || file.size <= model.maxPdfSize;
+        if (!isValidSize) {
+          toast.error(
+            `PDF file size must be under ${
+              (model.maxPdfSize as number) / (1024 * 1024)
+            }MB for the selected model.`
+          );
+        }
+        return isValidSize;
+      }
+      return false;
+    });
 
     const newUploads: FileUpload[] = validFiles.map((file) => ({
       file,
@@ -54,14 +67,28 @@ export function useFileUpload(acceptedTypes: string[]) {
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     setIsDragging(false);
 
     const newUploads: FileUpload[] = Array.from(e.dataTransfer.files)
-      .filter(
-        (file) =>
-          (model.supportsImages && file.type.startsWith("image/")) ||
-          (model.supportsPdfs && file.type === "application/pdf")
-      )
+      .filter((file) => {
+        if (model.supportsImages && file.type.startsWith("image/")) {
+          return true;
+        }
+        if (model.supportsPdfs && file.type === "application/pdf") {
+          const isValidSize =
+            !model.maxPdfSize || file.size <= model.maxPdfSize;
+          if (!isValidSize) {
+            toast.error(
+              `PDF file size must be under ${
+                (model.maxPdfSize as number) / (1024 * 1024)
+              }MB for the selected model.`
+            );
+          }
+          return isValidSize;
+        }
+        return false;
+      })
       .map((file) => ({
         file,
         preview: URL.createObjectURL(file),

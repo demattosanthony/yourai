@@ -13,6 +13,7 @@ router.get("", async (req, res) => {
       supportsImages: config.supportsImages,
       supportsPdfs: config.supportsPdfs,
       description: config.description,
+      maxPdfSize: config.maxPdfSize,
     }))
   );
 });

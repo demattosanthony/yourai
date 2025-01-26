@@ -29,6 +29,7 @@ interface ModelConfig {
   supportsSystemMessages?: boolean;
   supportsImages?: boolean;
   supportsPdfs?: boolean;
+  maxPdfSize?: number;
   description: string;
 }
 
@@ -43,6 +44,7 @@ export const MODELS: Record<string, ModelConfig> = {
           supportsImages: true,
           supportsPdfs: true,
           supportsSystemMessages: true,
+          maxPdfSize: 32 * 1024 * 1024, // 32MB
           description:
             "Claude 3.5 Sonnet strikes the ideal balance between intelligence and speed—particularly for enterprise workloads. It delivers strong performance at a lower cost compared to its peers, and is engineered for high endurance in large-scale AI deployments.",
         },
@@ -113,6 +115,7 @@ export const MODELS: Record<string, ModelConfig> = {
           supportsImages: true,
           supportsPdfs: true,
           supportsSystemMessages: true,
+          maxPdfSize: 50 * 1024 * 1024, // 50MB
           description:
             "Gemini 2.0 Pro is a robust model from Google, well-suited for a variety of tasks including text generation, translation, and code completion. It supports tool use, streaming, image and PDF inputs, making it a versatile option for many applications.",
         },
@@ -124,6 +127,7 @@ export const MODELS: Record<string, ModelConfig> = {
           supportsImages: true,
           supportsPdfs: true,
           supportsSystemMessages: true,
+          maxPdfSize: 50 * 1024 * 1024, // 50MB
           description:
             "Gemini 2.0 Flash delivers next-gen features and improved capabilities, including superior speed, native tool use, multimodal generation, and a 1M token context window.",
         },
@@ -137,6 +141,7 @@ export const MODELS: Record<string, ModelConfig> = {
           supportsImages: true,
           supportsPdfs: true,
           supportsSystemMessages: true,
+          maxPdfSize: 50 * 1024 * 1024, // 50MB
           description:
             "Gemini 2.0 Flash Online enhances the speed of Gemini 2.0 Flash with the ability to access real-time information through search grounding. It's perfect for tasks that require up-to-date data and fast responses, while also supporting tool use, streaming, image and PDF inputs.",
         },
@@ -148,6 +153,7 @@ export const MODELS: Record<string, ModelConfig> = {
           supportsImages: true,
           supportsPdfs: true,
           supportsSystemMessages: true,
+          maxPdfSize: 50 * 1024 * 1024, // 50MB
           description:
             "Gemini 2.0 Flash Thinking is an experimental model trained to expose its reasoning process in responses. By making its thinking process explicit, this model demonstrates enhanced reasoning capabilities compared to other Gemini 2.0 Flash models.",
         },
