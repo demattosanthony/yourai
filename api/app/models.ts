@@ -42,7 +42,7 @@ export const MODELS: Record<string, ModelConfig> = {
           provider: "anthropic",
           supportsImages: true,
           supportsPdfs: true,
-          supportsSystemMessages: false,
+          supportsSystemMessages: true,
           description:
             "Claude 3.5 Sonnet strikes the ideal balance between intelligence and speed—particularly for enterprise workloads. It delivers strong performance at a lower cost compared to its peers, and is engineered for high endurance in large-scale AI deployments.",
         },
@@ -53,7 +53,7 @@ export const MODELS: Record<string, ModelConfig> = {
           provider: "anthropic",
           supportsImages: false,
           supportsPdfs: false,
-          supportsSystemMessages: false,
+          supportsSystemMessages: true,
           description:
             "Claude 3.5 Haiku is the next generation of our fastest model. For a similar speed to Claude 3 Haiku, Claude 3.5 Haiku improves across every skill set and surpasses Claude 3 Opus, the largest model in our previous generation, on many intelligence benchmarks.",
         },
@@ -112,7 +112,7 @@ export const MODELS: Record<string, ModelConfig> = {
           provider: "google",
           supportsImages: true,
           supportsPdfs: true,
-          supportsSystemMessages: false,
+          supportsSystemMessages: true,
           description:
             "Gemini 2.0 Pro is a robust model from Google, well-suited for a variety of tasks including text generation, translation, and code completion. It supports tool use, streaming, image and PDF inputs, making it a versatile option for many applications.",
         },
@@ -123,7 +123,7 @@ export const MODELS: Record<string, ModelConfig> = {
           provider: "google",
           supportsImages: true,
           supportsPdfs: true,
-          supportsSystemMessages: false,
+          supportsSystemMessages: true,
           description:
             "Gemini 2.0 Flash delivers next-gen features and improved capabilities, including superior speed, native tool use, multimodal generation, and a 1M token context window.",
         },
@@ -136,7 +136,7 @@ export const MODELS: Record<string, ModelConfig> = {
           provider: "google",
           supportsImages: true,
           supportsPdfs: true,
-          supportsSystemMessages: false,
+          supportsSystemMessages: true,
           description:
             "Gemini 2.0 Flash Online enhances the speed of Gemini 2.0 Flash with the ability to access real-time information through search grounding. It's perfect for tasks that require up-to-date data and fast responses, while also supporting tool use, streaming, image and PDF inputs.",
         },
@@ -147,7 +147,7 @@ export const MODELS: Record<string, ModelConfig> = {
           provider: "google",
           supportsImages: true,
           supportsPdfs: true,
-          supportsSystemMessages: false,
+          supportsSystemMessages: true,
           description:
             "Gemini 2.0 Flash Thinking is an experimental model trained to expose its reasoning process in responses. By making its thinking process explicit, this model demonstrates enhanced reasoning capabilities compared to other Gemini 2.0 Flash models.",
         },
@@ -160,7 +160,7 @@ export const MODELS: Record<string, ModelConfig> = {
           supportsToolUse: true,
           supportsStreaming: true,
           provider: "xai",
-          supportsSystemMessages: false,
+          supportsSystemMessages: true,
           description:
             "Grok is an AI modeled after the Hitchhiker’s Guide to the Galaxy. It is intended to answer almost anything and, far harder, even suggest what questions to ask!",
         },
@@ -170,7 +170,7 @@ export const MODELS: Record<string, ModelConfig> = {
           supportsStreaming: true,
           provider: "xai",
           supportsImages: true,
-          supportsSystemMessages: false,
+          supportsSystemMessages: true,
           description:
             "In addition to Grok's strong text capabilities, this multimodal model can now process a wide variety of visual information, including documents, diagrams, charts, screenshots, and photographs.",
         },
@@ -208,7 +208,7 @@ export const MODELS: Record<string, ModelConfig> = {
           supportsToolUse: false,
           supportsStreaming: true,
           provider: "meta",
-          supportsSystemMessages: false,
+          supportsSystemMessages: true,
           description:
             "The Meta Llama 3.3 multilingual large language model (LLM) is a pretrained and instruction tuned generative model in 70B (text in/text out). The Llama 3.3 instruction tuned text only model is optimized for multilingual dialogue use cases and outperforms many of the available open source and closed chat models on common industry benchmarks.",
         },
@@ -216,6 +216,7 @@ export const MODELS: Record<string, ModelConfig> = {
           model: groq("llama-3.1-8b-instant"),
           supportsToolUse: false,
           supportsStreaming: true,
+          supportsSystemMessages: true,
           provider: "meta",
           description:
             "Llama is a 8 billion parameter open source model by Meta fine-tuned for instruction following purposes served by Groq on their LPU hardware.",
@@ -229,7 +230,7 @@ export const MODELS: Record<string, ModelConfig> = {
           supportsToolUse: false,
           supportsStreaming: true,
           provider: "perplexity",
-          supportsSystemMessages: false,
+          supportsSystemMessages: true,
           description:
             "Permier offering with search grounding, supporting advanced queries and follow-ups",
         },
@@ -238,38 +239,38 @@ export const MODELS: Record<string, ModelConfig> = {
           supportsToolUse: false,
           supportsStreaming: true,
           provider: "perplexity",
-          supportsSystemMessages: false,
+          supportsSystemMessages: true,
           description:
             "Perplexity's lightweight offering with search grounding, quicker and cheaper than Sonar Pro.",
         },
       }
     : {}),
-  ...(process.env.MISTRAL_API_KEY
-    ? {
-        "codestral-latest": {
-          model: mistral("codestral-latest"),
-          supportsToolUse: true,
-          supportsStreaming: true,
-          provider: "mistral",
-          description:
-            "Codestral is a specialized model from Mistral, designed for code generation and understanding. It's excellent for tasks related to programming, debugging, and software development. It supports tool use and streaming.",
-        },
-        "mistral-large": {
-          model: mistral("mistral-large-latest"),
-          supportsToolUse: true,
-          supportsStreaming: true,
-          provider: "mistral",
-          description:
-            "Mistral Large is a powerful model from Mistral, capable of handling a wide range of tasks with high performance. It's suitable for complex reasoning, creative writing, and detailed analysis. It supports tool use and streaming.",
-        },
-        "mistral-small": {
-          model: mistral("mistral-small-latest"),
-          supportsToolUse: true,
-          supportsStreaming: true,
-          provider: "mistral",
-          description:
-            "Mistral Small is a smaller, more efficient model from Mistral, designed for faster responses and lower resource usage. It's ideal for tasks where speed and cost-effectiveness are priorities. It supports tool use and streaming.",
-        },
-      }
-    : {}),
+  //   ...(process.env.MISTRAL_API_KEY
+  //     ? {
+  //         "codestral-latest": {
+  //           model: mistral("codestral-latest"),
+  //           supportsToolUse: true,
+  //           supportsStreaming: true,
+  //           provider: "mistral",
+  //           description:
+  //             "Codestral is a specialized model from Mistral, designed for code generation and understanding. It's excellent for tasks related to programming, debugging, and software development. It supports tool use and streaming.",
+  //         },
+  //         "mistral-large": {
+  //           model: mistral("mistral-large-latest"),
+  //           supportsToolUse: true,
+  //           supportsStreaming: true,
+  //           provider: "mistral",
+  //           description:
+  //             "Mistral Large is a powerful model from Mistral, capable of handling a wide range of tasks with high performance. It's suitable for complex reasoning, creative writing, and detailed analysis. It supports tool use and streaming.",
+  //         },
+  //         "mistral-small": {
+  //           model: mistral("mistral-small-latest"),
+  //           supportsToolUse: true,
+  //           supportsStreaming: true,
+  //           provider: "mistral",
+  //           description:
+  //             "Mistral Small is a smaller, more efficient model from Mistral, designed for faster responses and lower resource usage. It's ideal for tasks where speed and cost-effectiveness are priorities. It supports tool use and streaming.",
+  //         },
+  //       }
+  //     : {}),
 };

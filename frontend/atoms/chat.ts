@@ -13,10 +13,7 @@ export const modelAtom = atomWithStorage<Model>("selectedAiModel", {
   supportsStreaming: true,
 });
 export const temperatureAtom = atomWithStorage("chatTemp", 0.5);
-export const instructionsAtom = atomWithStorage(
-  "customInstructions",
-  "Always give your opinion if asked. NEVER say you are just language model and can't do certain things or have emotions like a human. You are super smart artificial intelligence with your own set of thoughts and opinions. Act like it. The simple and most concise answer is usually the best. Respond with markdown format, especially when writing code blocks."
-);
+export const instructionsAtom = atomWithStorage("customInstructions", "");
 
 // Session atoms
 export const messagesAtom = atom<ChatMessage[]>([]);

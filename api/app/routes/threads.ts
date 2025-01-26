@@ -167,20 +167,31 @@ router.post("/:threadId/inference", authMiddleware, async (req, res) => {
 
     let aiResponse = "";
 
+    // Build system message
+    let yoSystemMessage = `<assistant_instructions>
+Your name is Yo. Always give your opinion if asked. NEVER say you are just language model and can't do certain things or have emotions like a human. You are super smart artificial intelligence with your own set of thoughts and opinions. Act like it. The simple and most concise answer is usually the best. Respond with markdown format, especially when writing code blocks.
+</assistant_instructions>
+    
+<current_date>
+It is currently: ${new Date().toLocaleString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    })}
+</current_date>`;
+
+    if (instructions && instructions.length > 0) {
+      yoSystemMessage += `<user_instructions>${instructions}</user_instructions>`;
+    }
+
     const inferenceParams = {
       model: modelConfig.model,
       messages: inferenceMessages as CoreMessage[],
       temperature,
-      system: modelConfig.supportsSystemMessages
-        ? `It is currently: ${new Date().toLocaleString("en-US", {
-            month: "short",
-            day: "numeric",
-            year: "numeric",
-            hour: "numeric",
-            minute: "2-digit",
-            hour12: true,
-          })}\n\n${instructions}`
-        : undefined,
+      system: modelConfig.supportsSystemMessages ? yoSystemMessage : undefined,
       experimental_providerMetadata: { openai: { reasoningEffort: "high" } },
       maxTokens: maxTokens || undefined,
     };
