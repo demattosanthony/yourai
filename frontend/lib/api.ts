@@ -21,9 +21,7 @@ class ApiClient {
     });
   }
 
-  async me(): Promise<{
-    user?: User;
-  }> {
+  async me(): Promise<User | null> {
     const response = await fetch(`${this.baseUrl}/auth/me`, {
       method: "GET",
       credentials: "include",

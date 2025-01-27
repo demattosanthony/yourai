@@ -22,8 +22,7 @@ export default function Home() {
     pricingPlanDialogOpenAtom
   );
 
-  const { data } = useMeQuery();
-  const user = data?.user;
+  const { data: user } = useMeQuery();
 
   const handleSubmit = async () => {
     if (!user) {

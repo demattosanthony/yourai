@@ -17,8 +17,7 @@ export default function ThreadsPage() {
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 300);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const { data: meData, isFetched } = useMeQuery();
-  const user = meData?.user;
+  const { data: user, isFetched } = useMeQuery();
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
     useThreadsQuery(debouncedSearch);

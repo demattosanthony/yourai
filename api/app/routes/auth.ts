@@ -53,9 +53,9 @@ router.get("/me", async (req, res) => {
       });
     }
 
-    res.json({ user });
+    res.json(user);
   } catch (e) {
-    res.json({ user });
+    res.json(user);
   }
 });
 

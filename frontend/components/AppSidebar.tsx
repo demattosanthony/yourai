@@ -27,8 +27,7 @@ import Link from "next/link";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { data: userData, isLoading } = useMeQuery();
-  const user = userData?.user;
+  const { data: user, isLoading } = useMeQuery();
   const { state } = useSidebar();
   const isMobile = useIsMobile();
 

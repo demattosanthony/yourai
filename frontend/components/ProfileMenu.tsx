@@ -22,8 +22,7 @@ import { useAuth } from "@/hooks/useAuth";
 
 export default function ProfileMenu() {
   const { setTheme } = useTheme();
-  const { data, isLoading } = useMeQuery();
-  const user = data?.user;
+  const { data: user, isLoading } = useMeQuery();
   const { logOut } = useAuth();
 
   if (isLoading) {

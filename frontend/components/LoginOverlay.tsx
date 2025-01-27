@@ -18,8 +18,7 @@ export function LoginOverlay() {
 
   const { handleGoogleLogin } = useAuth();
 
-  const { data, isLoading } = useMeQuery();
-  const user = data?.user;
+  const { data: user, isLoading } = useMeQuery();
 
   if (isLoading || user || isDismissed) {
     return null;
