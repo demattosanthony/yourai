@@ -17,12 +17,16 @@ import { inputAtom, modelAtom } from "@/atoms/chat";
 
 interface ChatInputFormProps {
   onSubmit: () => void;
+  fileInputRef?: React.RefObject<HTMLInputElement | null>;
+  textAreaRef?: React.RefObject<HTMLTextAreaElement | null>;
   placeholder?: string;
 }
 
 export default function ChatInputForm({
   onSubmit,
   placeholder = "Ask anything...",
+  fileInputRef,
+  textAreaRef,
 }: ChatInputFormProps) {
   const [input, setInput] = useAtom(inputAtom);
   const [selectedModel] = useAtom(modelAtom);
@@ -37,9 +41,8 @@ export default function ChatInputForm({
   } = useFileUpload(["image/*", "application/pdf"]);
   const { abortMessage, isGenerating } = useMessageHandler();
 
-  const textAreaRef = useRef<HTMLTextAreaElement>(null);
+  //   const textAreaRef = useRef<HTMLTextAreaElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleKeyDown = async (
     event: React.KeyboardEvent<HTMLTextAreaElement>
@@ -54,7 +57,7 @@ export default function ChatInputForm({
         setInput(textBeforeCaret + "\n" + textAfterCaret);
         // Set cursor position after state update
         setTimeout(() => {
-          if (textAreaRef.current) {
+          if (textAreaRef?.current) {
             textAreaRef.current.selectionStart = caretPosition + 1;
             textAreaRef.current.selectionEnd = caretPosition + 1;
           }
@@ -80,7 +83,7 @@ export default function ChatInputForm({
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
         e.preventDefault();
-        textAreaRef.current?.focus();
+        textAreaRef?.current?.focus();
         setFocused(true);
       }
     };
@@ -92,7 +95,7 @@ export default function ChatInputForm({
   }, []);
 
   useEffect(() => {
-    if (textAreaRef.current) {
+    if (textAreaRef?.current) {
       textAreaRef.current.style.height = "50px";
       textAreaRef.current.style.height =
         textAreaRef.current.scrollHeight + "px";
@@ -187,7 +190,7 @@ export default function ChatInputForm({
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  fileInputRef.current?.click();
+                  fileInputRef?.current?.click();
                 }}
               >
                 <Paperclip />

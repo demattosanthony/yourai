@@ -9,7 +9,7 @@ import { MessageRole } from "@/types/chat";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAtom } from "jotai";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 export default function ThreadPage() {
   const router = useRouter();
@@ -20,6 +20,9 @@ export default function ThreadPage() {
   const [, setMessages] = useAtom(messagesAtom);
   const searchParams = useSearchParams();
   const isNew = searchParams.get("new") === "true";
+
+  const fileInput = useRef<HTMLInputElement>(null);
+  const textAreaInput = useRef<HTMLTextAreaElement>(null);
 
   const { data: thread, isError } = useThreadQuery(threadId, isNew);
 
@@ -67,7 +70,11 @@ export default function ThreadPage() {
       <ChatMessagesList />
 
       <div className="w-full flex items-center justify-center mx-auto px-6 pb-8 md:pb-4 md:p-2">
-        <ChatInputForm onSubmit={handleSubmit} />
+        <ChatInputForm
+          onSubmit={handleSubmit}
+          textAreaRef={textAreaInput}
+          fileInputRef={fileInput}
+        />
       </div>
     </>
   );
