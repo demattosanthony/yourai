@@ -42,7 +42,7 @@ export default function UserSettings() {
     <div className="max-w-2xl mx-auto py-20 px-6 w-full">
       <h1 className="text-xl font-semibold mb-8">User Settings</h1>
 
-      <div className="space-y-12">
+      <div className="space-y-6">
         {/* Profile Picture Section */}
         <section>
           <div className="flex items-center justify-between">
@@ -120,7 +120,9 @@ export default function UserSettings() {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-base font-normal">Creativity</h3>
-                <span className="text-sm text-muted-foreground">0.4</span>
+                <span className="text-sm text-muted-foreground">
+                  {temperature.toFixed(1)}
+                </span>
               </div>
               <Slider
                 min={0}
