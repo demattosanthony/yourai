@@ -36,7 +36,10 @@ export function DragAndDropProvider({
       e.stopPropagation();
       setIsDragging(false);
 
-      if (!model.supportsImages && !model.supportsPdfs) return;
+      if (!model.supportsImages && !model.supportsPdfs) {
+        toast.error("This model does not support file uploads.");
+        return;
+      }
 
       const files = Array.from(e.dataTransfer?.files || []);
       const validFiles = files.filter((file) => {
@@ -113,7 +116,7 @@ export function DragAndDropProvider({
     <DragAndDropContext.Provider value={{ isDragging, setIsDragging }}>
       {children}
       {isDragging && (model.supportsImages || model.supportsPdfs) && (
-        <div className="fixed inset-0 z-50 pointer-events-none">
+        <div className="absolute inset-0 z-50 pointer-events-none">
           {/* Animated backdrop */}
           <div className="absolute inset-0 bg-background/40 backdrop-blur-[2px] transition-all duration-300" />
 

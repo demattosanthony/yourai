@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import { Provider as JotaiProvider } from "jotai";
 import { ThemeProvider } from "@/components/ThemeProvider";
-import { DragAndDropProvider } from "@/components/DragDropProvider";
 import ReactQueryProvider from "./providers";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
@@ -46,11 +45,9 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             <JotaiProvider>
-              <DragAndDropProvider>
-                <Toaster />
+              <Toaster />
 
-                {children}
-              </DragAndDropProvider>
+              {children}
             </JotaiProvider>
           </ThemeProvider>
         </ReactQueryProvider>

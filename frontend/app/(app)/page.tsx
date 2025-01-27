@@ -25,6 +25,7 @@ export default function Home() {
   const { data: user } = useMeQuery();
 
   const handleSubmit = async () => {
+    // Require login
     if (!user) {
       toast.error("You must be logged in to create a thread.", {
         action: {
