@@ -49,11 +49,9 @@ export default function ThreadPage() {
 
   // Handle message sending
   const handleSubmit = async () => {
-    // Remove the new query param
-    router.replace(`/threads/${threadId}`);
-
     await sendMessage(threadId);
     // Invalidate the thread query to trigger a refetch
+    if (isNew) router.replace(`/threads/${threadId}`);
     queryClient.invalidateQueries({ queryKey: ["thread", threadId] });
   };
 

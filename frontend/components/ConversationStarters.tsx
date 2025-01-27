@@ -49,7 +49,7 @@ const CONVERSATION_STARTERS: StarterButtonProps[] = [
     icon: NotebookPen,
     iconColor: "text-blue-500",
     label: "Write a Report",
-    inputText: "Help me write a report about",
+    inputText: "Help me write a report about ",
     requiresFile: false,
   },
 ];
