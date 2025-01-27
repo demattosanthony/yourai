@@ -1,6 +1,6 @@
 "use client";
 
-import { isNewThreadAtom, messagesAtom } from "@/atoms/chat";
+import { messagesAtom } from "@/atoms/chat";
 import ChatInputForm from "@/components/chat/ChatInputForm";
 import ChatMessagesList from "@/components/chat/MessagesList";
 import { useMessageHandler } from "@/hooks/useMessageHandler";
@@ -8,18 +8,20 @@ import { useThreadQuery } from "@/queries/queries";
 import { MessageRole } from "@/types/chat";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAtom } from "jotai";
-import { useParams } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 
 export default function ThreadPage() {
+  const router = useRouter();
   const queryClient = useQueryClient();
   const params = useParams<{ threadId: string }>();
   const { threadId } = params;
   const { sendMessage } = useMessageHandler();
   const [, setMessages] = useAtom(messagesAtom);
-  const [isNewThread, setIsNewThread] = useAtom(isNewThreadAtom);
+  const searchParams = useSearchParams();
+  const isNew = searchParams.get("new") === "true";
 
-  const { data: thread, isError } = useThreadQuery(threadId, isNewThread);
+  const { data: thread, isError } = useThreadQuery(threadId, isNew);
 
   // Update messages atom when thread data changes
   useEffect(() => {
@@ -38,13 +40,15 @@ export default function ThreadPage() {
   // Cleanup effect
   useEffect(() => {
     return () => {
-      setIsNewThread(false);
       setMessages([]);
     };
-  }, [threadId, setIsNewThread, setMessages]);
+  }, [threadId, setMessages]);
 
   // Handle message sending
   const handleSubmit = async () => {
+    // Remove the new query param
+    router.replace(`/threads/${threadId}`);
+
     await sendMessage(threadId);
     // Invalidate the thread query to trigger a refetch
     queryClient.invalidateQueries({ queryKey: ["thread", threadId] });
@@ -57,6 +61,7 @@ export default function ThreadPage() {
       </div>
     );
   }
+
   return (
     <>
       <ChatMessagesList />

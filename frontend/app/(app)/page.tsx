@@ -5,7 +5,6 @@ import api from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { useAtom } from "jotai";
 import { useMessageHandler } from "@/hooks/useMessageHandler";
-import { isNewThreadAtom } from "@/atoms/chat";
 import AIOrbScene from "@/components/AiOrbScene";
 import InstallPrompt from "@/components/InstallPrompt";
 import { useMeQuery } from "@/queries/queries";
@@ -19,7 +18,6 @@ import {
 export default function Home() {
   const { sendMessage } = useMessageHandler();
   const router = useRouter();
-  const [, setIsNewThread] = useAtom(isNewThreadAtom);
   const [showPricingDialog, setShowPricingDialog] = useAtom(
     pricingPlanDialogOpenAtom
   );
@@ -38,14 +36,12 @@ export default function Home() {
       return;
     }
 
-    setIsNewThread(true);
-
     try {
       // Create thread in background
       const { id: threadId } = await api.createThread();
       router.prefetch(`/threads/${threadId}`);
       // Replace URL without adding to history
-      router.replace(`/threads/${threadId}`);
+      router.replace(`/threads/${threadId}?new=true`);
       sendMessage(threadId);
     } catch (error: unknown) {
       if (error instanceof Error && error.message === "subscription_required") {
@@ -59,7 +55,6 @@ export default function Home() {
           },
         });
       }
-      setIsNewThread(false);
     }
   };
 

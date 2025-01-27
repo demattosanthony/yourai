@@ -20,5 +20,4 @@ export const messagesAtom = atom<ChatMessage[]>([]);
 export const isGeneratingAtom = atom(false);
 export const inputAtom = atom("");
 export const uploadsAtom = atom<FileUpload[]>([]);
-export const isNewThreadAtom = atom(false);
 export const abortControllerAtom = atom<AbortController>(new AbortController());
