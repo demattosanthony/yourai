@@ -24,6 +24,7 @@ import api from "@/lib/api";
 export default function UserSettings() {
   const { data: user } = useMeQuery();
   const { setTheme, theme } = useTheme();
+  const [mounted, setMounted] = useState(false);
 
   const [temperature, setTemperature] = useAtom(temperatureAtom);
   const [, setInputValue] = useState(temperature.toFixed(2));
@@ -37,6 +38,11 @@ export default function UserSettings() {
   useEffect(() => {
     setInputValue(temperature.toFixed(1));
   }, [temperature]);
+
+  // Add useEffect for client-side mounting
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   return (
     <div className="max-w-2xl mx-auto py-20 px-6 w-full">
@@ -70,38 +76,40 @@ export default function UserSettings() {
                 Select your interface color scheme.
               </p>
             </div>
-            <Select value={theme} onValueChange={setTheme}>
-              <SelectTrigger className="w-48">
-                <SelectValue>
-                  <div className="flex items-center gap-2">
-                    {theme === "light" && <Sun className="w-4 h-4" />}
-                    {theme === "dark" && <Moon className="w-4 h-4" />}
-                    {theme === "system" && <Monitor className="w-4 h-4" />}
-                    <span className="capitalize">{theme}</span>
-                  </div>
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="system">
-                  <div className="flex items-center gap-2">
-                    <Monitor className="w-4 h-4" />
-                    <span>System</span>
-                  </div>
-                </SelectItem>
-                <SelectItem value="light">
-                  <div className="flex items-center gap-2">
-                    <Sun className="w-4 h-4" />
-                    <span>Light</span>
-                  </div>
-                </SelectItem>
-                <SelectItem value="dark">
-                  <div className="flex items-center gap-2">
-                    <Moon className="w-4 h-4" />
-                    <span>Dark</span>
-                  </div>
-                </SelectItem>
-              </SelectContent>
-            </Select>
+            {mounted && (
+              <Select value={theme} onValueChange={setTheme}>
+                <SelectTrigger className="w-48">
+                  <SelectValue>
+                    <div className="flex items-center gap-2">
+                      {theme === "light" && <Sun className="w-4 h-4" />}
+                      {theme === "dark" && <Moon className="w-4 h-4" />}
+                      {theme === "system" && <Monitor className="w-4 h-4" />}
+                      <span className="capitalize">{theme}</span>
+                    </div>
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="system">
+                    <div className="flex items-center gap-2">
+                      <Monitor className="w-4 h-4" />
+                      <span>System</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="light">
+                    <div className="flex items-center gap-2">
+                      <Sun className="w-4 h-4" />
+                      <span>Light</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="dark">
+                    <div className="flex items-center gap-2">
+                      <Moon className="w-4 h-4" />
+                      <span>Dark</span>
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            )}
           </div>
         </section>
 
