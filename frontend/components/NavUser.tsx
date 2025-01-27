@@ -6,6 +6,7 @@ import {
   LogOut,
   Monitor,
   Moon,
+  Settings,
   Sun,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -30,8 +31,8 @@ import { User } from "@/types/user";
 import { Button } from "./ui/button";
 import { useAtom } from "jotai";
 import { pricingPlanDialogOpenAtom } from "./PricingDialog";
-import ChatSettings from "./ChatSettings";
 import { useTheme } from "next-themes";
+import Link from "next/link";
 
 export function NavUser({ user }: { user: User }) {
   const [, setShowPricingPlanDialog] = useAtom(pricingPlanDialogOpenAtom);
@@ -80,7 +81,7 @@ export function NavUser({ user }: { user: User }) {
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+            className="w-[--radix-dropdown-menu-trigger-width] min-w-64 rounded-lg"
             side={isMobile ? "bottom" : "top"}
             align="end"
             sideOffset={4}
@@ -127,45 +128,57 @@ export function NavUser({ user }: { user: User }) {
             )}
 
             <DropdownMenuSeparator />
-            <div className="flex items-center justify-between px-2 py-0.5">
-              <span className="text-sm font-medium">Settings</span>
-              <ChatSettings />
-            </div>
+            <DropdownMenuGroup>
+              <Link href="/settings">
+                <DropdownMenuItem>
+                  <Settings />
+                  Settings
+                </DropdownMenuItem>
+              </Link>
+            </DropdownMenuGroup>
 
-            <div className="flex items-center justify-between px-2 py-0.5">
-              <span className="text-sm font-medium">Theme</span>
-              <div className="flex gap-1">
-                <Button
-                  variant={useTheme().theme === "light" ? "secondary" : "ghost"}
-                  size="icon"
-                  className="size-8"
-                  onClick={() => setTheme("light")}
-                >
-                  <Sun className="size-4" />
-                  <span className="sr-only">Light theme</span>
-                </Button>
-                <Button
-                  variant={useTheme().theme === "dark" ? "secondary" : "ghost"}
-                  size="icon"
-                  className="size-8"
-                  onClick={() => setTheme("dark")}
-                >
-                  <Moon className="size-4" />
-                  <span className="sr-only">Dark theme</span>
-                </Button>
-                <Button
-                  variant={
-                    useTheme().theme === "system" ? "secondary" : "ghost"
-                  }
-                  size="icon"
-                  className="size-8"
-                  onClick={() => setTheme("system")}
-                >
-                  <Monitor className="size-4" />
-                  <span className="sr-only">System theme</span>
-                </Button>
+            <DropdownMenuSeparator />
+
+            <DropdownMenuGroup>
+              <div className="flex items-center justify-between px-2 py-0.5">
+                <span className="text-sm font-medium">Theme</span>
+                <div className="flex gap-1">
+                  <Button
+                    variant={
+                      useTheme().theme === "light" ? "secondary" : "ghost"
+                    }
+                    size="icon"
+                    className="size-8"
+                    onClick={() => setTheme("light")}
+                  >
+                    <Sun className="size-4" />
+                    <span className="sr-only">Light theme</span>
+                  </Button>
+                  <Button
+                    variant={
+                      useTheme().theme === "dark" ? "secondary" : "ghost"
+                    }
+                    size="icon"
+                    className="size-8"
+                    onClick={() => setTheme("dark")}
+                  >
+                    <Moon className="size-4" />
+                    <span className="sr-only">Dark theme</span>
+                  </Button>
+                  <Button
+                    variant={
+                      useTheme().theme === "system" ? "secondary" : "ghost"
+                    }
+                    size="icon"
+                    className="size-8"
+                    onClick={() => setTheme("system")}
+                  >
+                    <Monitor className="size-4" />
+                    <span className="sr-only">System theme</span>
+                  </Button>
+                </div>
               </div>
-            </div>
+            </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={logOut}>
               <LogOut />
