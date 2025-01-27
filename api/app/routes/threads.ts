@@ -1,11 +1,11 @@
 import { Router } from "express";
 import {
   CoreMessage,
-  CoreTool,
   generateText,
   GenerateTextResult,
   streamText,
   StreamTextResult,
+  Tool,
 } from "ai";
 import { eq } from "drizzle-orm";
 
@@ -216,7 +216,7 @@ It is currently: ${new Date().toLocaleString("en-US", {
       };
 
       const handleStream = async (
-        result: StreamTextResult<Record<string, CoreTool<any, any>>, never>
+        result: StreamTextResult<Record<string, Tool<any, any>>, never>
       ) => {
         let enteredReasoning = false;
         let enteredText = false;
@@ -261,7 +261,7 @@ It is currently: ${new Date().toLocaleString("en-US", {
       };
 
       const handleNonStream = async (
-        result: GenerateTextResult<Record<string, CoreTool<any, any>>, never>
+        result: GenerateTextResult<Record<string, Tool<any, any>>, never>
       ) => {
         if (result.reasoning) {
           res.write(
