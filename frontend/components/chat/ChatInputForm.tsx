@@ -166,6 +166,7 @@ export default function ChatInputForm({
           onBlur={() => setFocused(false)}
           onFocus={() => setFocused(true)}
           autoFocus
+          disabled={isGenerating}
           className={`resize-none min-h-[50px] h-[50px] w-full pt-[14px] text-md rounded-xl border-none focus:ring-0 shadow-none focus-visible:ring-0 flex-1 focus-visible:ring-offset-0 bg-transparent ${
             uploads.length ? "max-h-[300px]" : "max-h-[400px]"
           }`}
