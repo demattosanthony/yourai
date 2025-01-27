@@ -25,11 +25,17 @@ import { Button } from "./ui/button";
 import { Collapsible } from "./ui/collapsible";
 import Link from "next/link";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useParams, usePathname } from "next/navigation";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { data: user, isLoading } = useMeQuery();
   const { state } = useSidebar();
   const isMobile = useIsMobile();
+  const params = useParams();
+  const pathname = usePathname();
+
+  const currentThread = params?.threadId;
+  const isThreadsPage = pathname === "/threads";
 
   const { data } = useThreadsQuery();
   // Take only the first page of results since that's all we need
@@ -72,7 +78,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     variant={"ghost"}
                     className={`w-full px-2 ${
                       state === "collapsed" ? "justify-center" : "justify-start"
-                    }`}
+                    }
+                    ${isThreadsPage ? "bg-accent text-accent-foreground" : ""}
+                    `}
                   >
                     {state === "collapsed" && !isMobile ? (
                       <History />
@@ -98,7 +106,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                       if (!thread.title) return null;
                       return (
                         <SidebarMenuItem key={thread.id}>
-                          <SidebarMenuButton asChild>
+                          <SidebarMenuButton
+                            asChild
+                            className={`${
+                              currentThread === thread.id
+                                ? "bg-accent text-accent-foreground"
+                                : ""
+                            }`}
+                          >
                             <Link
                               href={`/threads/${thread.id}`}
                               className="text-ellipsis overflow-hidden whitespace-nowrap"
