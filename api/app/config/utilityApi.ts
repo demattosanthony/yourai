@@ -166,12 +166,12 @@ class UtilityApiClient {
           "Content-Type": "application/json",
           Authorization: `Bearer ${this.apiKey}`,
         },
-        // body: JSON.stringify({
-        //   form: {
-        //     customer_email,
-        //     utility,
-        //   },
-        // }),
+        body: JSON.stringify({
+          form: {
+            customer_email,
+            utility,
+          },
+        }),
       });
 
       if (!res.ok) {

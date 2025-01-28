@@ -16,10 +16,7 @@ import { useTheme } from "next-themes";
 import { useAtom } from "jotai";
 import { instructionsAtom, temperatureAtom } from "@/atoms/chat";
 import { useEffect, useState } from "react";
-import Image from "next/image";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import api from "@/lib/api";
+import UtilityApiIntegration from "@/components/UtilityApiIntegration";
 
 export default function UserSettings() {
   const { data: user } = useMeQuery();
@@ -156,74 +153,7 @@ export default function UserSettings() {
         <div className="h-px bg-border" />
 
         {/* Integrations Section */}
-        <section className="space-y-4">
-          <h2 className="text-base font-medium">Integrations</h2>
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex items-start gap-4 flex-1">
-              <Image
-                src="/utility-icon.ico"
-                alt="Utility API svg"
-                width={35}
-                height={35}
-              />
-
-              <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="text-sm font-medium">Utility API</h3>
-
-                  <Badge
-                    variant="secondary"
-                    className="bg-emerald-50 text-emerald-700 hover:bg-emerald-50"
-                  >
-                    New
-                  </Badge>
-                </div>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Connection your utility bills to Yo for better insights.
-                </p>
-              </div>
-            </div>
-            <Button
-              variant="outline"
-              className="shrink-0"
-              onClick={async () => {
-                const form = await api.createUtilityApiForm(user?.email || "");
-
-                console.log(form);
-
-                // window.open(form.url, "_blank");
-
-                // Test submisson
-                const { referral } = await api.testSubmitForm(
-                  form.uid,
-                  "DEMO",
-                  "residential"
-                );
-
-                // Wait a few seconds before fetching authorizations
-                await new Promise((r) => setTimeout(r, 10000));
-
-                const res = await api.getAuthorizations({
-                  referrals: [referral],
-                  include: ["meters"],
-                });
-
-                console.log(res);
-
-                const meters = res.authorizations[0].meters?.meters;
-
-                // get historical data for it
-                const historicalRes = await api.triggerHistoricalCollection(
-                  meters.map((m: any) => m.uid)
-                );
-
-                console.log(historicalRes);
-              }}
-            >
-              Connect
-            </Button>
-          </div>
-        </section>
+        <UtilityApiIntegration />
       </div>
     </div>
   );

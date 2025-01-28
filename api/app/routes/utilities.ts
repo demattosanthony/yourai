@@ -1,6 +1,9 @@
 import { Router } from "express";
 import { authMiddleware } from "../middleware/auth";
 import utilityApiClient from "../config/utilityApi";
+import db from "../config/db";
+import { users } from "../config/schema";
+import { eq } from "drizzle-orm";
 
 const router = Router();
 
@@ -15,6 +18,12 @@ router.post("/create-form", authMiddleware, async (req, res) => {
     }
 
     const form = await utilityApiClient.createForm(email);
+
+    // Store the auth id with the user
+    // await db
+    //   .update(users)
+    //   .set({ utilityApiUid: form.uid })
+    //   .where(eq(users.id, user!.id));
 
     res.json(form);
   } catch (error) {
