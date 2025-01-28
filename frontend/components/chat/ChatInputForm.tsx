@@ -14,20 +14,22 @@ import { useAtom } from "jotai";
 import { useFileUpload } from "@/hooks/useFileUpload";
 import { useMessageHandler } from "@/hooks/useMessageHandler";
 import { inputAtom, modelAtom } from "@/atoms/chat";
+import React from "react";
 
 interface ChatInputFormProps {
   onSubmit: () => void;
-  fileInputRef?: React.RefObject<HTMLInputElement | null>;
-  textAreaRef?: React.RefObject<HTMLTextAreaElement | null>;
   placeholder?: string;
 }
 
-export default function ChatInputForm({
-  onSubmit,
-  placeholder = "Ask anything...",
-  fileInputRef,
-  textAreaRef,
-}: ChatInputFormProps) {
+export interface ChatInputFormRef {
+  triggerFileInput: () => void;
+  focusTextArea: () => void;
+}
+
+function ChatInputForm(
+  { onSubmit, placeholder = "Ask anything..." }: ChatInputFormProps,
+  ref: React.ForwardedRef<ChatInputFormRef>
+) {
   const [input, setInput] = useAtom(inputAtom);
   const [selectedModel] = useAtom(modelAtom);
   const [focused, setFocused] = useState(true);
@@ -41,8 +43,18 @@ export default function ChatInputForm({
   } = useFileUpload(["image/*", "application/pdf"]);
   const { abortMessage, isGenerating } = useMessageHandler();
 
-  //   const textAreaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const textAreaRef = useRef<HTMLTextAreaElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+
+  // Expose methods to parent component
+  React.useImperativeHandle(
+    ref,
+    (): ChatInputFormRef => ({
+      triggerFileInput: () => fileInputRef.current?.click(),
+      focusTextArea: () => textAreaRef.current?.focus(),
+    })
+  );
 
   const handleKeyDown = async (
     event: React.KeyboardEvent<HTMLTextAreaElement>
@@ -101,6 +113,13 @@ export default function ChatInputForm({
         textAreaRef.current.scrollHeight + "px";
     }
   }, [input]);
+
+  // Refocus on textarea when generating is done
+  useEffect(() => {
+    if (!isGenerating) {
+      textAreaRef?.current?.focus();
+    }
+  }, [isGenerating]);
 
   return (
     <form
@@ -188,6 +207,7 @@ export default function ChatInputForm({
               <Button
                 className="h-8 w-8"
                 variant="ghost"
+                type="button"
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
@@ -219,3 +239,7 @@ export default function ChatInputForm({
     </form>
   );
 }
+
+export default React.forwardRef<ChatInputFormRef, ChatInputFormProps>(
+  ChatInputForm
+);

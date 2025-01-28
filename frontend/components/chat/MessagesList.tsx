@@ -1,3 +1,5 @@
+"use client";
+
 import MarkdownViewer from "../MarkdownViewer";
 import { useEffect } from "react";
 import { Check, Copy, File, Maximize2 } from "lucide-react";

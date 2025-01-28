@@ -7,8 +7,8 @@ import { inputAtom, modelAtom } from "@/atoms/chat";
 import { NotebookPen, Plug, Search, LucideIcon } from "lucide-react";
 
 interface ConversationStartersProps {
-  fileInputRef: React.RefObject<HTMLInputElement | null>;
-  textAreaRef: React.RefObject<HTMLTextAreaElement | null>;
+  triggerFileInput: () => void;
+  triggerTextAreaFocus: () => void;
 }
 
 interface StarterButtonProps {
@@ -69,8 +69,8 @@ function StarterButton({
 }
 
 export default function ConversationStarters({
-  fileInputRef,
-  textAreaRef,
+  triggerFileInput,
+  triggerTextAreaFocus,
 }: ConversationStartersProps) {
   const [, setInput] = useAtom(inputAtom);
   const [, setModel] = useAtom(modelAtom);
@@ -81,11 +81,11 @@ export default function ConversationStarters({
     if (requiresFile) {
       setModel(CLAUDE_3_5_CONFIG);
       await new Promise((r) => setTimeout(r, 100));
-      fileInputRef.current?.click();
+      triggerFileInput();
     }
 
     setInput(inputText);
-    textAreaRef.current?.focus();
+    triggerTextAreaFocus();
   };
 
   return (
