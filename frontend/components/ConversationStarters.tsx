@@ -73,13 +73,19 @@ export default function ConversationStarters({
   triggerTextAreaFocus,
 }: ConversationStartersProps) {
   const [, setInput] = useAtom(inputAtom);
-  const [, setModel] = useAtom(modelAtom);
+  const [selectedModel, setModel] = useAtom(modelAtom);
 
   const handleButtonClick = async (starter: StarterButtonProps) => {
     const { requiresFile, inputText } = starter;
 
     if (requiresFile) {
-      setModel(CLAUDE_3_5_CONFIG);
+      if (
+        selectedModel.name !== CLAUDE_3_5_CONFIG.name &&
+        !selectedModel.name.includes("gemini")
+      ) {
+        setModel(CLAUDE_3_5_CONFIG);
+      }
+
       await new Promise((r) => setTimeout(r, 100));
       triggerFileInput();
     }
