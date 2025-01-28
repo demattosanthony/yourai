@@ -227,10 +227,10 @@ It is currently: ${new Date().toLocaleString("en-US", {
               enteredReasoning = true;
               res.write(
                 `event: message\ndata: ${JSON.stringify({
-                  text: "<thinking>\n\n",
+                  text: "<think>\n\n",
                 })}\n\n`
               );
-              aiResponse += "<thinking>\n\n";
+              aiResponse += "<think>\n\n";
             }
             res.write(
               `event: message\ndata: ${JSON.stringify({
@@ -244,10 +244,10 @@ It is currently: ${new Date().toLocaleString("en-US", {
               if (enteredReasoning) {
                 res.write(
                   `event: message\ndata: ${JSON.stringify({
-                    text: "\n\n</thinking>\n\n",
+                    text: "\n\n</think>\n\n",
                   })}\n\n`
                 );
-                aiResponse += "\n\n</thinking>\n\n";
+                aiResponse += "\n\n</think>\n\n";
               }
             }
             res.write(
@@ -266,7 +266,7 @@ It is currently: ${new Date().toLocaleString("en-US", {
         if (result.reasoning) {
           res.write(
             `event: message\ndata: ${JSON.stringify({
-              text: `<thinking>\n\n${result.reasoning}\n\n</thinking>\n\n`,
+              text: `<think>\n\n${result.reasoning}\n\n</think>\n\n`,
             })}\n\n`
           );
         }
