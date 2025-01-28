@@ -1,34 +1,38 @@
 "use client";
 
-import ChatInputForm from "@/components/chat/ChatInputForm";
 import api from "@/lib/api";
-import { useRouter } from "next/navigation";
-import { useAtom } from "jotai";
+
+// Hooks
 import { useMessageHandler } from "@/hooks/useMessageHandler";
-import AIOrbScene from "@/components/AiOrbScene";
-import InstallPrompt from "@/components/InstallPrompt";
+import { useAtom } from "jotai";
 import { useMeQuery } from "@/queries/queries";
-import { toast } from "sonner";
-import { AnimatedGreeting } from "@/components/AnimatedGreeting";
+import { useRouter } from "next/navigation";
+import { useRef } from "react";
+
+// Components
+import AIOrbScene from "@/components/AiOrbScene";
+import ConversationStarters from "@/components/ConversationStarters";
 import {
   PricingDialog,
   pricingPlanDialogOpenAtom,
 } from "@/components/PricingDialog";
-import { useRef } from "react";
-import ConversationStarters from "@/components/ConversationStarters";
+import { AnimatedGreeting } from "@/components/AnimatedGreeting";
+import InstallPrompt from "@/components/InstallPrompt";
+import { toast } from "sonner";
+import ChatInputForm, {
+  ChatInputFormRef,
+} from "@/components/chat/ChatInputForm";
 
 export default function Home() {
-  const { sendMessage } = useMessageHandler();
   const router = useRouter();
+  const { sendMessage } = useMessageHandler();
   const [showPricingDialog, setShowPricingDialog] = useAtom(
     pricingPlanDialogOpenAtom
   );
 
-  // Putting these here so the conversation starters can trigger chat input form
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const textAreaRef = useRef<HTMLTextAreaElement>(null);
-
   const { data: user } = useMeQuery();
+
+  const chatInputRef = useRef<ChatInputFormRef>(null);
 
   const handleSubmit = async () => {
     // Require login
@@ -45,9 +49,8 @@ export default function Home() {
     try {
       // Create thread in background
       const { id: threadId } = await api.createThread();
-      router.prefetch(`/threads/${threadId}`);
-      // Replace URL without adding to history
-      router.replace(`/threads/${threadId}?new=true`);
+      router.prefetch(`/threads/new?threadId=${threadId}?new=true`);
+      router.push(`/threads/${threadId}?new=true`);
       sendMessage(threadId);
     } catch (error: unknown) {
       if (error instanceof Error && error.message === "subscription_required") {
@@ -82,19 +85,15 @@ export default function Home() {
             <AnimatedGreeting name={user?.name.split(" ")[0] ?? ""} />
 
             <ConversationStarters
-              fileInputRef={fileInputRef}
-              textAreaRef={textAreaRef}
+              triggerFileInput={() => chatInputRef.current?.triggerFileInput()}
+              triggerTextAreaFocus={() => chatInputRef.current?.focusTextArea()}
             />
           </div>
         </div>
       </div>
 
       <div className="w-full flex items-center justify-center mx-auto p-6 pb-8 md:pb-4 md:p-2 absolute bottom-0 left-0 right-0">
-        <ChatInputForm
-          onSubmit={handleSubmit}
-          fileInputRef={fileInputRef}
-          textAreaRef={textAreaRef}
-        />
+        <ChatInputForm ref={chatInputRef} onSubmit={handleSubmit} />
       </div>
     </>
   );
