@@ -94,7 +94,11 @@ router.post(
     const { threadId } = req.params;
     const { model, maxTokens, temperature, instructions } = req.body;
 
+    // Set headers for SSE
     res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+    res.flushHeaders(); // send headers to establish SSE connection
 
     try {
       const thread = await getThread(threadId);
@@ -269,12 +273,33 @@ It is currently: ${new Date().toLocaleString("en-US", {
               text: `<think>\n\n${result.reasoning}\n\n</think>\n\n`,
             })}\n\n`
           );
+          aiResponse += `<think>\n\n${result.reasoning}\n\n</think>\n\n`;
         }
         res.write(
-          `event: message\ndata: ${JSON.stringify({ text: result.text })}\n\n`
+          `event: message\ndata: ${JSON.stringify({
+            text: result.text,
+          })}\n\n`
         );
         aiResponse += result.text;
       };
+
+      // Handle client disconnect or abort
+      req.on("close", async () => {
+        // Store the incomplete message in the database
+        await db.insert(messages).values({
+          userId: req.userId!,
+          id: crypto.randomUUID(),
+          threadId: threadId,
+          role: "assistant",
+          content: JSON.stringify({ type: "text", text: aiResponse }),
+          createdAt: new Date(),
+          model: model,
+          provider: modelConfig.provider,
+        });
+
+        res.end();
+        return;
+      });
 
       if (modelConfig.supportsStreaming) {
         const result = streamText(inferenceParams);
@@ -297,7 +322,7 @@ It is currently: ${new Date().toLocaleString("en-US", {
 
       res.write("event: done\ndata: true\n\n");
       res.end();
-    } catch (error) {
+    } catch (error: any) {
       console.log("Error", error);
       res.status(500).send(error);
     }

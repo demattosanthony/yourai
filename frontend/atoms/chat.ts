@@ -17,6 +17,11 @@ export const CLAUDE_3_5_CONFIG = {
   maxFileSize: 32 * 1024 * 1024, // 32MB
 };
 
+export const SONAR_PRO_CONFIG = {
+  name: "sonar-pro",
+  provider: "perplexity",
+};
+
 // Persistent atoms
 export const modelAtom = atomWithStorage<Model>("selectedAiModel", {
   name: "claude-3.5-sonnet",

@@ -284,6 +284,7 @@ class ApiClient {
         // Check for abort signal
         if (signal.aborted) {
           console.log("Signal aborted, stopping stream");
+
           break;
         }
 

@@ -3,8 +3,13 @@
 import { motion } from "framer-motion";
 import { Button } from "./ui/button";
 import { useAtom } from "jotai";
-import { CLAUDE_3_5_CONFIG, inputAtom, modelAtom } from "@/atoms/chat";
-import { NotebookPen, Plug, Search, LucideIcon } from "lucide-react";
+import {
+  CLAUDE_3_5_CONFIG,
+  inputAtom,
+  modelAtom,
+  SONAR_PRO_CONFIG,
+} from "@/atoms/chat";
+import { NotebookPen, Plug, Search, LucideIcon, Globe } from "lucide-react";
 
 interface ConversationStartersProps {
   triggerFileInput: () => void;
@@ -17,6 +22,7 @@ interface StarterButtonProps {
   label: string;
   inputText: string;
   requiresFile?: boolean;
+  requiresWebSearch?: boolean;
   onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void; // Updated type
 }
 
@@ -43,6 +49,14 @@ const CONVERSATION_STARTERS: StarterButtonProps[] = [
     inputText: "Help me write a report about ",
     requiresFile: false,
   },
+  {
+    icon: Globe,
+    iconColor: "text-green-500",
+    label: "Search the web",
+    inputText: "Search the web for ",
+    requiresFile: false,
+    requiresWebSearch: true,
+  },
 ];
 
 function StarterButton({
@@ -67,7 +81,7 @@ export default function ConversationStarters({
   const [selectedModel, setModel] = useAtom(modelAtom);
 
   const handleButtonClick = async (starter: StarterButtonProps) => {
-    const { requiresFile, inputText } = starter;
+    const { requiresFile, inputText, requiresWebSearch } = starter;
 
     if (requiresFile) {
       if (
@@ -79,6 +93,8 @@ export default function ConversationStarters({
 
       await new Promise((r) => setTimeout(r, 100));
       triggerFileInput();
+    } else if (requiresWebSearch) {
+      setModel(SONAR_PRO_CONFIG);
     }
 
     setInput(inputText);
@@ -87,7 +103,7 @@ export default function ConversationStarters({
 
   return (
     <motion.div
-      className="flex flex-wrap gap-2 justify-center items-center"
+      className="flex flex-wrap gap-2 justify-center items-center max-w-[750px]"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ delay: 1, duration: 1 }}

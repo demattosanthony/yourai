@@ -84,7 +84,7 @@ export default function Home() {
             <AIOrbScene />
           </div>
 
-          <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-8">
             <AnimatedGreeting name={user?.name.split(" ")[0] ?? ""} />
 
             <ConversationStarters
