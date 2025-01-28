@@ -8,6 +8,7 @@ import { useAtom } from "jotai";
 import { useMeQuery } from "@/queries/queries";
 import { useRouter } from "next/navigation";
 import { useRef } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 
 // Components
 import AIOrbScene from "@/components/AiOrbScene";
@@ -25,6 +26,7 @@ import ChatInputForm, {
 
 export default function Home() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { sendMessage } = useMessageHandler();
   const [showPricingDialog, setShowPricingDialog] = useAtom(
     pricingPlanDialogOpenAtom
@@ -51,7 +53,8 @@ export default function Home() {
       const { id: threadId } = await api.createThread();
       router.prefetch(`/threads/new?threadId=${threadId}?new=true`);
       router.push(`/threads/${threadId}?new=true`);
-      sendMessage(threadId);
+      await sendMessage(threadId);
+      queryClient.invalidateQueries({ queryKey: ["threads"] }); // Needed so the app sidebar shows the new thread
     } catch (error: unknown) {
       if (error instanceof Error && error.message === "subscription_required") {
         setShowPricingDialog(true);
