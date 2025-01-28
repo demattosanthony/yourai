@@ -146,7 +146,7 @@ export const MODELS: Record<string, ModelConfig> = {
             "Gemini 2.0 Flash Online enhances the speed of Gemini 2.0 Flash with the ability to access real-time information through search grounding. It's perfect for tasks that require up-to-date data and fast responses, while also supporting tool use, streaming, image and PDF inputs.",
         },
         "gemini-2.0-flash-thinking": {
-          model: google("gemini-2.0-flash-thinking-exp-01-21"),
+          model: google("gemini-2.0-flash-thinking-exp"),
           supportsToolUse: false,
           supportsStreaming: true,
           provider: "google",

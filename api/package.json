@@ -10,7 +10,7 @@
     "mig": "drizzle-kit generate"
   },
   "devDependencies": {
-    "@types/bun": "^1.2.0",
+    "@types/bun": "^1.2.1",
     "@types/cookie-parser": "^1.4.8",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
@@ -26,13 +26,13 @@
   "dependencies": {
     "@ai-sdk/anthropic": "^1.1.5",
     "@ai-sdk/deepseek": "^0.1.6",
-    "@ai-sdk/google": "^1.1.5",
+    "@ai-sdk/google": "^1.1.6",
     "@ai-sdk/groq": "^1.1.6",
     "@ai-sdk/mistral": "^1.1.5",
     "@ai-sdk/openai": "^1.1.5",
     "@ai-sdk/togetherai": "^0.1.6",
     "@ai-sdk/xai": "^1.1.6",
-    "ai": "^4.1.9",
+    "ai": "^4.1.10",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "drizzle-orm": "^0.39.0",
