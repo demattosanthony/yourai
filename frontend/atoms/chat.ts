@@ -3,12 +3,24 @@ import { atomWithStorage } from "jotai/utils";
 import { Model } from "@/types/model";
 import { ChatMessage, FileUpload } from "@/types/chat";
 
+export const CLAUDE_3_5_CONFIG = {
+  name: "claude-3.5-sonnet",
+  provider: "anthropic",
+  supportedMimeTypes: [
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+    "image/gif",
+    "application/pdf",
+  ],
+  maxImageSize: 5 * 1024 * 1024, // 5MB
+  maxFileSize: 32 * 1024 * 1024, // 32MB
+};
+
 // Persistent atoms
 export const modelAtom = atomWithStorage<Model>("selectedAiModel", {
   name: "claude-3.5-sonnet",
   provider: "anthropic",
-  supportsImages: true,
-  supportsPdfs: true,
   supportsToolUse: true,
   supportsStreaming: true,
 });

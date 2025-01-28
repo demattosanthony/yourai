@@ -133,8 +133,12 @@ const ModelSelector: React.FC = () => {
                         </p>
 
                         <div className="flex gap-1">
-                          {model.supportsImages && <Badge>Image Upload</Badge>}
-                          {model.supportsPdfs && <Badge>File Upload</Badge>}
+                          {model.supportedMimeTypes?.some((type) =>
+                            type.startsWith("image/")
+                          ) && <Badge>Image Upload</Badge>}
+                          {model.supportedMimeTypes?.some(
+                            (type) => type === "application/pdf"
+                          ) && <Badge>File Upload</Badge>}
                           {(model.name.includes("online") ||
                             model.name.includes("sonar")) && (
                             <Badge>Web Search </Badge>

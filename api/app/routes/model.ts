@@ -10,10 +10,10 @@ router.get("", async (req, res) => {
       supportsToolUse: config.supportsToolUse,
       supportsStreaming: config.supportsStreaming,
       provider: config.provider,
-      supportsImages: config.supportsImages,
-      supportsPdfs: config.supportsPdfs,
+      supportedMimeTypes: config.supportedMimeTypes,
+      maxImageSize: config.maxImageSize,
+      maxFileSize: config.maxFileSize,
       description: config.description,
-      maxPdfSize: config.maxPdfSize,
     }))
   );
 });

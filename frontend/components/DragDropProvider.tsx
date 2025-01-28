@@ -6,6 +6,7 @@ import React, {
   useState,
   useEffect,
   useCallback,
+  useMemo,
 } from "react";
 import { useAtom } from "jotai";
 import { modelAtom, uploadsAtom } from "@/atoms/chat";
@@ -30,35 +31,58 @@ export function DragAndDropProvider({
   const [, setUploads] = useAtom(uploadsAtom);
   const [model] = useAtom(modelAtom);
 
+  const acceptedTypes = useMemo(() => model.supportedMimeTypes || [], [model]);
+
+  const validateFileSize = useCallback(
+    (file: File) => {
+      if (file.type.startsWith("image/")) {
+        const isValidSize =
+          !model.maxImageSize || file.size <= model.maxImageSize;
+        if (!isValidSize) {
+          toast.error(
+            `Image file size must be under ${
+              (model.maxImageSize as number) / (1024 * 1024)
+            }MB for the selected model.`
+          );
+        }
+        return isValidSize;
+      }
+
+      // For non-image files (like PDFs)
+      const isValidSize = !model.maxFileSize || file.size <= model.maxFileSize;
+      if (!isValidSize) {
+        toast.error(
+          `File size must be under ${
+            (model.maxFileSize as number) / (1024 * 1024)
+          }MB for the selected model.`
+        );
+      }
+      return isValidSize;
+    },
+    [model]
+  );
+
   const handleDrop = useCallback(
     (e: DragEvent) => {
       e.preventDefault();
       e.stopPropagation();
       setIsDragging(false);
 
-      if (!model.supportsImages && !model.supportsPdfs) {
-        toast.error("This model does not support file uploads.");
+      if (!acceptedTypes.length) {
+        toast.error("File uploads are not supported for this model.");
         return;
       }
 
       const files = Array.from(e.dataTransfer?.files || []);
       const validFiles = files.filter((file) => {
-        if (file.type.startsWith("image/")) {
-          return true;
+        // First check if file type is accepted
+        if (!acceptedTypes.includes(file.type)) {
+          toast.error(`File type not supported at this time.`);
+          return false;
         }
-        if (model.supportsPdfs && file.type === "application/pdf") {
-          const isValidSize =
-            !model.maxPdfSize || file.size <= model.maxPdfSize;
-          if (!isValidSize) {
-            toast.error(
-              `PDF file size must be under ${
-                (model.maxPdfSize as number) / (1024 * 1024)
-              }MB for the selected model.`
-            );
-          }
-          return isValidSize;
-        }
-        return false;
+
+        // Then validate file size
+        return validateFileSize(file);
       });
 
       const newUploads: FileUpload[] = validFiles.map((file) => ({
@@ -69,7 +93,7 @@ export function DragAndDropProvider({
 
       setUploads((prev) => [...prev, ...newUploads]);
     },
-    [model, setUploads, setIsDragging]
+    [model, setUploads, setIsDragging, acceptedTypes, validateFileSize]
   );
 
   const handleDragLeave = useCallback(
@@ -92,10 +116,10 @@ export function DragAndDropProvider({
   const handleDragOver = useCallback(
     (e: DragEvent) => {
       e.preventDefault();
-      if (!model.supportsImages && !model.supportsPdfs) return;
+      if (!acceptedTypes.length) return;
       setIsDragging(true);
     },
-    [model, setIsDragging]
+    [acceptedTypes, setIsDragging]
   );
 
   useEffect(() => {
@@ -115,7 +139,7 @@ export function DragAndDropProvider({
   return (
     <DragAndDropContext.Provider value={{ isDragging, setIsDragging }}>
       {children}
-      {isDragging && (model.supportsImages || model.supportsPdfs) && (
+      {isDragging && acceptedTypes.length > 0 && (
         <div className="absolute inset-0 z-50 pointer-events-none">
           {/* Animated backdrop */}
           <div className="absolute inset-0 bg-background/40 backdrop-blur-[2px] transition-all duration-300" />

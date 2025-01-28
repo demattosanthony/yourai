@@ -137,10 +137,10 @@ router.post(
 
       const filteredMessages = rawMessages.filter((msg) => {
         const content = msg.content as ContentPart;
-        if (!modelConfig.supportsImages && content.type === "image")
-          return false;
-        if (!modelConfig.supportsPdfs && content.type === "file") return false;
-        return true;
+        if (content.type === "text") return true;
+        return modelConfig.supportedMimeTypes?.includes(
+          content.file_metadata.mime_type
+        );
       });
 
       // Process message content

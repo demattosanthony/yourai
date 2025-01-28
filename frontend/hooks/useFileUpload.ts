@@ -10,26 +10,45 @@ export function useFileUpload(acceptedTypes: string[]) {
   const [model] = useAtom(modelAtom);
   const { isDragging, setIsDragging } = useDragAndDrop();
 
+  const validateFileSize = (file: File) => {
+    if (file.type.startsWith("image/")) {
+      const isValidSize =
+        !model.maxImageSize || file.size <= model.maxImageSize;
+      if (!isValidSize) {
+        toast.error(
+          `Image file size must be under ${
+            (model.maxImageSize as number) / (1024 * 1024)
+          }MB for the selected model.`
+        );
+      }
+      return isValidSize;
+    }
+
+    // For non-image files (like PDFs)
+    const isValidSize = !model.maxFileSize || file.size <= model.maxFileSize;
+    if (!isValidSize) {
+      toast.error(
+        `File size must be under ${
+          (model.maxFileSize as number) / (1024 * 1024)
+        }MB for the selected model.`
+      );
+    }
+    return isValidSize;
+  };
+
   const handleFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.preventDefault();
 
     const files = Array.from(e.target.files || []);
     const validFiles = files.filter((file) => {
-      if (file.type.startsWith("image/")) {
-        return true;
+      // First check if file type is accepted
+      if (!acceptedTypes.includes(file.type)) {
+        toast.error(`File type not supported at this time.`);
+        return false;
       }
-      if (model.supportsPdfs && file.type === "application/pdf") {
-        const isValidSize = !model.maxPdfSize || file.size <= model.maxPdfSize;
-        if (!isValidSize) {
-          toast.error(
-            `PDF file size must be under ${
-              (model.maxPdfSize as number) / (1024 * 1024)
-            }MB for the selected model.`
-          );
-        }
-        return isValidSize;
-      }
-      return false;
+
+      // Then validate file size
+      return validateFileSize(file);
     });
 
     const newUploads: FileUpload[] = validFiles.map((file) => ({
@@ -72,22 +91,14 @@ export function useFileUpload(acceptedTypes: string[]) {
 
     const newUploads: FileUpload[] = Array.from(e.dataTransfer.files)
       .filter((file) => {
-        if (model.supportsImages && file.type.startsWith("image/")) {
-          return true;
+        // First check if file type is accepted
+        if (!acceptedTypes.includes(file.type)) {
+          toast.error(`File type not supported at this time.`);
+          return false;
         }
-        if (model.supportsPdfs && file.type === "application/pdf") {
-          const isValidSize =
-            !model.maxPdfSize || file.size <= model.maxPdfSize;
-          if (!isValidSize) {
-            toast.error(
-              `PDF file size must be under ${
-                (model.maxPdfSize as number) / (1024 * 1024)
-              }MB for the selected model.`
-            );
-          }
-          return isValidSize;
-        }
-        return false;
+
+        // Then validate file size
+        return validateFileSize(file);
       })
       .map((file) => ({
         file,

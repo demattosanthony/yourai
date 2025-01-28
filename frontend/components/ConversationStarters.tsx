@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { Button } from "./ui/button";
 import { useAtom } from "jotai";
-import { inputAtom, modelAtom } from "@/atoms/chat";
+import { CLAUDE_3_5_CONFIG, inputAtom, modelAtom } from "@/atoms/chat";
 import { NotebookPen, Plug, Search, LucideIcon } from "lucide-react";
 
 interface ConversationStartersProps {
@@ -19,15 +19,6 @@ interface StarterButtonProps {
   requiresFile?: boolean;
   onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void; // Updated type
 }
-
-const CLAUDE_3_5_CONFIG = {
-  name: "claude-3.5-sonnet",
-  provider: "anthropic",
-  maxPdfSize: 32 * 1024 * 1024,
-  supportsImages: true,
-  supportsPdfs: true,
-  supportsStreaming: true,
-};
 
 const CONVERSATION_STARTERS: StarterButtonProps[] = [
   {

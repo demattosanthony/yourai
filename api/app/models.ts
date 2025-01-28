@@ -27,9 +27,9 @@ interface ModelConfig {
   supportsStreaming: boolean;
   provider: string;
   supportsSystemMessages?: boolean;
-  supportsImages?: boolean;
-  supportsPdfs?: boolean;
-  maxPdfSize?: number;
+  supportedMimeTypes?: string[];
+  maxFileSize?: number; // in bytes
+  maxImageSize?: number; // in bytes
   description: string;
 }
 
@@ -41,10 +41,16 @@ export const MODELS: Record<string, ModelConfig> = {
           supportsToolUse: true,
           supportsStreaming: true,
           provider: "anthropic",
-          supportsImages: true,
-          supportsPdfs: true,
           supportsSystemMessages: true,
-          maxPdfSize: 32 * 1024 * 1024, // 32MB
+          supportedMimeTypes: [
+            "image/jpeg",
+            "image/png",
+            "image/webp",
+            "image/gif",
+            "application/pdf",
+          ],
+          maxImageSize: 5 * 1024 * 1024, // 5MB
+          maxFileSize: 32 * 1024 * 1024, // 32MB
           description:
             "Claude 3.5 Sonnet strikes the ideal balance between intelligence and speed—particularly for enterprise workloads. It delivers strong performance at a lower cost compared to its peers, and is engineered for high endurance in large-scale AI deployments.",
         },
@@ -53,9 +59,14 @@ export const MODELS: Record<string, ModelConfig> = {
           supportsToolUse: true,
           supportsStreaming: true,
           provider: "anthropic",
-          supportsImages: false,
-          supportsPdfs: false,
           supportsSystemMessages: true,
+          supportedMimeTypes: [
+            "image/jpeg",
+            "image/png",
+            "image/webp",
+            "image/gif",
+          ],
+          maxImageSize: 5 * 1024 * 1024, // 5MB
           description:
             "Claude 3.5 Haiku is the next generation of our fastest model. For a similar speed to Claude 3 Haiku, Claude 3.5 Haiku improves across every skill set and surpasses Claude 3 Opus, the largest model in our previous generation, on many intelligence benchmarks.",
         },
@@ -69,7 +80,12 @@ export const MODELS: Record<string, ModelConfig> = {
           supportsStreaming: true,
           supportsSystemMessages: true,
           provider: "openai",
-          supportsImages: true,
+          supportedMimeTypes: [
+            "image/jpeg",
+            "image/png",
+            "image/webp",
+            "image/gif",
+          ],
           description:
             "o1 is a versatile model from OpenAI, capable of handling a wide range of tasks with good performance. It supports tool use, streaming, system messages, and image inputs, making it a solid all-around choice.",
         },
@@ -79,7 +95,13 @@ export const MODELS: Record<string, ModelConfig> = {
           supportsStreaming: true,
           supportsSystemMessages: true,
           provider: "openai",
-          supportsImages: true,
+          maxImageSize: 20 * 1024 * 1024, // 20MB
+          supportedMimeTypes: [
+            "image/jpeg",
+            "image/png",
+            "image/webp",
+            "image/gif",
+          ],
           description:
             "o1-mini is a smaller, more efficient version of o1, designed for faster responses and lower resource usage. It's suitable for tasks where speed and cost-effectiveness are priorities, while still offering good performance and supporting tool use, streaming, system messages, and image inputs.",
         },
@@ -88,8 +110,14 @@ export const MODELS: Record<string, ModelConfig> = {
           supportsToolUse: true,
           supportsStreaming: true,
           provider: "openai",
-          supportsImages: true,
           supportsSystemMessages: true,
+          maxImageSize: 20 * 1024 * 1024, // 20MB
+          supportedMimeTypes: [
+            "image/jpeg",
+            "image/png",
+            "image/webp",
+            "image/gif",
+          ],
           description:
             "GPT-4o from OpenAI has broad general knowledge and domain expertise allowing it to follow complex instructions in natural language and solve difficult problems accurately. It matches GPT-4 Turbo performance with a faster and cheaper API.",
         },
@@ -98,8 +126,14 @@ export const MODELS: Record<string, ModelConfig> = {
           supportsToolUse: true,
           provider: "openai",
           supportsStreaming: true,
-          supportsImages: true,
           supportsSystemMessages: true,
+          maxImageSize: 20 * 1024 * 1024, // 20MB
+          supportedMimeTypes: [
+            "image/jpeg",
+            "image/png",
+            "image/webp",
+            "image/gif",
+          ],
           description:
             "GPT-4o mini from OpenAI is their most advanced and cost-efficient small model. It is multi-modal (accepting text or image inputs and outputting text) and has higher intelligence than gpt-3.5-turbo but is just as fast.",
         },
@@ -112,10 +146,28 @@ export const MODELS: Record<string, ModelConfig> = {
           supportsToolUse: true,
           supportsStreaming: true,
           provider: "google",
-          supportsImages: true,
-          supportsPdfs: true,
           supportsSystemMessages: true,
-          maxPdfSize: 50 * 1024 * 1024, // 50MB
+          supportedMimeTypes: [
+            "image/jpeg",
+            "image/png",
+            "image/webp",
+            "image/gif",
+            "image/heic",
+            "image/heif",
+            "application/pdf",
+            "application/x-javascript",
+            "text/javascript",
+            "application/x-python",
+            "text/python",
+            "text/plain",
+            "text/html",
+            "text/md",
+            "text/csv",
+            "text/xml",
+            "text/rtf",
+          ],
+          maxImageSize: 2 * 1024 * 1024 * 1024, // 2GB
+          maxFileSize: 50 * 1024 * 1024, // 50MB
           description:
             "Gemini 2.0 Pro is a robust model from Google, well-suited for a variety of tasks including text generation, translation, and code completion. It supports tool use, streaming, image and PDF inputs, making it a versatile option for many applications.",
         },
@@ -124,10 +176,28 @@ export const MODELS: Record<string, ModelConfig> = {
           supportsToolUse: true,
           supportsStreaming: true,
           provider: "google",
-          supportsImages: true,
-          supportsPdfs: true,
           supportsSystemMessages: true,
-          maxPdfSize: 50 * 1024 * 1024, // 50MB
+          supportedMimeTypes: [
+            "image/jpeg",
+            "image/png",
+            "image/webp",
+            "image/gif",
+            "image/heic",
+            "image/heif",
+            "application/pdf",
+            "application/x-javascript",
+            "text/javascript",
+            "application/x-python",
+            "text/python",
+            "text/plain",
+            "text/html",
+            "text/md",
+            "text/csv",
+            "text/xml",
+            "text/rtf",
+          ],
+          maxImageSize: 2 * 1024 * 1024 * 1024, //
+          maxFileSize: 50 * 1024 * 1024, // 50MB
           description:
             "Gemini 2.0 Flash delivers next-gen features and improved capabilities, including superior speed, native tool use, multimodal generation, and a 1M token context window.",
         },
@@ -138,10 +208,28 @@ export const MODELS: Record<string, ModelConfig> = {
           supportsToolUse: true,
           supportsStreaming: true,
           provider: "google",
-          supportsImages: true,
-          supportsPdfs: true,
           supportsSystemMessages: true,
-          maxPdfSize: 50 * 1024 * 1024, // 50MB
+          supportedMimeTypes: [
+            "image/jpeg",
+            "image/png",
+            "image/webp",
+            "image/gif",
+            "image/heic",
+            "image/heif",
+            "application/pdf",
+            "application/x-javascript",
+            "text/javascript",
+            "application/x-python",
+            "text/python",
+            "text/plain",
+            "text/html",
+            "text/md",
+            "text/csv",
+            "text/xml",
+            "text/rtf",
+          ],
+          maxImageSize: 2 * 1024 * 1024 * 1024, // 2GB
+          maxFileSize: 50 * 1024 * 1024, // 50MB
           description:
             "Gemini 2.0 Flash Online enhances the speed of Gemini 2.0 Flash with the ability to access real-time information through search grounding. It's perfect for tasks that require up-to-date data and fast responses, while also supporting tool use, streaming, image and PDF inputs.",
         },
@@ -150,10 +238,28 @@ export const MODELS: Record<string, ModelConfig> = {
           supportsToolUse: false,
           supportsStreaming: true,
           provider: "google",
-          supportsImages: true,
-          supportsPdfs: true,
           supportsSystemMessages: true,
-          maxPdfSize: 50 * 1024 * 1024, // 50MB
+          supportedMimeTypes: [
+            "image/jpeg",
+            "image/png",
+            "image/webp",
+            "image/gif",
+            "image/heic",
+            "image/heif",
+            "application/pdf",
+            "application/x-javascript",
+            "text/javascript",
+            "application/x-python",
+            "text/python",
+            "text/plain",
+            "text/html",
+            "text/md",
+            "text/csv",
+            "text/xml",
+            "text/rtf",
+          ],
+          maxImageSize: 2 * 1024 * 1024 * 1024, // 2GB
+          maxFileSize: 50 * 1024 * 1024, // 50MB
           description:
             "Gemini 2.0 Flash Thinking is an experimental model trained to expose its reasoning process in responses. By making its thinking process explicit, this model demonstrates enhanced reasoning capabilities compared to other Gemini 2.0 Flash models.",
         },
@@ -175,8 +281,9 @@ export const MODELS: Record<string, ModelConfig> = {
           supportsToolUse: true,
           supportsStreaming: true,
           provider: "xai",
-          supportsImages: true,
           supportsSystemMessages: true,
+          supportedMimeTypes: ["image/jpeg", "image/png"],
+          maxImageSize: 10 * 1024 * 1024, // 10MB
           description:
             "In addition to Grok's strong text capabilities, this multimodal model can now process a wide variety of visual information, including documents, diagrams, charts, screenshots, and photographs.",
         },

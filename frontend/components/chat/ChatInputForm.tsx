@@ -40,7 +40,7 @@ function ChatInputForm(
     handleDragLeave,
     handleDragOver,
     handleDrop,
-  } = useFileUpload(["image/*", "application/pdf"]);
+  } = useFileUpload(selectedModel.supportedMimeTypes || []);
   const { abortMessage, isGenerating } = useMessageHandler();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -192,32 +192,31 @@ function ChatInputForm(
         />
 
         <div className="h-full pr-1 flex pb-[9px]">
-          {(selectedModel.supportsImages || selectedModel.supportsPdfs) && (
-            <>
-              <input
-                type="file"
-                ref={fileInputRef}
-                className="hidden"
-                accept={`${selectedModel.supportsImages ? "image/*," : ""}${
-                  selectedModel.supportsPdfs ? "application/pdf" : ""
-                }`}
-                multiple
-                onChange={handleFiles}
-              />
-              <Button
-                className="h-8 w-8"
-                variant="ghost"
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  fileInputRef?.current?.click();
-                }}
-              >
-                <Paperclip />
-              </Button>
-            </>
-          )}
+          {selectedModel.supportedMimeTypes &&
+            selectedModel.supportedMimeTypes.length > 0 && (
+              <>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  className="hidden"
+                  accept={selectedModel.supportedMimeTypes?.join(",")}
+                  multiple
+                  onChange={handleFiles}
+                />
+                <Button
+                  className="h-8 w-8"
+                  variant="ghost"
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    fileInputRef?.current?.click();
+                  }}
+                >
+                  <Paperclip />
+                </Button>
+              </>
+            )}
 
           <Button
             ref={buttonRef}
