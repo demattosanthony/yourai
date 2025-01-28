@@ -2,7 +2,7 @@
 
 import ModelSelector from "./ModelSelector";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import { useAtom } from "jotai";
 import { messagesAtom } from "@/atoms/chat";
 import { SidebarTrigger } from "./ui/sidebar";
@@ -42,7 +42,9 @@ export default function Header() {
 
       <div className="absolute right-6 md:left-4 md:right-none bg-opacity-50 z-10">
         <div className="flex items-center ">
-          <ModelSelector />
+          <Suspense>
+            <ModelSelector />
+          </Suspense>
 
           <Button
             variant={"ghost"}

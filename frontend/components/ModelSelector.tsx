@@ -17,24 +17,25 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useEffect, useState } from "react";
-import { Model } from "@/types/model";
-import api from "@/lib/api";
 import { useAtom } from "jotai";
 import { modelAtom } from "@/atoms/chat";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "./ui/hover-card";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Badge } from "./ui/badge";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useModelsQuery } from "@/queries/queries";
 
 const ModelSelector: React.FC = () => {
   const [open, setOpen] = useState(false);
-  const [models, setModels] = useState<Model[]>([]);
   const [selectedModel, setSelectedModel] = useAtom(modelAtom);
+  const { data: models } = useModelsQuery();
+
+  const [isMounted, setIsMounted] = useState(false); // Add mounted state because selected model atom loads async
 
   const isMobile = useIsMobile();
 
   useEffect(() => {
-    api.getAvailableModels().then((res) => setModels(res));
+    setIsMounted(true); // Set mounted when component loads
 
     // Add keyboard shortcut listener
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -49,6 +50,11 @@ const ModelSelector: React.FC = () => {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
+
+  // Don't show until selected model is loaded in
+  if (!isMounted) {
+    return <></>;
+  }
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -75,7 +81,7 @@ const ModelSelector: React.FC = () => {
           <CommandList className="max-h-[450px]">
             <CommandEmpty>No model found.</CommandEmpty>
             <CommandGroup>
-              {models.map((model) => (
+              {models?.map((model) => (
                 <HoverCard key={model.name} openDelay={0.5} closeDelay={0}>
                   <HoverCardTrigger>
                     <CommandItem

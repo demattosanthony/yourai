@@ -32,3 +32,10 @@ export function useThreadQuery(threadId: string, isNewThread: boolean) {
     refetchOnWindowFocus: false,
   });
 }
+
+export function useModelsQuery() {
+  return useQuery({
+    queryKey: ["models"],
+    queryFn: () => api.getAvailableModels(),
+  });
+}
