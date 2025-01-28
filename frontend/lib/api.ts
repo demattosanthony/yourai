@@ -336,12 +336,7 @@ class ApiClient {
         throw error;
       }
     } finally {
-      // Clean up resources
-      if (signal.aborted) {
-        await reader.cancel();
-      } else {
-        reader.releaseLock();
-      }
+      reader.releaseLock();
     }
   }
 }

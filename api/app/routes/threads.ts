@@ -283,8 +283,9 @@ It is currently: ${new Date().toLocaleString("en-US", {
         aiResponse += result.text;
       };
 
-      // Handle client disconnect or abort
+      // Handle client abort
       req.on("close", async () => {
+        console.log("Client aborted the request, saving incomplete message");
         // Store the incomplete message in the database
         await db.insert(messages).values({
           userId: req.userId!,
@@ -298,7 +299,6 @@ It is currently: ${new Date().toLocaleString("en-US", {
         });
 
         res.end();
-        return;
       });
 
       if (modelConfig.supportsStreaming) {
@@ -308,17 +308,6 @@ It is currently: ${new Date().toLocaleString("en-US", {
         const result = await generateText(inferenceParams);
         await handleNonStream(result);
       }
-
-      await db.insert(messages).values({
-        userId: req.userId!,
-        id: crypto.randomUUID(),
-        threadId: threadId,
-        role: "assistant",
-        content: JSON.stringify({ type: "text", text: aiResponse }),
-        createdAt: new Date(),
-        model: model,
-        provider: modelConfig.provider,
-      });
 
       res.write("event: done\ndata: true\n\n");
       res.end();
