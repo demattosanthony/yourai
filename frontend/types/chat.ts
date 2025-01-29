@@ -20,6 +20,7 @@ export type MessageContent = {
 };
 
 export type ChatMessage = {
+  id: string;
   role: MessageRole;
   content: MessageContent | null;
   name?: string;

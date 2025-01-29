@@ -71,16 +71,16 @@ export function useMessageHandler() {
     // Update state
     setInput("");
     setUploads([]);
-    setMessages((prev) => [
-      ...prev,
-      ...contents.map((msg) => ({ role: MessageRole.user, content: msg })),
-      {
-        role: MessageRole.assistant,
-        content: { type: "text", text: "" },
-        provider: model.provider,
-        model: model.name,
-      },
-    ]);
+    // setMessages((prev) => [
+    //   ...prev,
+    //   ...contents.map((msg) => ({ role: MessageRole.user, content: msg })),
+    //   {
+    //     role: MessageRole.assistant,
+    //     content: { type: "text", text: "" },
+    //     provider: model.provider,
+    //     model: model.name,
+    //   },
+    // ]);
 
     setIsGenerating(true);
 

@@ -17,7 +17,9 @@ import { inputAtom, modelAtom } from "@/atoms/chat";
 import React from "react";
 
 interface ChatInputFormProps {
-  onSubmit: () => void;
+  onSubmit: (e: React.FormEvent) => void;
+  input: string;
+  handleInputChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   placeholder?: string;
 }
 
@@ -27,10 +29,14 @@ export interface ChatInputFormRef {
 }
 
 function ChatInputForm(
-  { onSubmit, placeholder = "Ask anything..." }: ChatInputFormProps,
+  {
+    onSubmit,
+    input,
+    handleInputChange,
+    placeholder = "Ask anything...",
+  }: ChatInputFormProps,
   ref: React.ForwardedRef<ChatInputFormRef>
 ) {
-  const [input, setInput] = useAtom(inputAtom);
   const [selectedModel] = useAtom(modelAtom);
   const [focused, setFocused] = useState(true);
   const {
@@ -65,30 +71,25 @@ function ChatInputForm(
         .selectionStart;
       const textBeforeCaret = input.substring(0, caretPosition);
       const textAfterCaret = input.substring(caretPosition);
-      if (setInput) {
-        setInput(textBeforeCaret + "\n" + textAfterCaret);
-        // Set cursor position after state update
-        setTimeout(() => {
-          if (textAreaRef?.current) {
-            textAreaRef.current.selectionStart = caretPosition + 1;
-            textAreaRef.current.selectionEnd = caretPosition + 1;
-          }
-        }, 0);
-      }
+      //   if (setInput) {
+      //     setInput(textBeforeCaret + "\n" + textAfterCaret);
+      //     // Set cursor position after state update
+      //     setTimeout(() => {
+      //       if (textAreaRef?.current) {
+      //         textAreaRef.current.selectionStart = caretPosition + 1;
+      //         textAreaRef.current.selectionEnd = caretPosition + 1;
+      //       }
+      //     }, 0);
+      //   }
     } else if (event.key === "Enter") {
       event.preventDefault();
       if (buttonRef.current) buttonRef.current.click();
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit();
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setInput(e.target.value);
-  };
+  //   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+  //     setInput(e.target.value);
+  //   };
 
   useEffect(() => {
     // Add keyboard shortcut listener
@@ -126,7 +127,7 @@ function ChatInputForm(
       className={`relative h-auto min-h-[24px] max-h-[450px] w-full mx-auto rounded-2xl border max-w-[750px] bg-background ${
         focused && "md:drop-shadow-md"
       }`}
-      onSubmit={handleSubmit}
+      onSubmit={onSubmit}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
@@ -227,7 +228,7 @@ function ChatInputForm(
               if (isGenerating) {
                 abortMessage(); // Call abortMessage when generating
               } else {
-                handleSubmit(e);
+                onSubmit(e);
               }
             }}
           >
