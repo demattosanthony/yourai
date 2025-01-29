@@ -255,8 +255,6 @@ It is currently: ${new Date().toLocaleString("en-US", {
 
       // Handle client abort or end of response
       req.on("close", async () => {
-        console.log("Client aborted the request, saving incomplete message");
-
         await db.insert(messages).values({
           userId: req.userId!,
           id: crypto.randomUUID(),
