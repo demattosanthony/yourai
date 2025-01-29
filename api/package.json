@@ -32,7 +32,7 @@
     "@ai-sdk/openai": "^1.1.5",
     "@ai-sdk/togetherai": "^0.1.6",
     "@ai-sdk/xai": "^1.1.6",
-    "ai": "^4.1.10",
+    "ai": "^4.1.11",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "drizzle-orm": "^0.39.0",

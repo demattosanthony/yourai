@@ -368,6 +368,15 @@ export const MODELS: Record<string, ModelConfig> = {
     : {}),
   ...(process.env.PPLX_API_KEY
     ? {
+        "sonar-reasoning": {
+          model: perplexity("sonar-reasoning"),
+          supportsToolUse: false,
+          supportsStreaming: true,
+          provider: "perplexity",
+          supportsSystemMessages: true,
+          description:
+            "New API offering powered by DeepSeek's reasoning models",
+        },
         "sonar-pro": {
           model: perplexity("sonar-pro"),
           supportsToolUse: false,
