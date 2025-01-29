@@ -101,6 +101,8 @@ router.post(
     res.setHeader("Content-Type", "text/event-stream");
     res.setHeader("Cache-Control", "no-cache");
     res.setHeader("Connection", "keep-alive");
+    res.setHeader("X-Accel-Buffering", "no"); // Disable Nginx buffering
+    res.setHeader("Transfer-Encoding", "chunked");
     res.flushHeaders(); // send headers to establish SSE connection
 
     try {
@@ -272,7 +274,7 @@ It is currently: ${new Date().toLocaleString("en-US", {
 
       const result = streamText({
         ...inferenceParams,
-        experimental_transform: smoothStream(),
+        // experimental_transform: smoothStream(),
         onChunk: ({ chunk }) => {
           if (chunk.type === "text-delta") {
             aiResponse += chunk.textDelta;

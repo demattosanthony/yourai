@@ -16,7 +16,8 @@ export default function ChatAttachment({
       return (
         <div
           key={`img-${attachment.name}-${index}`}
-          className="flex justify-end mb-4"
+          className="flex justify-end mb-4 cursor-pointer"
+          onClick={() => window.open(attachment.url || "", "_blank")}
         >
           <img
             key={index}
