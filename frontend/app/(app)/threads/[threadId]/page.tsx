@@ -1,6 +1,13 @@
 "use client";
 
-import { messagesAtom, modelAtom, uploadsAtom } from "@/atoms/chat";
+import {
+  initalInputAtom,
+  instructionsAtom,
+  messagesAtom,
+  modelAtom,
+  temperatureAtom,
+  uploadsAtom,
+} from "@/atoms/chat";
 import ChatInputForm from "@/components/chat/ChatInputForm";
 import ChatMessagesList from "@/components/chat/MessagesList";
 import api from "@/lib/api";
@@ -11,52 +18,61 @@ import { useEffect } from "react";
 
 import { useChat } from "ai/react";
 import { Attachment } from "@ai-sdk/ui-utils";
+import { useQueryClient } from "@tanstack/react-query";
 
 type ExtendedAttachment = Attachment & {
   file_key: string;
 };
 
 export default function ThreadPage() {
+  const queryClient = useQueryClient();
   const router = useRouter();
   const params = useParams<{ threadId: string }>();
   const { threadId } = params;
   const [initalMessages, setMessages] = useAtom(messagesAtom);
   const searchParams = useSearchParams();
   const isNew = searchParams.get("new") === "true";
+  const [initalInput, setInitalInput] = useAtom(initalInputAtom);
   const [model] = useAtom(modelAtom);
   const [uploads, setUploads] = useAtom(uploadsAtom);
+  const [temperature] = useAtom(temperatureAtom);
+  const [instructions] = useAtom(instructionsAtom);
 
-  const { input, handleInputChange, handleSubmit, messages } = useChat({
-    api: `${process.env.NEXT_PUBLIC_API_URL}/threads/${threadId}/inference`,
-    credentials: "include",
-    initialMessages:
-      initalMessages?.map((message) => ({
-        content: message.content?.text || "",
-        role: message.role as "user" | "assistant",
-        id: message.id,
-        createdAt: message.createdAt ? new Date(message.createdAt) : undefined,
-        experimental_attachments:
-          message.content?.type === "image"
-            ? [
-                {
-                  name: message.content.file_metadata?.filename,
-                  url: message.content?.image || "", // Ensure url is always a string
-                  file_key: message.content.file_metadata?.file_key,
-                  contentType: message.content.file_metadata?.mime_type,
-                },
-              ]
-            : [],
-      })) ?? [],
-    experimental_prepareRequestBody({ messages, id }) {
-      return {
-        message: messages[messages.length - 1],
-        id,
-        model: model.name,
-        temperature: 0.4,
-        maxTokens: 1000,
-      };
-    },
-  });
+  const { input, handleInputChange, handleSubmit, messages, isLoading, stop } =
+    useChat({
+      api: `${process.env.NEXT_PUBLIC_API_URL}/threads/${threadId}/inference`,
+      credentials: "include",
+      initialInput: isNew ? initalInput : "",
+      initialMessages:
+        initalMessages?.map((message) => ({
+          content: message.content?.text || "",
+          role: message.role as "user" | "assistant",
+          id: message.id,
+          createdAt: message.createdAt
+            ? new Date(message.createdAt)
+            : undefined,
+          experimental_attachments:
+            message.content?.type === "image"
+              ? [
+                  {
+                    name: message.content.file_metadata?.filename,
+                    url: message.content?.image || "", // Ensure url is always a string
+                    file_key: message.content.file_metadata?.file_key,
+                    contentType: message.content.file_metadata?.mime_type,
+                  },
+                ]
+              : [],
+        })) ?? [],
+      experimental_prepareRequestBody({ messages, id }) {
+        return {
+          message: messages[messages.length - 1],
+          id,
+          model: model.name,
+          temperature: temperature,
+          instructions,
+        };
+      },
+    });
 
   async function processAttachments() {
     // Process uploads
@@ -128,7 +144,14 @@ export default function ThreadPage() {
   useEffect(() => {
     if (isNew) {
       // Don't update messages if this is a new thread
+      onSubmit({ preventDefault: () => {} } as React.FormEvent);
       router.replace(`/threads/${threadId}`);
+      setInitalInput("");
+
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ["threads"] }); // Needed so the app sidebar shows the new thread
+      }, 1000);
+
       return;
     }
 
@@ -139,6 +162,7 @@ export default function ThreadPage() {
   useEffect(() => {
     return () => {
       setMessages([]);
+      setInitalInput("");
     };
   }, [threadId, setMessages]);
 
@@ -151,6 +175,8 @@ export default function ThreadPage() {
           input={input}
           handleInputChange={handleInputChange}
           onSubmit={onSubmit}
+          stop={stop}
+          isGenerating={isLoading}
         />
       </div>
     </>

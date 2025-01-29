@@ -1,14 +1,5 @@
-import e, { Router } from "express";
-import {
-  CoreMessage,
-  generateText,
-  GenerateTextResult,
-  Message,
-  streamText,
-  StreamTextResult,
-  TextPart,
-  Tool,
-} from "ai";
+import { Router } from "express";
+import { CoreMessage, Message, smoothStream, streamText, TextPart } from "ai";
 import { eq } from "drizzle-orm";
 
 import db from "../config/db";
@@ -105,8 +96,36 @@ router.post(
     const message = req.body.message as Message & {
       experimental_attachments?: ExtendedAttachment[]; // Use ExtendedAttachment instead of Attachment
     };
-    console.log("threadId", threadId);
-    console.log(req.body);
+
+    // Get model config
+    const modelConfig = MODELS[model];
+
+    const abortController = new AbortController();
+    const signal = abortController.signal;
+
+    let aiResponse = "";
+
+    // Handle client disconnect (cancellation)
+    req.on("close", async () => {
+      abortController.abort(); // Abort the signal when client disconnects
+
+      // Store the partial message if we have any content
+      if (aiResponse) {
+        await db.insert(messages).values({
+          userId: req.userId!,
+          id: crypto.randomUUID(),
+          threadId: threadId,
+          role: "assistant",
+          content: {
+            type: "text",
+            text: aiResponse,
+          },
+          createdAt: new Date(),
+          model: model,
+          provider: modelConfig.provider,
+        });
+      }
+    });
 
     // Set headers for SSE
     res.setHeader("Content-Type", "text/event-stream");
@@ -121,6 +140,7 @@ router.post(
         return;
       }
 
+      // Add user message to thread
       let contentParts: ContentPart[] = [];
       if (message.experimental_attachments) {
         message.experimental_attachments.forEach(
@@ -141,20 +161,14 @@ router.post(
         );
       }
 
+      // Add text message
       contentParts.push({
         type: "text",
         text: message.content,
       });
 
-      console.log("\n\n");
-      console.log("contentParts", contentParts);
-      console.log("\n\n");
-
       // add the message to the thread
       await createMessage(req.userId!, threadId, "user", contentParts);
-
-      // Get model config
-      const modelConfig = MODELS[model];
 
       // Get and filter messages
       const rawMessages = await db.query.messages.findMany({
@@ -192,10 +206,6 @@ router.post(
           content.file_metadata.mime_type
         );
       });
-
-      console.log("\n\n");
-      console.log("filteredMessages", filteredMessages);
-      console.log("\n\n");
 
       // Process message content
       const processMessageContent = async (content: ContentPart) => {
@@ -269,10 +279,14 @@ It is currently: ${new Date().toLocaleString("en-US", {
 
       const result = streamText({
         ...inferenceParams,
+        experimental_transform: smoothStream(),
+        abortSignal: signal,
+        onChunk: ({ chunk }) => {
+          if (chunk.type === "text-delta") {
+            aiResponse += chunk.textDelta;
+          }
+        },
         async onFinish({ response }) {
-          console.log(response.messages[0].content);
-          console.log((response.messages[0].content as TextPart[])[0].text);
-
           // Store the assistant response
           await db.insert(messages).values({
             userId: req.userId!,
@@ -293,103 +307,6 @@ It is currently: ${new Date().toLocaleString("en-US", {
       return result.pipeDataStreamToResponse(res, {
         sendReasoning: true,
       });
-
-      //   const handleStream = async (
-      //     result: StreamTextResult<Record<string, Tool<any, any>>, never>
-      //   ) => {
-      //     let enteredReasoning = false;
-      //     let enteredText = false;
-
-      //     for await (const part of result.fullStream) {
-      //       if (part.type === "reasoning") {
-      //         if (!enteredReasoning) {
-      //           enteredReasoning = true;
-      //           res.write(
-      //             `event: message\ndata: ${JSON.stringify({
-      //               text: "<think>\n\n",
-      //             })}\n\n`
-      //           );
-      //           aiResponse += "<think>\n\n";
-      //         }
-      //         res.write(
-      //           `event: message\ndata: ${JSON.stringify({
-      //             text: part.textDelta,
-      //           })}\n\n`
-      //         );
-      //         aiResponse += part.textDelta;
-      //       } else if (part.type === "text-delta") {
-      //         if (!enteredText) {
-      //           enteredText = true;
-      //           if (enteredReasoning) {
-      //             res.write(
-      //               `event: message\ndata: ${JSON.stringify({
-      //                 text: "\n\n</think>\n\n",
-      //               })}\n\n`
-      //             );
-      //             aiResponse += "\n\n</think>\n\n";
-      //           }
-      //         }
-      //         res.write(
-      //           `event: message\ndata: ${JSON.stringify({
-      //             text: part.textDelta,
-      //           })}\n\n`
-      //         );
-      //         aiResponse += part.textDelta;
-      //       }
-      //     }
-
-      //     const metadata = await result.experimental_providerMetadata;
-      //     console.log("metadata", metadata);
-      //   };
-
-      //   const handleNonStream = async (
-      //     result: GenerateTextResult<Record<string, Tool<any, any>>, never>
-      //   ) => {
-      //     console.log(JSON.stringify(result.experimental_providerMetadata));
-      //     if (result.reasoning) {
-      //       res.write(
-      //         `event: message\ndata: ${JSON.stringify({
-      //           text: `<think>\n\n${result.reasoning}\n\n</think>\n\n`,
-      //         })}\n\n`
-      //       );
-      //       aiResponse += `<think>\n\n${result.reasoning}\n\n</think>\n\n`;
-      //     }
-      //     res.write(
-      //       `event: message\ndata: ${JSON.stringify({
-      //         text: result.text,
-      //       })}\n\n`
-      //     );
-      //     aiResponse += result.text;
-      //   };
-
-      //   // Handle client abort
-      //   req.on("close", async () => {
-      //     console.log("Client aborted the request, saving incomplete message");
-      //     // Store the incomplete message in the database
-      //     await db.insert(messages).values({
-      //       userId: req.userId!,
-      //       id: crypto.randomUUID(),
-      //       threadId: threadId,
-      //       role: "assistant",
-      //       content: JSON.stringify({ type: "text", text: aiResponse }),
-      //       createdAt: new Date(),
-      //       model: model,
-      //       provider: modelConfig.provider,
-      //     });
-
-      //     res.end();
-      //   });
-
-      //   if (modelConfig.supportsStreaming) {
-      //     const result = streamText(inferenceParams);
-      //     await handleStream(result);
-      //   } else {
-      //     const result = await generateText(inferenceParams);
-      //     await handleNonStream(result);
-      //   }
-
-      //   res.write("event: done\ndata: true\n\n");
-      //   res.end();
     } catch (error: any) {
       console.log("Error", error);
       res.status(500).send(error);

@@ -87,7 +87,12 @@ function ThreadItem({ thread }: { thread: Thread }) {
   const provider = lastMessage?.provider;
   const model = lastMessage?.model;
   const title = thread.title;
-  if (!lastMessage) return null;
+  if (
+    !lastMessage ||
+    !lastMessage.content.text ||
+    typeof lastMessage.content.text !== "string"
+  )
+    return null;
 
   return (
     <Link href={`/threads/${thread.id}`} prefetch>

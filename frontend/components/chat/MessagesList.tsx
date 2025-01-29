@@ -16,12 +16,9 @@ const MessageItem = React.memo(function MessageItem({
   message: Message;
   index: number;
 }) {
-  //   const messageType = message.
   const text = message?.content;
   const data = message?.data;
   const attachments = message?.experimental_attachments;
-  //   const file_metadata = message.content?.file_metadata;
-  // const provider = message.;
 
   const [copied, setCopied] = React.useState(false);
 
@@ -70,9 +67,10 @@ const MessageItem = React.memo(function MessageItem({
             </>
           )}
 
-          {/** AI Plain text response */}
           {message.role === MessageRole.assistant && (
             <div className="max-w-[750px] overflow-hidden">
+              <MarkdownViewer content={message.reasoning ?? ""} />
+
               <MarkdownViewer content={message.content ?? ""} />
             </div>
           )}

@@ -12,8 +12,7 @@ import { Textarea } from "../ui/textarea";
 import { Button } from "../ui/button";
 import { useAtom } from "jotai";
 import { useFileUpload } from "@/hooks/useFileUpload";
-import { useMessageHandler } from "@/hooks/useMessageHandler";
-import { inputAtom, modelAtom } from "@/atoms/chat";
+import { modelAtom } from "@/atoms/chat";
 import React from "react";
 
 interface ChatInputFormProps {
@@ -21,6 +20,8 @@ interface ChatInputFormProps {
   input: string;
   handleInputChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   placeholder?: string;
+  isGenerating?: boolean;
+  stop?: () => void;
 }
 
 export interface ChatInputFormRef {
@@ -34,6 +35,8 @@ function ChatInputForm(
     input,
     handleInputChange,
     placeholder = "Ask anything...",
+    isGenerating,
+    stop,
   }: ChatInputFormProps,
   ref: React.ForwardedRef<ChatInputFormRef>
 ) {
@@ -47,7 +50,6 @@ function ChatInputForm(
     handleDragOver,
     handleDrop,
   } = useFileUpload(selectedModel.supportedMimeTypes || []);
-  const { abortMessage, isGenerating } = useMessageHandler();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
@@ -225,8 +227,8 @@ function ChatInputForm(
             variant="ghost"
             onClick={(e) => {
               e.preventDefault();
-              if (isGenerating) {
-                abortMessage(); // Call abortMessage when generating
+              if (isGenerating && stop) {
+                stop(); // Call abortMessage when generating
               } else {
                 onSubmit(e);
               }
