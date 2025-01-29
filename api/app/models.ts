@@ -5,13 +5,12 @@ import { google } from "@ai-sdk/google";
 import { xai } from "@ai-sdk/xai";
 import { mistral } from "@ai-sdk/mistral";
 import { togetherai } from "@ai-sdk/togetherai";
+import { createPerplexity } from "@ai-sdk/perplexity";
 
 const groq = createGroq();
 
-const perplexity = createOpenAI({
-  name: "perplexity",
+const perplexity = createPerplexity({
   apiKey: process.env.PPLX_API_KEY ?? "",
-  baseURL: "https://api.perplexity.ai/",
 });
 
 interface ModelConfig {

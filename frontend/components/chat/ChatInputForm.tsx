@@ -12,13 +12,17 @@ import { Textarea } from "../ui/textarea";
 import { Button } from "../ui/button";
 import { useAtom } from "jotai";
 import { useFileUpload } from "@/hooks/useFileUpload";
-import { useMessageHandler } from "@/hooks/useMessageHandler";
-import { inputAtom, modelAtom } from "@/atoms/chat";
+import { modelAtom } from "@/atoms/chat";
 import React from "react";
 
 interface ChatInputFormProps {
-  onSubmit: () => void;
+  onSubmit: (e: React.FormEvent) => void;
+  input: string;
+  setInput: (input: string) => void;
+  handleInputChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   placeholder?: string;
+  isGenerating?: boolean;
+  stop?: () => void;
 }
 
 export interface ChatInputFormRef {
@@ -27,10 +31,18 @@ export interface ChatInputFormRef {
 }
 
 function ChatInputForm(
-  { onSubmit, placeholder = "Ask anything..." }: ChatInputFormProps,
+  {
+    onSubmit,
+    input,
+    handleInputChange,
+    placeholder = "Ask anything...",
+    isGenerating,
+    stop,
+    setInput,
+  }: ChatInputFormProps,
   ref: React.ForwardedRef<ChatInputFormRef>
 ) {
-  const [input, setInput] = useAtom(inputAtom);
+  const [isMounted, setIsMounted] = useState(false);
   const [selectedModel] = useAtom(modelAtom);
   const [focused, setFocused] = useState(true);
   const {
@@ -41,7 +53,6 @@ function ChatInputForm(
     handleDragOver,
     handleDrop,
   } = useFileUpload(selectedModel.supportedMimeTypes || []);
-  const { abortMessage, isGenerating } = useMessageHandler();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
@@ -81,15 +92,6 @@ function ChatInputForm(
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit();
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setInput(e.target.value);
-  };
-
   useEffect(() => {
     // Add keyboard shortcut listener
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -121,12 +123,16 @@ function ChatInputForm(
     }
   }, [isGenerating]);
 
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   return (
     <form
       className={`relative h-auto min-h-[24px] max-h-[450px] w-full mx-auto rounded-2xl border max-w-[750px] bg-background ${
         focused && "md:drop-shadow-md"
       }`}
-      onSubmit={handleSubmit}
+      onSubmit={onSubmit}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
@@ -192,7 +198,8 @@ function ChatInputForm(
         />
 
         <div className="h-full pr-1 flex pb-[9px]">
-          {selectedModel.supportedMimeTypes &&
+          {isMounted &&
+            selectedModel.supportedMimeTypes &&
             selectedModel.supportedMimeTypes.length > 0 && (
               <>
                 <input
@@ -224,10 +231,10 @@ function ChatInputForm(
             variant="ghost"
             onClick={(e) => {
               e.preventDefault();
-              if (isGenerating) {
-                abortMessage(); // Call abortMessage when generating
+              if (isGenerating && stop) {
+                stop(); // Call abortMessage when generating
               } else {
-                handleSubmit(e);
+                onSubmit(e);
               }
             }}
           >

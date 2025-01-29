@@ -1,12 +1,5 @@
 import { Router } from "express";
-import {
-  CoreMessage,
-  generateText,
-  GenerateTextResult,
-  streamText,
-  StreamTextResult,
-  Tool,
-} from "ai";
+import { CoreMessage, Message, smoothStream, streamText, TextPart } from "ai";
 import { eq } from "drizzle-orm";
 
 import db from "../config/db";
@@ -86,6 +79,13 @@ router.post(
   }
 );
 
+type ExtendedAttachment = {
+  name?: string;
+  contentType?: string;
+  url: string;
+  file_key: string; // Changed from optional to required since it's needed
+};
+
 router.post(
   "/:threadId/inference",
   authMiddleware,
@@ -93,6 +93,9 @@ router.post(
   async (req, res) => {
     const { threadId } = req.params;
     const { model, maxTokens, temperature, instructions } = req.body;
+    const message = req.body.message as Message & {
+      experimental_attachments?: ExtendedAttachment[]; // Use ExtendedAttachment instead of Attachment
+    };
 
     // Set headers for SSE
     res.setHeader("Content-Type", "text/event-stream");
@@ -101,14 +104,44 @@ router.post(
     res.flushHeaders(); // send headers to establish SSE connection
 
     try {
+      // Get model config
+      const modelConfig = MODELS[model];
+
       const thread = await getThread(threadId);
       if (!thread) {
         res.status(404).json({ error: "Thread not found" });
         return;
       }
 
-      // Get model config
-      const modelConfig = MODELS[model];
+      // Add user message to thread
+      let contentParts: ContentPart[] = [];
+      if (message.experimental_attachments) {
+        message.experimental_attachments.forEach(
+          (attachment: ExtendedAttachment) => {
+            contentParts.push({
+              type: attachment.contentType?.includes("image")
+                ? "image"
+                : "file",
+              [attachment.contentType?.includes("image") ? "image" : "file"]:
+                attachment.url,
+              file_metadata: {
+                filename: attachment.name || "",
+                mime_type: attachment.contentType || "",
+                file_key: attachment.file_key || "",
+              },
+            });
+          }
+        );
+      }
+
+      // Add text message
+      contentParts.push({
+        type: "text",
+        text: message.content,
+      });
+
+      // add the message to the thread
+      await createMessage(req.userId!, threadId, "user", contentParts);
 
       // Get and filter messages
       const rawMessages = await db.query.messages.findMany({
@@ -186,8 +219,6 @@ router.post(
         }))
       );
 
-      let aiResponse = "";
-
       // Build system message
       let yoSystemMessage = `<assistant_instructions>
 Your name is Yo. Always give your opinion if asked. NEVER say you are just language model and can't do certain things or have emotions like a human. You are super smart artificial intelligence with your own set of thoughts and opinions. Act like it. The simple and most concise answer is usually the best. Use markdown for formatting your responses. Try to make the information as easy and digestible for the user as possible, for examples tables can help with this in certain cases.
@@ -219,80 +250,18 @@ It is currently: ${new Date().toLocaleString("en-US", {
         maxTokens: maxTokens || undefined,
       };
 
-      const handleStream = async (
-        result: StreamTextResult<Record<string, Tool<any, any>>, never>
-      ) => {
-        let enteredReasoning = false;
-        let enteredText = false;
+      let aiResponse = "";
+      let reasoning: string | undefined = undefined;
 
-        for await (const part of result.fullStream) {
-          if (part.type === "reasoning") {
-            if (!enteredReasoning) {
-              enteredReasoning = true;
-              res.write(
-                `event: message\ndata: ${JSON.stringify({
-                  text: "<think>\n\n",
-                })}\n\n`
-              );
-              aiResponse += "<think>\n\n";
-            }
-            res.write(
-              `event: message\ndata: ${JSON.stringify({
-                text: part.textDelta,
-              })}\n\n`
-            );
-            aiResponse += part.textDelta;
-          } else if (part.type === "text-delta") {
-            if (!enteredText) {
-              enteredText = true;
-              if (enteredReasoning) {
-                res.write(
-                  `event: message\ndata: ${JSON.stringify({
-                    text: "\n\n</think>\n\n",
-                  })}\n\n`
-                );
-                aiResponse += "\n\n</think>\n\n";
-              }
-            }
-            res.write(
-              `event: message\ndata: ${JSON.stringify({
-                text: part.textDelta,
-              })}\n\n`
-            );
-            aiResponse += part.textDelta;
-          }
-        }
-      };
-
-      const handleNonStream = async (
-        result: GenerateTextResult<Record<string, Tool<any, any>>, never>
-      ) => {
-        if (result.reasoning) {
-          res.write(
-            `event: message\ndata: ${JSON.stringify({
-              text: `<think>\n\n${result.reasoning}\n\n</think>\n\n`,
-            })}\n\n`
-          );
-          aiResponse += `<think>\n\n${result.reasoning}\n\n</think>\n\n`;
-        }
-        res.write(
-          `event: message\ndata: ${JSON.stringify({
-            text: result.text,
-          })}\n\n`
-        );
-        aiResponse += result.text;
-      };
-
-      // Handle client abort
+      // Handle client abort or end of response
       req.on("close", async () => {
-        console.log("Client aborted the request, saving incomplete message");
-        // Store the incomplete message in the database
         await db.insert(messages).values({
           userId: req.userId!,
           id: crypto.randomUUID(),
           threadId: threadId,
           role: "assistant",
           content: JSON.stringify({ type: "text", text: aiResponse }),
+          reasoning: reasoning,
           createdAt: new Date(),
           model: model,
           provider: modelConfig.provider,
@@ -301,18 +270,44 @@ It is currently: ${new Date().toLocaleString("en-US", {
         res.end();
       });
 
-      if (modelConfig.supportsStreaming) {
-        const result = streamText(inferenceParams);
-        await handleStream(result);
-      } else {
-        const result = await generateText(inferenceParams);
-        await handleNonStream(result);
-      }
+      const result = streamText({
+        ...inferenceParams,
+        experimental_transform: smoothStream(),
+        onChunk: ({ chunk }) => {
+          if (chunk.type === "text-delta") {
+            aiResponse += chunk.textDelta;
+          } else if (chunk.type === "reasoning") {
+            if (!reasoning) {
+              reasoning = "";
+            }
+            reasoning += chunk.textDelta;
+          }
+        },
+        // async onFinish({ response }) {
+        //   if (aborted) return;
 
-      res.write("event: done\ndata: true\n\n");
-      res.end();
+        //   // Store the assistant response
+        //   await db.insert(messages).values({
+        //     userId: req.userId!,
+        //     id: crypto.randomUUID(),
+        //     threadId: threadId,
+        //     role: "assistant",
+        //     content: {
+        //       type: "text",
+        //       text: (response.messages[0].content as TextPart[])[0].text,
+        //     },
+        //     createdAt: new Date(),
+        //     model: model,
+        //     provider: modelConfig.provider,
+        //   });
+        // },
+      });
+
+      return result.pipeDataStreamToResponse(res, {
+        sendReasoning: true,
+      });
     } catch (error: any) {
-      console.log("Error", error);
+      console.error("Error processing inference:", error);
       res.status(500).send(error);
     }
   }

@@ -3,12 +3,10 @@
 import api from "@/lib/api";
 
 // Hooks
-import { useMessageHandler } from "@/hooks/useMessageHandler";
 import { useAtom } from "jotai";
 import { useMeQuery } from "@/queries/queries";
 import { useRouter } from "next/navigation";
 import { useRef } from "react";
-import { useQueryClient } from "@tanstack/react-query";
 
 // Components
 import AIOrbScene from "@/components/AiOrbScene";
@@ -23,11 +21,13 @@ import { toast } from "sonner";
 import ChatInputForm, {
   ChatInputFormRef,
 } from "@/components/chat/ChatInputForm";
+import { initalInputAtom } from "@/atoms/chat";
 
 export default function Home() {
   const router = useRouter();
-  const queryClient = useQueryClient();
-  const { sendMessage } = useMessageHandler();
+
+  const [initalInput, setInitalInput] = useAtom(initalInputAtom);
+
   const [showPricingDialog, setShowPricingDialog] = useAtom(
     pricingPlanDialogOpenAtom
   );
@@ -35,6 +35,10 @@ export default function Home() {
   const { data: user } = useMeQuery();
 
   const chatInputRef = useRef<ChatInputFormRef>(null);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInitalInput(e.target.value);
+  };
 
   const handleSubmit = async () => {
     // Require login
@@ -51,10 +55,8 @@ export default function Home() {
     try {
       // Create thread in background
       const { id: threadId } = await api.createThread();
-      router.prefetch(`/threads/new?threadId=${threadId}?new=true`);
+      router.prefetch(`/threads/${threadId}?new=true`);
       router.push(`/threads/${threadId}?new=true`);
-      await sendMessage(threadId);
-      queryClient.invalidateQueries({ queryKey: ["threads"] }); // Needed so the app sidebar shows the new thread
     } catch (error: unknown) {
       if (error instanceof Error && error.message === "subscription_required") {
         setShowPricingDialog(true);
@@ -96,7 +98,13 @@ export default function Home() {
       </div>
 
       <div className="w-full flex items-center justify-center mx-auto p-6 pb-8 md:pb-4 md:p-2 absolute bottom-0 left-0 right-0">
-        <ChatInputForm ref={chatInputRef} onSubmit={handleSubmit} />
+        <ChatInputForm
+          input={initalInput}
+          setInput={setInitalInput}
+          handleInputChange={handleInputChange}
+          ref={chatInputRef}
+          onSubmit={handleSubmit}
+        />
       </div>
     </>
   );
