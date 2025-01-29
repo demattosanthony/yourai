@@ -38,7 +38,7 @@ const MessageItem = React.memo(function MessageItem({
       key={index}
       className={`flex flex-col ${
         message.role === MessageRole.user ? "justify-end" : "justify-start"
-      } mb-4 `}
+      } mb-4`}
     >
       {/** Attachments */}
       {message.role === MessageRole.user &&
@@ -48,11 +48,11 @@ const MessageItem = React.memo(function MessageItem({
         ))}
 
       <div
-        className={`md:max-w-full rounded-lg p-2 group relative flex flex-col ${
+        className={`md:max-w-full rounded-lg group relative flex flex-col ${
           message.role === MessageRole.user
             ? "bg-primary text-white self-end dark:text-black max-w-[85%]"
             : "self-start max-w-full"
-        }`}
+        } ${text && text.length > 0 && "p-2"}`}
         style={{
           whiteSpace: message.role === MessageRole.user ? "pre-wrap" : "normal",
         }}
