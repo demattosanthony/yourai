@@ -64,6 +64,7 @@ export const messages = pgTable("messages", {
     .references(() => users.id, { onDelete: "cascade" }),
   role: text("role", { enum: MESSAGE_ROLES }).notNull(),
   content: jsonb("content").notNull(),
+  reasoning: text("reasoning"),
   model: text("model"),
   provider: text("provider"),
   createdAt: timestamp("created_at").defaultNow().notNull(),

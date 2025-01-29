@@ -27,6 +27,7 @@ export type ChatMessage = {
   createdAt?: string;
   model?: string;
   provider?: string;
+  reasoning?: string;
 };
 
 export type FileUpload = {
@@ -52,5 +53,6 @@ export interface Thread {
     createdAt: string;
     model?: string;
     provider?: string;
+    reasoning?: string;
   }[];
 }

@@ -2,12 +2,12 @@
 
 import MarkdownViewer from "../MarkdownViewer";
 import { useEffect } from "react";
-import { Check, Copy, File, Maximize2 } from "lucide-react";
-import Link from "next/link";
-import { Button } from "../ui/button";
+import { Check, Copy } from "lucide-react";
 import { Message } from "ai/react";
 import React from "react";
 import { MessageRole } from "@/types/chat";
+import { ThinkingDropdown } from "./ThinkingDropdown";
+import ChatAttachment from "./ChatAttachment";
 
 const MessageItem = React.memo(function MessageItem({
   message,
@@ -17,7 +17,7 @@ const MessageItem = React.memo(function MessageItem({
   index: number;
 }) {
   const text = message?.content;
-  const data = message?.data;
+  //   const data = message?.data;
   const attachments = message?.experimental_attachments;
 
   const [copied, setCopied] = React.useState(false);
@@ -40,13 +40,15 @@ const MessageItem = React.memo(function MessageItem({
         message.role === MessageRole.user ? "justify-end" : "justify-start"
       } mb-4 `}
     >
-      {/* <>
-            {message.tool_calls?.map((toolCall, id) => (
-            <ToolCallResultComponent toolCall={toolCall} key={id} />
-            ))}
-        </> */}
+      {/** Attachments */}
+      {message.role === MessageRole.user &&
+        attachments &&
+        attachments?.map((attachment, index) => (
+          <ChatAttachment attachment={attachment} key={index} />
+        ))}
+
       <div
-        className={`md:max-w-full rounded-lg p-2 group relative ${
+        className={`md:max-w-full rounded-lg p-2 group relative flex flex-col ${
           message.role === MessageRole.user
             ? "bg-primary text-white self-end dark:text-black max-w-[85%]"
             : "self-start max-w-full"
@@ -69,7 +71,11 @@ const MessageItem = React.memo(function MessageItem({
 
           {message.role === MessageRole.assistant && (
             <div className="max-w-[750px] overflow-hidden">
-              <MarkdownViewer content={message.reasoning ?? ""} />
+              {message.reasoning && (
+                <ThinkingDropdown>
+                  <MarkdownViewer content={message.reasoning ?? ""} />
+                </ThinkingDropdown>
+              )}
 
               <MarkdownViewer content={message.content ?? ""} />
             </div>
@@ -81,59 +87,6 @@ const MessageItem = React.memo(function MessageItem({
               {text}
             </div>
           )}
-
-          {/** User images */}
-          {message.role === MessageRole.user &&
-            attachments &&
-            attachments?.map((attachment, index) => {
-              const contentType = attachment.contentType || "";
-
-              switch (true) {
-                case contentType.startsWith("image"):
-                  return (
-                    <img
-                      key={index}
-                      src={attachment.url}
-                      alt="user attachment"
-                      className="max-w-[750px] overflow-hidden rounded-lg"
-                    />
-                  );
-
-                case contentType === "application/pdf":
-                  return (
-                    <div key={index} className="relative w-full h-[400px]">
-                      <iframe
-                        src={`${data}#toolbar=0&navpanes=0&scrollbar=0&page=1&view=Fit`}
-                        className="w-full h-full"
-                        title={attachment.name}
-                      />
-                      <Link
-                        href={attachment.url || ""}
-                        target="_blank"
-                        className="absolute bottom-2 right-2"
-                      >
-                        <Button size={"icon"} variant={"outline"}>
-                          <Maximize2 className="h-4 w-4 text-primary" />
-                        </Button>
-                      </Link>
-                    </div>
-                  );
-
-                default:
-                  return (
-                    <Link
-                      key={index}
-                      href={attachment.url || ""}
-                      target="_blank"
-                    >
-                      <div className="flex items-center gap-1 cursor-pointer hover:opacity-80">
-                        <File className="w-4 h-4" />
-                        <span>{attachment.name}</span>
-                      </div>
-                    </Link>
-                  );
-              }
-            })}
         </div>
 
         {/* Copy to clipboard icon for user text messages */}

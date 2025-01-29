@@ -100,6 +100,7 @@ export default function Home() {
       <div className="w-full flex items-center justify-center mx-auto p-6 pb-8 md:pb-4 md:p-2 absolute bottom-0 left-0 right-0">
         <ChatInputForm
           input={initalInput}
+          setInput={setInitalInput}
           handleInputChange={handleInputChange}
           ref={chatInputRef}
           onSubmit={handleSubmit}

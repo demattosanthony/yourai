@@ -18,6 +18,7 @@ import React from "react";
 interface ChatInputFormProps {
   onSubmit: (e: React.FormEvent) => void;
   input: string;
+  setInput: (input: string) => void;
   handleInputChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   placeholder?: string;
   isGenerating?: boolean;
@@ -37,6 +38,7 @@ function ChatInputForm(
     placeholder = "Ask anything...",
     isGenerating,
     stop,
+    setInput,
   }: ChatInputFormProps,
   ref: React.ForwardedRef<ChatInputFormRef>
 ) {
@@ -73,25 +75,21 @@ function ChatInputForm(
         .selectionStart;
       const textBeforeCaret = input.substring(0, caretPosition);
       const textAfterCaret = input.substring(caretPosition);
-      //   if (setInput) {
-      //     setInput(textBeforeCaret + "\n" + textAfterCaret);
-      //     // Set cursor position after state update
-      //     setTimeout(() => {
-      //       if (textAreaRef?.current) {
-      //         textAreaRef.current.selectionStart = caretPosition + 1;
-      //         textAreaRef.current.selectionEnd = caretPosition + 1;
-      //       }
-      //     }, 0);
-      //   }
+      if (setInput) {
+        setInput(textBeforeCaret + "\n" + textAfterCaret);
+        // Set cursor position after state update
+        setTimeout(() => {
+          if (textAreaRef?.current) {
+            textAreaRef.current.selectionStart = caretPosition + 1;
+            textAreaRef.current.selectionEnd = caretPosition + 1;
+          }
+        }, 0);
+      }
     } else if (event.key === "Enter") {
       event.preventDefault();
       if (buttonRef.current) buttonRef.current.click();
     }
   };
-
-  //   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-  //     setInput(e.target.value);
-  //   };
 
   useEffect(() => {
     // Add keyboard shortcut listener

@@ -1,5 +1,12 @@
 "use client";
 
+import api from "@/lib/api";
+
+// Types
+import { MessageRole } from "@/types/chat";
+import { Attachment } from "@ai-sdk/ui-utils";
+
+// Atoms
 import {
   initalInputAtom,
   instructionsAtom,
@@ -8,17 +15,17 @@ import {
   temperatureAtom,
   uploadsAtom,
 } from "@/atoms/chat";
-import ChatInputForm from "@/components/chat/ChatInputForm";
-import ChatMessagesList from "@/components/chat/MessagesList";
-import api from "@/lib/api";
-import { MessageRole } from "@/types/chat";
+
+// Hooks
+import { useQueryClient } from "@tanstack/react-query";
+import { useChat } from "ai/react";
 import { useAtom } from "jotai";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 
-import { useChat } from "ai/react";
-import { Attachment } from "@ai-sdk/ui-utils";
-import { useQueryClient } from "@tanstack/react-query";
+// Components
+import ChatInputForm from "@/components/chat/ChatInputForm";
+import ChatMessagesList from "@/components/chat/MessagesList";
 
 type ExtendedAttachment = Attachment & {
   file_key: string;
@@ -38,41 +45,47 @@ export default function ThreadPage() {
   const [temperature] = useAtom(temperatureAtom);
   const [instructions] = useAtom(instructionsAtom);
 
-  const { input, handleInputChange, handleSubmit, messages, isLoading, stop } =
-    useChat({
-      api: `${process.env.NEXT_PUBLIC_API_URL}/threads/${threadId}/inference`,
-      credentials: "include",
-      initialInput: isNew ? initalInput : "",
-      initialMessages:
-        initalMessages?.map((message) => ({
-          content: message.content?.text || "",
-          role: message.role as "user" | "assistant",
-          id: message.id,
-          createdAt: message.createdAt
-            ? new Date(message.createdAt)
-            : undefined,
-          experimental_attachments:
-            message.content?.type === "image"
-              ? [
-                  {
-                    name: message.content.file_metadata?.filename,
-                    url: message.content?.image || "", // Ensure url is always a string
-                    file_key: message.content.file_metadata?.file_key,
-                    contentType: message.content.file_metadata?.mime_type,
-                  },
-                ]
-              : [],
-        })) ?? [],
-      experimental_prepareRequestBody({ messages, id }) {
-        return {
-          message: messages[messages.length - 1],
-          id,
-          model: model.name,
-          temperature: temperature,
-          instructions,
-        };
-      },
-    });
+  const {
+    input,
+    setInput,
+    handleInputChange,
+    handleSubmit,
+    messages,
+    isLoading,
+    stop,
+  } = useChat({
+    api: `${process.env.NEXT_PUBLIC_API_URL}/threads/${threadId}/inference`,
+    credentials: "include",
+    initialInput: isNew ? initalInput : "",
+    initialMessages:
+      initalMessages?.map((message) => ({
+        content: message.content?.text || "",
+        role: message.role as "user" | "assistant",
+        id: message.id,
+        createdAt: message.createdAt ? new Date(message.createdAt) : undefined,
+        reasoning: message.reasoning,
+        experimental_attachments:
+          message.content?.type === "image" || message.content?.type === "file"
+            ? [
+                {
+                  name: message.content.file_metadata?.filename,
+                  url: message.content?.data || "",
+                  file_key: message.content.file_metadata?.file_key,
+                  contentType: message.content.file_metadata?.mime_type,
+                },
+              ]
+            : [],
+      })) ?? [],
+    experimental_prepareRequestBody({ messages, id }) {
+      return {
+        message: messages[messages.length - 1],
+        id,
+        model: model.name,
+        temperature: temperature,
+        instructions,
+      };
+    },
+  });
 
   async function processAttachments() {
     // Process uploads
@@ -121,6 +134,7 @@ export default function ThreadPage() {
         provider: message.provider,
         model: message.model,
         id: message.id,
+        reasoning: message.reasoning,
       }));
       setMessages(formattedMessages);
     } catch (error) {
@@ -173,6 +187,7 @@ export default function ThreadPage() {
       <div className="w-full flex items-center justify-center mx-auto px-6 pb-8 md:pb-4 md:p-2">
         <ChatInputForm
           input={input}
+          setInput={setInput}
           handleInputChange={handleInputChange}
           onSubmit={onSubmit}
           stop={stop}

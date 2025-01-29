@@ -97,36 +97,6 @@ router.post(
       experimental_attachments?: ExtendedAttachment[]; // Use ExtendedAttachment instead of Attachment
     };
 
-    // Get model config
-    const modelConfig = MODELS[model];
-
-    const abortController = new AbortController();
-    const signal = abortController.signal;
-
-    let aiResponse = "";
-
-    // Handle client disconnect (cancellation)
-    req.on("close", async () => {
-      abortController.abort(); // Abort the signal when client disconnects
-
-      // Store the partial message if we have any content
-      if (aiResponse) {
-        await db.insert(messages).values({
-          userId: req.userId!,
-          id: crypto.randomUUID(),
-          threadId: threadId,
-          role: "assistant",
-          content: {
-            type: "text",
-            text: aiResponse,
-          },
-          createdAt: new Date(),
-          model: model,
-          provider: modelConfig.provider,
-        });
-      }
-    });
-
     // Set headers for SSE
     res.setHeader("Content-Type", "text/event-stream");
     res.setHeader("Cache-Control", "no-cache");
@@ -134,6 +104,9 @@ router.post(
     res.flushHeaders(); // send headers to establish SSE connection
 
     try {
+      // Get model config
+      const modelConfig = MODELS[model];
+
       const thread = await getThread(threadId);
       if (!thread) {
         res.status(404).json({ error: "Thread not found" });
@@ -277,38 +250,66 @@ It is currently: ${new Date().toLocaleString("en-US", {
         maxTokens: maxTokens || undefined,
       };
 
+      let aiResponse = "";
+      let reasoning: string | undefined = undefined;
+
+      // Handle client abort or end of response
+      req.on("close", async () => {
+        console.log("Client aborted the request, saving incomplete message");
+
+        await db.insert(messages).values({
+          userId: req.userId!,
+          id: crypto.randomUUID(),
+          threadId: threadId,
+          role: "assistant",
+          content: JSON.stringify({ type: "text", text: aiResponse }),
+          reasoning: reasoning,
+          createdAt: new Date(),
+          model: model,
+          provider: modelConfig.provider,
+        });
+
+        res.end();
+      });
+
       const result = streamText({
         ...inferenceParams,
         experimental_transform: smoothStream(),
-        abortSignal: signal,
         onChunk: ({ chunk }) => {
           if (chunk.type === "text-delta") {
             aiResponse += chunk.textDelta;
+          } else if (chunk.type === "reasoning") {
+            if (!reasoning) {
+              reasoning = "";
+            }
+            reasoning += chunk.textDelta;
           }
         },
-        async onFinish({ response }) {
-          // Store the assistant response
-          await db.insert(messages).values({
-            userId: req.userId!,
-            id: crypto.randomUUID(),
-            threadId: threadId,
-            role: "assistant",
-            content: {
-              type: "text",
-              text: (response.messages[0].content as TextPart[])[0].text,
-            },
-            createdAt: new Date(),
-            model: model,
-            provider: modelConfig.provider,
-          });
-        },
+        // async onFinish({ response }) {
+        //   if (aborted) return;
+
+        //   // Store the assistant response
+        //   await db.insert(messages).values({
+        //     userId: req.userId!,
+        //     id: crypto.randomUUID(),
+        //     threadId: threadId,
+        //     role: "assistant",
+        //     content: {
+        //       type: "text",
+        //       text: (response.messages[0].content as TextPart[])[0].text,
+        //     },
+        //     createdAt: new Date(),
+        //     model: model,
+        //     provider: modelConfig.provider,
+        //   });
+        // },
       });
 
       return result.pipeDataStreamToResponse(res, {
         sendReasoning: true,
       });
     } catch (error: any) {
-      console.log("Error", error);
+      console.error("Error processing inference:", error);
       res.status(500).send(error);
     }
   }
