@@ -173,15 +173,15 @@ export function getModelImage(provider: string) {
 export function getModelIconPath(provider: string) {
   switch (provider) {
     case "openai":
-      return "https://openai.com/favicon.ico";
+      return "/openai.ico";
     case "anthropic":
-      return "https://anthropic.com/favicon.ico";
+      return "/anthropic.ico";
     case "perplexity":
-      return "https://www.perplexity.ai/favicon.ico";
+      return "/perplexity.ico";
     case "google":
       return "/google.svg";
     case "xai":
-      return "https://x.ai/icon.svg";
+      return "/xai.svg";
     case "mistral":
       return "/mistral.svg";
     case "groq":
@@ -189,7 +189,7 @@ export function getModelIconPath(provider: string) {
     case "meta":
       return "/meta.svg";
     case "deepseek":
-      return "https://www.deepseek.com/favicon.ico";
+      return "/deepseek.ico";
     default:
       return null;
   }
