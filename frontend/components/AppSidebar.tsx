@@ -37,7 +37,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const currentThread = params?.threadId;
   const isThreadsPage = pathname === "/threads";
 
-  const { data } = useThreadsQuery();
+  const { data, isLoading: threadsLoading } = useThreadsQuery();
   // Take only the first page of results since that's all we need
   const threads = data?.pages[0]?.threads ?? [];
 
@@ -101,7 +101,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               <SidebarGroupLabel>{"Recents"}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {threads &&
+                  {threadsLoading ? (
+                    <>
+                      {Array.from({ length: 10 }).map((_, i) => (
+                        <SidebarMenuItem key={i}>
+                          <SidebarMenuButton asChild>
+                            <div className="h-6 w-full bg-muted animate-pulse rounded" />
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      ))}
+                    </>
+                  ) : (
+                    threads &&
                     threads?.map((thread) => {
                       if (!thread.title) return null;
                       return (
@@ -125,7 +136,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                           </SidebarMenuButton>
                         </SidebarMenuItem>
                       );
-                    })}
+                    })
+                  )}
 
                   {user && (
                     <Link href={"/threads"}>
