@@ -42,6 +42,7 @@ function ChatInputForm(
   }: ChatInputFormProps,
   ref: React.ForwardedRef<ChatInputFormRef>
 ) {
+  const [isMounted, setIsMounted] = useState(false);
   const [selectedModel] = useAtom(modelAtom);
   const [focused, setFocused] = useState(true);
   const {
@@ -122,6 +123,10 @@ function ChatInputForm(
     }
   }, [isGenerating]);
 
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   return (
     <form
       className={`relative h-auto min-h-[24px] max-h-[450px] w-full mx-auto rounded-2xl border max-w-[750px] bg-background ${
@@ -193,7 +198,8 @@ function ChatInputForm(
         />
 
         <div className="h-full pr-1 flex pb-[9px]">
-          {selectedModel.supportedMimeTypes &&
+          {isMounted &&
+            selectedModel.supportedMimeTypes &&
             selectedModel.supportedMimeTypes.length > 0 && (
               <>
                 <input
