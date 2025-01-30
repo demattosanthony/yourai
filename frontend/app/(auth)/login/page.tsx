@@ -10,34 +10,46 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
+import Image from "next/image";
 
 export default function LoginPage() {
-  const { handleGoogleLogin } = useAuth();
+  const { handleGoogleLogin, handleMicrosoftLogin } = useAuth();
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="relative mx-auto w-20 h-20 mb-2">
-            <img
-              src="/yo-blob.png"
-              alt="logo"
-              className="w-full h-full object-contain"
-            />
-          </div>
+    <div className="min-h-screen flex flex-col items-center px-4 py-12 h-full">
+      <main className="flex flex-col gap-8 items-center w-full justify-center h-[75%]">
+        <Image src="/yo-blob.png" alt="logo" height={75} width={75} />
 
-          <CardTitle className="text-3xl font-bold">Yo..ur AI</CardTitle>
-          <CardDescription className="text-base">
-            Chat with multiple AI models in one seamless experience
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Button className="font-semibold w-full" onClick={handleGoogleLogin}>
-            <img src="/google.svg" alt="google" className="h-5 w-5 mr-1" />
+        {/** Title and description */}
+        <div className="flex flex-col items-center w-[400px] gap-2">
+          <h3 className="scroll-m-20 text-3xl font-semibold tracking-tight">
+            Yo! Let's get started
+          </h3>
+          {/* <p className="text-base text-muted-foreground text-center">
+            What's up?
+          </p> */}
+        </div>
+
+        {/** Oauth buttons */}
+        <div className="mt-2 flex flex-col gap-4">
+          <Button
+            className="font-semibold w-[280px] flex justify-start h-[50px]"
+            onClick={handleGoogleLogin}
+            variant={"outline"}
+          >
+            <img src="/google.svg" alt="google" className="h-7 w-7 mr-1" />
             Continue with Google
           </Button>
-        </CardContent>
-      </Card>
+          <Button
+            className="font-semibold w-[280px] flex justify-start h-[50px]"
+            onClick={handleMicrosoftLogin}
+            variant={"outline"}
+          >
+            <img src="/msft.svg" alt="google" className="h-6 w-6 mr-2" />
+            Continue with Microsoft
+          </Button>
+        </div>
+      </main>
     </div>
   );
 }

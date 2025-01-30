@@ -25,6 +25,31 @@ router.get(
   }
 );
 
+router.get(
+  "/microsoft",
+  myPassport.authenticate("microsoft", {
+    session: false,
+    prompt: "select_account",
+  })
+);
+
+router.get(
+  "/microsoft/callback",
+  myPassport.authenticate("microsoft", {
+    session: false,
+    failureRedirect: process.env.FRONTEND_URL + "?error=unauthorized",
+    failWithError: true, // Add this
+  }),
+  (req, res) => {
+    sendAuthCookies(res, req.user as DbUser);
+    if ((req.user as DbUser).subscriptionStatus === "active") {
+      res.redirect(process.env.FRONTEND_URL!);
+    } else {
+      res.redirect(process.env.FRONTEND_URL!);
+    }
+  }
+);
+
 router.post("/logout", (req, res) => {
   const cookieOptions = {
     httpOnly: true,

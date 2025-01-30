@@ -31,6 +31,7 @@ export const users = pgTable("users", {
   email: varchar("email", { length: 255 }).notNull().unique(),
   name: varchar("name", { length: 255 }),
   googleId: varchar("google_id", { length: 255 }).unique(),
+  microsoftId: varchar("microsoft_id", { length: 255 }).unique(),
   profilePicture: text("profile_picture"),
   refreshTokenVersion: integer("refresh_token_version").default(1).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),

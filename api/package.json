@@ -33,6 +33,7 @@
     "@ai-sdk/perplexity": "^0.0.4",
     "@ai-sdk/togetherai": "^0.1.6",
     "@ai-sdk/xai": "^1.1.6",
+    "@types/passport-microsoft": "^1.0.3",
     "ai": "^4.1.11",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
@@ -42,6 +43,7 @@
     "llamacpp-ai-provider": "^0.0.9",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
+    "passport-microsoft": "^2.1.0",
     "pg": "^8.13.1",
     "stripe": "^17.6.0"
   }
