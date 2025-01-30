@@ -2,26 +2,43 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
 import Image from "next/image";
+import { ArrowLeft, ArrowRight, Key } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function LoginPage() {
-  const { handleGoogleLogin, handleMicrosoftLogin } = useAuth();
+  const router = useRouter();
+  const { handleGoogleLogin } = useAuth();
+
+  const [ssoSelected, setSsoSelected] = React.useState(false);
+  const [workEmail, setWorkEmail] = React.useState("");
 
   return (
     <div className="min-h-screen flex flex-col items-center px-4 py-12 h-full">
+      <div className="absolute top-1 left-1">
+        <Button
+          onClick={() => {
+            if (ssoSelected) {
+              setSsoSelected(false);
+            } else {
+              router.back();
+            }
+          }}
+          size={"icon"}
+          variant={"ghost"}
+        >
+          <ArrowLeft size={24} />
+        </Button>
+      </div>
+
       <main className="flex flex-col gap-8 items-center w-full justify-center h-[75%]">
         <Image src="/yo-blob.png" alt="logo" height={75} width={75} />
 
         {/** Title and description */}
-        <div className="flex flex-col items-center w-[400px] gap-2">
+        <div className="flex flex-col items-center w-[400px] gap-2 mt-4">
           <h3 className="scroll-m-20 text-3xl font-semibold tracking-tight">
             Yo! Let's get started
           </h3>
@@ -31,25 +48,55 @@ export default function LoginPage() {
         </div>
 
         {/** Oauth buttons */}
-        <div className="mt-2 flex flex-col gap-4">
-          <Button
-            className="font-semibold w-[280px] flex justify-start h-[50px]"
-            onClick={handleGoogleLogin}
-            variant={"outline"}
-          >
-            <img src="/google.svg" alt="google" className="h-7 w-7 mr-1" />
-            Continue with Google
-          </Button>
-          <Button
-            className="font-semibold w-[280px] flex justify-start h-[50px]"
-            onClick={handleMicrosoftLogin}
-            variant={"outline"}
-          >
-            <img src="/msft.svg" alt="google" className="h-6 w-6 mr-2" />
-            Continue with Microsoft
-          </Button>
-        </div>
+        {!ssoSelected && (
+          <div className="flex flex-col gap-4">
+            <Button
+              className="font-semibold w-[320px] flex justify-start h-[42px]"
+              onClick={handleGoogleLogin}
+              variant={"outline"}
+            >
+              <img src="/google.svg" alt="google" className="h-5 w-5 mr-1" />
+              Continue with Google
+            </Button>
+            <Button
+              className="font-semibold w-[320px] flex justify-start h-[42px]"
+              onClick={() => setSsoSelected(true)}
+              variant={"outline"}
+            >
+              <Key className="mr-1 h-5 w-5" />
+              Sign sign-on (SSO)
+            </Button>
+          </div>
+        )}
+
+        {ssoSelected && (
+          <div className="flex flex-col gap-4">
+            <Input
+              value={workEmail}
+              onChange={(e) => setWorkEmail(e.target.value)}
+              placeholder="Enter your work email"
+              className="w-[320px] h-[42px]"
+              autoFocus
+            />
+
+            <Button
+              className="font-semibold w-[320px] flex justify-center h-[42px]"
+              //   onClick={handleMicrosoftLogin}
+              //   variant={"outline"}
+              disabled={!workEmail}
+            >
+              Continue with SAML SSO
+              <ArrowRight size={24} className="ml-1" />
+            </Button>
+          </div>
+        )}
       </main>
+
+      <div className="absolute bottom-2">
+        <Link href={"https://syyclops.com"} target="_blank">
+          <Button variant={"link"}>By Syyclops</Button>
+        </Link>
+      </div>
     </div>
   );
 }

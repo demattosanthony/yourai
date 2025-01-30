@@ -23,13 +23,6 @@ export const useAuth = () => {
     `);
   };
 
-  const handleMicrosoftLogin = () => {
-    router.push(`${
-      process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
-    }/auth/microsoft 
-    `);
-  };
-
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const error = params.get("error");
@@ -45,5 +38,5 @@ export const useAuth = () => {
     }
   }, []);
 
-  return { logOut, handleGoogleLogin, handleMicrosoftLogin };
+  return { logOut, handleGoogleLogin };
 };
