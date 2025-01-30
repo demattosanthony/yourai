@@ -22,6 +22,7 @@ const SUBSCRIPTION_STATUS = [
   "unpaid",
 ] as const;
 const SUBSCRIPTION_PLAN = ["basic"] as const;
+const IDENTITY_PROVIDER = ["google", "saml"] as const;
 
 // Users table with additional fields
 export const users = pgTable("users", {
@@ -31,7 +32,6 @@ export const users = pgTable("users", {
   email: varchar("email", { length: 255 }).notNull().unique(),
   name: varchar("name", { length: 255 }),
   googleId: varchar("google_id", { length: 255 }).unique(),
-  microsoftId: varchar("microsoft_id", { length: 255 }).unique(),
   profilePicture: text("profile_picture"),
   refreshTokenVersion: integer("refresh_token_version").default(1).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -41,6 +41,9 @@ export const users = pgTable("users", {
     enum: SUBSCRIPTION_STATUS,
   }).default("incomplete"),
   subscriptionPlan: text("subscription_plan", { enum: SUBSCRIPTION_PLAN }),
+  identityProvider: text("identity_provider", {
+    enum: IDENTITY_PROVIDER,
+  }).default("google"),
 });
 
 // Threads table with user association

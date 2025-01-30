@@ -1,5 +1,5 @@
 {
-  "id": "f9e3e25b-c862-4a77-a9ab-119439d9069a",
+  "id": "029f1d61-b24c-412a-ba26-eda72ff0c213",
   "prevId": "528b1d89-de10-47c9-b921-3e4b459f617e",
   "version": "7",
   "dialect": "postgresql",
@@ -267,12 +267,6 @@
           "primaryKey": false,
           "notNull": false
         },
-        "microsoft_id": {
-          "name": "microsoft_id",
-          "type": "varchar(255)",
-          "primaryKey": false,
-          "notNull": false
-        },
         "profile_picture": {
           "name": "profile_picture",
           "type": "text",
@@ -318,6 +312,13 @@
           "type": "text",
           "primaryKey": false,
           "notNull": false
+        },
+        "identity_provider": {
+          "name": "identity_provider",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'google'"
         }
       },
       "indexes": {},
@@ -336,13 +337,6 @@
           "nullsNotDistinct": false,
           "columns": [
             "google_id"
-          ]
-        },
-        "users_microsoft_id_unique": {
-          "name": "users_microsoft_id_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "microsoft_id"
           ]
         },
         "users_stripe_customer_id_unique": {

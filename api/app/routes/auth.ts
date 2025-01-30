@@ -25,6 +25,22 @@ router.get(
   }
 );
 
+// SAML Auth Routes
+router.get("/saml", myPassport.authenticate("saml", { session: false }));
+
+router.post(
+  // SAML callback is a POST
+  "/saml/callback",
+  myPassport.authenticate("saml", {
+    session: false,
+    failureRedirect: process.env.FRONTEND_URL + "?error=saml_auth_failed", // Specific error for SAML
+  }),
+  (req, res) => {
+    sendAuthCookies(res, req.user as DbUser);
+    res.redirect(process.env.FRONTEND_URL!);
+  }
+);
+
 router.post("/logout", (req, res) => {
   const cookieOptions = {
     httpOnly: true,
