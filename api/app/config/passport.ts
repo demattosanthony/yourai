@@ -127,10 +127,11 @@ export async function authenticateSaml(
           callbackUrl: decryptedConfig.callback_url as string,
           disableRequestedAuthnContext: true,
         },
-        async function (samlAssertionInfo: any, done: VerifiedCallback) {
+        async function (profile: any, done: VerifiedCallback) {
           try {
+            console.log("SAML Profile:", JSON.stringify(profile, null, 2));
             const samlEmail =
-              samlAssertionInfo[
+              profile[
                 "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"
               ];
             const [emailName, emailDomain] = samlEmail.split("@");
@@ -149,16 +150,14 @@ export async function authenticateSaml(
             }
 
             const samlName =
-              samlAssertionInfo[
-                "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"
-              ] ||
-              samlAssertionInfo["urn:oid:2.5.4.42"] || // givenName
-              samlAssertionInfo["urn:oid:2.5.4.4"];
+              profile["attributes"]["http://schemas.auth0.com/nickname"] ||
+              emailName;
 
-            const profilePicture = null;
+            const profilePicture =
+              profile["attributes"]["http://schemas.auth0.com/picture"] || null;
 
             let user = await db.query.users.findFirst({
-              where: eq(users.email, samlEmail), // Assuming email is the unique identifier
+              where: eq(users.email, samlEmail),
             });
 
             if (!user) {
@@ -166,7 +165,7 @@ export async function authenticateSaml(
                 .insert(users)
                 .values({
                   email: samlEmail,
-                  name: samlName || samlEmail.split("@")[0], // Fallback name
+                  name: samlName,
                   identityProvider: "saml", // Set identity provider
                   profilePicture,
                 })
@@ -182,6 +181,7 @@ export async function authenticateSaml(
 
             done(null, user);
           } catch (error: any) {
+            console.error(error);
             done(error);
           }
         }

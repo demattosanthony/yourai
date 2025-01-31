@@ -70,25 +70,38 @@ export default function LoginPage() {
         )}
 
         {ssoSelected && (
-          <div className="flex flex-col gap-4">
+          <form
+            className="flex flex-col gap-4"
+            onSubmit={(e) => {
+              e.preventDefault();
+              // Basic email validation regex
+              const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+              if (!emailRegex.test(workEmail)) {
+                alert("Please enter a valid email address");
+                return;
+              }
+              handleSSOLogin(workEmail.split("@")[1].split(".")[0]);
+            }}
+          >
             <Input
+              type="email"
               value={workEmail}
               onChange={(e) => setWorkEmail(e.target.value)}
               placeholder="Enter your work email"
               className="w-[320px] h-[50px]"
               autoFocus
+              required
             />
 
             <Button
+              type="submit"
               className="font-semibold w-[320px] flex justify-center h-[50px]"
-              onClick={() => handleSSOLogin("test")}
-              //   variant={"outline"}
               disabled={!workEmail}
             >
               Continue with SAML SSO
               <ArrowRight size={24} className="ml-1" />
             </Button>
-          </div>
+          </form>
         )}
       </main>
 
