@@ -81,7 +81,7 @@ export default function LoginPage() {
 
             <Button
               className="font-semibold w-[320px] flex justify-center h-[50px]"
-              onClick={handleSSOLogin}
+              onClick={() => handleSSOLogin("test")}
               //   variant={"outline"}
               disabled={!workEmail}
             >

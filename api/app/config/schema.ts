@@ -24,6 +24,41 @@ const SUBSCRIPTION_STATUS = [
 const SUBSCRIPTION_PLAN = ["basic"] as const;
 const IDENTITY_PROVIDER = ["google", "saml"] as const;
 
+export const organizations = pgTable("organizations", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: varchar("name", { length: 255 }).notNull(),
+  slug: varchar("slug", { length: 255 }).unique().notNull(), // for subdomains or URLs
+  domain: varchar("domain", { length: 255 }), // for email matching & auto-assignment
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const organizationMembers = pgTable("organization_members", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  organizationId: uuid("organization_id")
+    .notNull()
+    .references(() => organizations.id, { onDelete: "cascade" }),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  role: text("role", { enum: ["owner", "admin", "member"] }).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const samlConfigs = pgTable("saml_configs", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  organizationId: uuid("organization_id")
+    .notNull()
+    .references(() => organizations.id, { onDelete: "cascade" }),
+  entryPoint: text("entry_point").notNull(),
+  issuer: text("issuer").notNull(),
+  cert: text("cert").notNull(),
+  callbackUrl: text("callback_url").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Users table with additional fields
 export const users = pgTable("users", {
   id: uuid("id")
@@ -92,6 +127,7 @@ export const toolCalls = pgTable("tool_calls", {
 export const usersRelations = relations(users, ({ many }) => ({
   threads: many(threads),
   messages: many(messages),
+  organizationMembers: many(organizationMembers),
 }));
 
 export const threadsRelations = relations(threads, ({ one, many }) => ({
@@ -119,6 +155,38 @@ export const toolCallsRelations = relations(toolCalls, ({ one }) => ({
     references: [messages.id],
   }),
 }));
+
+export const organizationsRelations = relations(
+  organizations,
+  ({ many, one }) => ({
+    members: many(organizationMembers),
+    samlConfig: one(samlConfigs, {
+      fields: [organizations.id],
+      references: [samlConfigs.organizationId],
+    }),
+  })
+);
+
+export const samlConfigsRelations = relations(samlConfigs, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [samlConfigs.organizationId],
+    references: [organizations.id],
+  }),
+}));
+
+export const organizationMembersRelations = relations(
+  organizationMembers,
+  ({ one }) => ({
+    organization: one(organizations, {
+      fields: [organizationMembers.organizationId],
+      references: [organizations.id],
+    }),
+    user: one(users, {
+      fields: [organizationMembers.userId],
+      references: [users.id],
+    }),
+  })
+);
 
 // Types
 type BaseContentPart = {

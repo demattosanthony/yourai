@@ -3,7 +3,8 @@ import { Strategy as SamlStrategy, VerifiedCallback } from "passport-saml";
 import passport from "passport";
 import db from "./db";
 import { eq } from "drizzle-orm";
-import { users } from "./schema";
+import { organizationMembers, organizations, users } from "./schema";
+import { NextFunction, Response, Request } from "express";
 
 const cert = await Bun.file(process.env.SAML_CERT!).text();
 
@@ -65,15 +66,42 @@ export function configurePassport() {
     )
   );
 
+  return passport;
+}
+
+const myPassport = configurePassport();
+
+export async function authenticateSaml(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  const slug = req.params.slug; // Get the organization slug from the URL
+
+  const org = await db.query.organizations.findFirst({
+    where: eq(organizations.slug, slug),
+    with: {
+      samlConfig: true,
+    },
+  });
+
+  console.log(`org: ${org?.id}`);
+  console.log(`org.samlConfig: ${JSON.stringify(org?.samlConfig)}`);
+
+  if (!org || !org.samlConfig) {
+    res.status(404).send("Organization or SAML configuration not found");
+    return;
+  }
+
   // SAML Strategy
   passport.use(
-    "saml",
+    `saml-${org.id}`,
     new SamlStrategy(
       {
-        entryPoint: process.env.SAML_ENTRY_POINT!, // Your SAML Entry Point URL
-        issuer: process.env.SAML_ISSUER!, // Your SAML Issuer
-        cert,
-        callbackUrl: process.env.SAML_CALLBACK_URL!, // SAML callback URL in your app
+        entryPoint: org.samlConfig.entryPoint,
+        issuer: org.samlConfig.issuer,
+        cert: org.samlConfig.cert,
+        callbackUrl: org.samlConfig.callbackUrl,
         disableRequestedAuthnContext: true,
       },
       async function (samlAssertionInfo: any, done: VerifiedCallback) {
@@ -82,14 +110,29 @@ export function configurePassport() {
             samlAssertionInfo[
               "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"
             ];
-          const samlName =
-            samlAssertionInfo["http://schemas.auth0.com/nickname"];
-          const profilePicture =
-            samlAssertionInfo["http://schemas.auth0.com/picture"];
+          const [emailName, emailDomain] = samlEmail.split("@");
 
           if (!samlEmail) {
             return done(new Error("SAML Response missing email address"));
           }
+
+          // Find organization by domain
+          const org = await db.query.organizations.findFirst({
+            where: eq(organizations.domain, emailDomain),
+          });
+
+          if (!org) {
+            throw new Error("No organization found for this email domain");
+          }
+
+          const samlName =
+            samlAssertionInfo[
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"
+            ] ||
+            samlAssertionInfo["urn:oid:2.5.4.42"] || // givenName
+            samlAssertionInfo["urn:oid:2.5.4.4"];
+
+          const profilePicture = null;
 
           let user = await db.query.users.findFirst({
             where: eq(users.email, samlEmail), // Assuming email is the unique identifier
@@ -105,6 +148,13 @@ export function configurePassport() {
                 profilePicture,
               })
               .returning();
+
+            // Add user to organization
+            await db.insert(organizationMembers).values({
+              organizationId: org.id,
+              userId: user.id,
+              role: "member",
+            });
           }
 
           done(null, user);
@@ -115,9 +165,7 @@ export function configurePassport() {
     )
   );
 
-  return passport;
+  passport.authenticate(`saml-${org.id}`, { session: false })(req, res, next);
 }
-
-const myPassport = configurePassport();
 
 export default myPassport;

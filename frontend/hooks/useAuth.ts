@@ -23,10 +23,10 @@ export const useAuth = () => {
     `);
   };
 
-  const handleSSOLogin = () => {
+  const handleSSOLogin = (slug: string) => {
     router.push(`${
       process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"
-    }/auth/saml 
+    }/auth/saml/${slug}
     `);
   };
 
