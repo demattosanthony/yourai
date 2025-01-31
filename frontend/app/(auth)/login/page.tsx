@@ -11,7 +11,7 @@ import Link from "next/link";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { handleGoogleLogin } = useAuth();
+  const { handleGoogleLogin, handleSSOLogin } = useAuth();
 
   const [ssoSelected, setSsoSelected] = React.useState(false);
   const [workEmail, setWorkEmail] = React.useState("");
@@ -51,7 +51,7 @@ export default function LoginPage() {
         {!ssoSelected && (
           <div className="flex flex-col gap-4">
             <Button
-              className="font-semibold w-[320px] flex justify-start h-[42px]"
+              className="font-semibold w-[320px] flex justify-start h-[50px]"
               onClick={handleGoogleLogin}
               variant={"outline"}
             >
@@ -59,12 +59,12 @@ export default function LoginPage() {
               Continue with Google
             </Button>
             <Button
-              className="font-semibold w-[320px] flex justify-start h-[42px]"
+              className="font-semibold w-[320px] flex justify-start h-[50px]"
               onClick={() => setSsoSelected(true)}
               variant={"outline"}
             >
               <Key className="mr-1 h-5 w-5" />
-              Sign sign-on (SSO)
+              Single sign-on (SSO)
             </Button>
           </div>
         )}
@@ -75,13 +75,13 @@ export default function LoginPage() {
               value={workEmail}
               onChange={(e) => setWorkEmail(e.target.value)}
               placeholder="Enter your work email"
-              className="w-[320px] h-[42px]"
+              className="w-[320px] h-[50px]"
               autoFocus
             />
 
             <Button
-              className="font-semibold w-[320px] flex justify-center h-[42px]"
-              //   onClick={handleMicrosoftLogin}
+              className="font-semibold w-[320px] flex justify-center h-[50px]"
+              onClick={handleSSOLogin}
               //   variant={"outline"}
               disabled={!workEmail}
             >
