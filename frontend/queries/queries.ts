@@ -1,5 +1,5 @@
 import api from "@/lib/api";
-import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQuery } from "@tanstack/react-query";
 
 export function useMeQuery() {
   return useQuery({
@@ -37,5 +37,50 @@ export function useModelsQuery() {
   return useQuery({
     queryKey: ["models"],
     queryFn: () => api.getAvailableModels(),
+  });
+}
+
+export function useAdminOrgsQuery({
+  limit = 10,
+}: {
+  limit?: number;
+} = {}) {
+  return useInfiniteQuery({
+    queryKey: ["adminOrgs"],
+    queryFn: async ({ pageParam = 1 }) => {
+      const data = await api.getAdminOrganizations(pageParam, limit);
+      console.log("HERE");
+      console.log(`LOGGIN DATA`, data);
+      return {
+        organizations: data.data,
+        nextPage: data.total > pageParam * limit ? pageParam + 1 : undefined,
+      };
+    },
+    getNextPageParam: (lastPage) => lastPage.nextPage,
+    initialPageParam: 1,
+  });
+}
+
+export function useUpdateAdminOrgMutation() {
+  return useMutation({
+    mutationFn: async ({
+      orgId,
+      name,
+      domain,
+      logo,
+      saml,
+    }: {
+      orgId: string;
+      name?: string;
+      domain?: string;
+      logo?: string;
+      saml?: {
+        entryPoint?: string;
+        issuer?: string;
+        cert?: string;
+      };
+    }) => {
+      return api.updateAdminOrganization(orgId, name, domain, logo, saml);
+    },
   });
 }

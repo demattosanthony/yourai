@@ -30,6 +30,8 @@ router.get("/organizations", async (req, res) => {
     db.select({ count: sql`count(*)` }).from(organizations),
   ]);
 
+  console.log(orgs);
+
   const totalPages = Math.ceil(Number(totalCount[0].count) / limit);
 
   res.json({
@@ -45,81 +47,89 @@ router.get("/organizations", async (req, res) => {
 
 const createOrgSchema = z.object({
   name: z.string().min(1).max(255),
-  ownerEmail: z.string().email(),
-  ownerName: z.string().min(1).max(255),
+  ownerEmail: z.string().email().optional(),
+  ownerName: z.string().min(1).max(255).optional(),
   domain: z.string().optional(),
   logo: z.string().optional(),
 });
 
 // Create organization
-router.post("/organizations", async (req, res) => {
-  const validatedData = createOrgSchema.parse(req.body);
-  const { name, domain, ownerEmail, ownerName, logo } = validatedData;
+router.post(
+  "/organizations",
+  authMiddleware,
+  superAdminMiddleware,
+  async (req, res) => {
+    const validatedData = createOrgSchema.parse(req.body);
+    const { name, domain, ownerEmail, ownerName, logo } = validatedData;
 
-  try {
-    if (!req.dbUser) {
-      res.status(401).json({ error: "Unauthorized" });
-      return;
-    }
-
-    // Generate slug from name
-    const slug = name.toLowerCase().replace(/[^a-z0-9]/g, "-");
-    const existingOrg = await db.query.organizations.findFirst({
-      where: eq(organizations.slug, slug),
-    });
-
-    if (existingOrg) {
-      res
-        .status(400)
-        .json({ error: "Organization with similar name already exists" });
-      return;
-    }
-
-    // Create org and add current user as owner in transaction
-    const [org] = await db.transaction(async (tx) => {
-      // Find or create the owner user
-      let owner = await tx.query.users.findFirst({
-        where: eq(users.email, ownerEmail),
-      });
-
-      if (!owner) {
-        const [newUser] = await tx
-          .insert(users)
-          .values({
-            email: ownerEmail,
-            name: ownerName,
-            identityProvider: "saml",
-            createdAt: new Date(),
-          })
-          .returning();
-        owner = newUser;
+    try {
+      if (!req.dbUser) {
+        console.log("Unauthorized", req.dbUser);
+        res.status(401).json({ error: "Unauthorized" });
+        return;
       }
 
-      const [org] = await tx
-        .insert(organizations)
-        .values({
-          name,
-          slug,
-          domain: domain || null,
-          logo: logo || null,
-        })
-        .returning();
-
-      await tx.insert(organizationMembers).values({
-        organizationId: org.id,
-        userId: owner.id,
-        role: "owner",
+      // Generate slug from name
+      const slug = name.toLowerCase().replace(/[^a-z0-9]/g, "-");
+      const existingOrg = await db.query.organizations.findFirst({
+        where: eq(organizations.slug, slug),
       });
 
-      return [org];
-    });
+      if (existingOrg) {
+        res
+          .status(400)
+          .json({ error: "Organization with similar name already exists" });
+        return;
+      }
 
-    res.json(org);
-  } catch (error) {
-    console.error(error);
-    res.status(400).json({ error: "Failed to create organization" });
+      // Create org and optionally add owner in transaction
+      const [org] = await db.transaction(async (tx) => {
+        const [org] = await tx
+          .insert(organizations)
+          .values({
+            name,
+            slug,
+            domain: domain || null,
+            logo: logo || null,
+          })
+          .returning();
+
+        // Only create/link owner if email provided
+        if (ownerEmail) {
+          let owner = await tx.query.users.findFirst({
+            where: eq(users.email, ownerEmail),
+          });
+
+          if (!owner) {
+            const [newUser] = await tx
+              .insert(users)
+              .values({
+                email: ownerEmail,
+                name: ownerName || ownerEmail.split("@")[0],
+                identityProvider: "saml",
+                createdAt: new Date(),
+              })
+              .returning();
+            owner = newUser;
+          }
+
+          await tx.insert(organizationMembers).values({
+            organizationId: org.id,
+            userId: owner.id,
+            role: "owner",
+          });
+        }
+
+        return [org];
+      });
+
+      res.json(org);
+    } catch (error) {
+      console.error(error);
+      res.status(400).json({ error: "Failed to create organization" });
+    }
   }
-});
+);
 
 // Get organization details by domain
 router.get("/organizations/domain/:domain", async (req, res) => {

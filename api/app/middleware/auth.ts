@@ -25,6 +25,7 @@ export const authMiddleware = async (
     const { userId, user } = await checkTokens(id, rid);
 
     req.userId = userId;
+
     if (user) {
       sendAuthCookies(res, user);
       req.dbUser = user;

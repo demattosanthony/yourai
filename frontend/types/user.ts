@@ -16,3 +16,13 @@ export interface User {
   stripeCustomerId?: string;
   systemRole?: "super_admin";
 }
+
+export interface Organization {
+  id: string;
+  name: string;
+  slug: string;
+  domain?: string;
+  logo?: string;
+  createdAt: string;
+  updatedAt: string;
+}

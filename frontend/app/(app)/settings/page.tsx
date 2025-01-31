@@ -17,13 +17,12 @@ import { useAtom } from "jotai";
 import { instructionsAtom, temperatureAtom } from "@/atoms/chat";
 import { useEffect, useState } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import AdminSettings from "@/components/settings/admin-settings";
 
 export default function UserSettings() {
   const { data: user } = useMeQuery();
   const { setTheme, theme } = useTheme();
   const [mounted, setMounted] = useState(false);
-
-  console.log("user", user);
 
   const isSuperAdmin = user?.systemRole === "super_admin";
 
@@ -187,17 +186,7 @@ export default function UserSettings() {
 
         {isSuperAdmin && (
           <TabsContent value="admin">
-            <div className="space-y-6">
-              <section>
-                <div className="space-y-1">
-                  <h2 className="text-base font-medium">Admin Settings</h2>
-                  <p className="text-sm text-muted-foreground">
-                    Manage everything
-                  </p>
-                </div>
-                {/* Add your organization settings content here */}
-              </section>
-            </div>
+            <AdminSettings />
           </TabsContent>
         )}
 

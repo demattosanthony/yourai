@@ -1,6 +1,6 @@
 import { Thread } from "@/types/chat";
 import { Model } from "@/types/model";
-import { User } from "@/types/user";
+import { Organization, User } from "@/types/user";
 
 /**
  * ApiClient class handles all API communication with the backend server
@@ -30,8 +30,50 @@ class ApiClient {
     return await response.json();
   }
 
-  async createOrganization(name: string, domain: string) {
-    const res = await fetch(`${this.baseUrl}/organizations`, {
+  // ADMIN ROUTES
+  async getAdminOrganizations(
+    page: number = 1,
+    limit: number = 10
+  ): Promise<{ data: Organization[]; total: number }> {
+    const response = await fetch(
+      `${this.baseUrl}/admin/organizations?page=${page}&limit=${limit}`,
+      {
+        method: "GET",
+        credentials: "include",
+      }
+    );
+
+    return await response.json();
+  }
+
+  async updateAdminOrganization(
+    orgId: string,
+    name?: string,
+    domain?: string,
+    logo?: string,
+    saml?: {
+      entryPoint?: string;
+      issuer?: string;
+      cert?: string;
+    }
+  ) {
+    const res = await fetch(`${this.baseUrl}/admin/organizations/${orgId}`, {
+      method: "PUT",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name,
+        domain,
+        logo,
+        saml,
+      }),
+    });
+
+    return res;
+  }
+
+  async adminCreateOrganization(name: string, domain: string) {
+    const res = await fetch(`${this.baseUrl}/admin/organizations`, {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },

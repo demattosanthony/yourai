@@ -5,20 +5,24 @@ import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { ArrowLeft, ArrowRight, Upload } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { useRouter } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 import { Textarea } from "@/components/ui/textarea";
 import api from "@/lib/api";
+import { useMeQuery } from "@/queries/queries";
 
 export default function CreateOrgPage() {
+  const { data: user, isLoading } = useMeQuery();
+
   const router = useRouter();
   const [step, setStep] = React.useState<"org" | "saml">("org");
 
   // Org details
-  const [name, setName] = React.useState("test");
-  const [domain, setDomain] = React.useState("test.com");
+  const [name, setName] = React.useState("");
+  const [domain, setDomain] = React.useState("");
   const [org, setOrg] = React.useState<{ id: string; slug: string } | null>(
     null
   );
+  const [logo, setLogo] = React.useState("");
 
   // SAML config
   const [entryPoint, setEntryPoint] = React.useState("");
@@ -27,7 +31,7 @@ export default function CreateOrgPage() {
 
   const handleCreateOrg = async () => {
     try {
-      const org = await api.createOrganization(name, domain);
+      const org = await api.adminCreateOrganization(name, domain);
       setOrg(org);
       setStep("saml");
       return org;
@@ -56,6 +60,11 @@ export default function CreateOrgPage() {
       console.error(error);
     }
   };
+
+  // Only for super admins right now
+  if (user?.systemRole !== "super_admin" && !isLoading) {
+    redirect("/");
+  }
 
   return (
     <div className="min-h-screen flex flex-col items-center px-4 py-12 h-full">
@@ -91,6 +100,34 @@ export default function CreateOrgPage() {
 
         {step === "org" ? (
           <div className="flex flex-col gap-4 w-[320px]">
+            <div className="flex items-center justify-center">
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                      setLogo(reader.result as string);
+                    };
+                    reader.readAsDataURL(file);
+                  }
+                }}
+                className="h-[50px] w-[50px] rounded-full text-center"
+              />
+              {logo && (
+                <div className="ml-2">
+                  <Image
+                    src={logo}
+                    alt="Organization logo preview"
+                    width={50}
+                    height={50}
+                    className="rounded-full"
+                  />
+                </div>
+              )}
+            </div>
             <Input
               value={name}
               onChange={(e) => setName(e.target.value)}

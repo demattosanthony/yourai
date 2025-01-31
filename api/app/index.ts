@@ -17,6 +17,7 @@ import threadRoutes from "./routes/threads";
 import modelRoutes from "./routes/model";
 import paymentRoutes from "./routes/payments";
 import organizationRoutes from "./routes/organizations";
+import adminRoutes from "./routes/admin";
 
 // Error Handling
 export function handleError(res: Express.Response, error: Error) {
@@ -60,6 +61,7 @@ async function main() {
   app.use("/models", modelRoutes);
   app.use("/payments", paymentRoutes);
   app.use("/organizations", organizationRoutes);
+  app.use("/admin", adminRoutes);
 
   app.post("/presigned-url", authMiddleware, async (req, res) => {
     try {
