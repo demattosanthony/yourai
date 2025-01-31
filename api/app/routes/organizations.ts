@@ -1,4 +1,4 @@
-import { NextFunction, Router, Request, Response } from "express";
+import { NextFunction, Router, Response } from "express";
 import { and, eq, sql } from "drizzle-orm";
 import db from "../config/db";
 import {
@@ -21,7 +21,7 @@ async function isOrgAdmin(req: any, res: Response, next: NextFunction) {
     ),
   });
 
-  if (!member || member.role !== "admin") {
+  if (!member || member.role !== "owner") {
     res.status(403).json({ error: "Not authorized" });
     return;
   }
@@ -30,7 +30,7 @@ async function isOrgAdmin(req: any, res: Response, next: NextFunction) {
 
 const createOrgSchema = z.object({
   name: z.string().min(1).max(255),
-  domain: z.string().optional(), // Example email validation for domain
+  domain: z.string().optional(),
 });
 
 // Create organization
@@ -47,7 +47,7 @@ router.post("/", authMiddleware, async (req, res) => {
     // Generate slug from name
     const slug = name.toLowerCase().replace(/[^a-z0-9]/g, "-");
 
-    // Create org and add current user as admin in transaction
+    // Create org and add current user as owner in transaction
     const [org] = await db.transaction(async (tx) => {
       const [org] = await tx
         .insert(organizations)
@@ -61,7 +61,7 @@ router.post("/", authMiddleware, async (req, res) => {
       await tx.insert(organizationMembers).values({
         organizationId: org.id,
         userId: req.dbUser!.id,
-        role: "admin",
+        role: "owner",
       });
 
       return [org];

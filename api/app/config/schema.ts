@@ -25,6 +25,7 @@ const SUBSCRIPTION_STATUS = [
 const SUBSCRIPTION_PLAN = ["basic"] as const;
 const IDENTITY_PROVIDER = ["google", "saml"] as const;
 
+// Custom type for bytea columns (pgcrypto extension)
 export const bytea = customType<{
   data: Buffer;
 }>({
@@ -50,7 +51,7 @@ export const organizationMembers = pgTable("organization_members", {
   userId: uuid("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
-  role: text("role", { enum: ["owner", "admin", "member"] }).notNull(),
+  role: text("role", { enum: ["owner", "member"] }).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -76,6 +77,9 @@ export const users = pgTable("users", {
   email: varchar("email", { length: 255 }).notNull().unique(),
   name: varchar("name", { length: 255 }),
   googleId: varchar("google_id", { length: 255 }).unique(),
+  identityProvider: text("identity_provider", {
+    enum: IDENTITY_PROVIDER,
+  }).default("google"),
   profilePicture: text("profile_picture"),
   refreshTokenVersion: integer("refresh_token_version").default(1).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -85,9 +89,7 @@ export const users = pgTable("users", {
     enum: SUBSCRIPTION_STATUS,
   }).default("incomplete"),
   subscriptionPlan: text("subscription_plan", { enum: SUBSCRIPTION_PLAN }),
-  identityProvider: text("identity_provider", {
-    enum: IDENTITY_PROVIDER,
-  }).default("google"),
+  systemRole: text("system_role", { enum: ["super_admin"] }), // identify super admins
 });
 
 // Threads table with user association
