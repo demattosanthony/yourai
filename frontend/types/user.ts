@@ -14,4 +14,5 @@ export interface User {
     | "unpaid";
   subscriptionPlan?: "basic";
   stripeCustomerId?: string;
+  systemRole?: "super_admin";
 }

@@ -73,6 +73,22 @@ export const MODELS: Record<string, ModelConfig> = {
     : {}),
   ...(process.env.OPENAI_API_KEY
     ? {
+        "o3-mini": {
+          model: openai("o3-mini"),
+          supportsToolUse: true,
+          supportsStreaming: true,
+          supportsSystemMessages: true,
+          provider: "openai",
+          maxImageSize: 20 * 1024 * 1024, // 20MB
+          //   supportedMimeTypes: [
+          //     "image/jpeg",
+          //     "image/png",
+          //     "image/webp",
+          //     "image/gif",
+          //   ],
+          description:
+            "o3-mini is a smaller, more efficient version of o3, designed for faster responses and lower resource usage. It's suitable for tasks where speed and cost-effectiveness are priorities, while still offering good performance and supporting tool use, streaming, system messages, and image inputs.",
+        },
         o1: {
           model: openai("o1"),
           supportsToolUse: true,
@@ -87,22 +103,6 @@ export const MODELS: Record<string, ModelConfig> = {
           ],
           description:
             "o1 is a versatile model from OpenAI, capable of handling a wide range of tasks with good performance. It supports tool use, streaming, system messages, and image inputs, making it a solid all-around choice.",
-        },
-        "o1-mini": {
-          model: openai("o1-mini"),
-          supportsToolUse: true,
-          supportsStreaming: true,
-          supportsSystemMessages: true,
-          provider: "openai",
-          maxImageSize: 20 * 1024 * 1024, // 20MB
-          supportedMimeTypes: [
-            "image/jpeg",
-            "image/png",
-            "image/webp",
-            "image/gif",
-          ],
-          description:
-            "o1-mini is a smaller, more efficient version of o1, designed for faster responses and lower resource usage. It's suitable for tasks where speed and cost-effectiveness are priorities, while still offering good performance and supporting tool use, streaming, system messages, and image inputs.",
         },
         "gpt-4o": {
           model: openai("gpt-4o"),
