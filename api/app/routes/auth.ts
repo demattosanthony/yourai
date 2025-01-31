@@ -34,6 +34,36 @@ router.post("/saml/:slug/callback", authenticateSaml, (req, res) => {
   res.redirect(process.env.FRONTEND_URL!);
 });
 
+// Metadata endpoint - IdP needs this to configure the integration
+// router.get("/saml/:slug/metadata", async (req, res) => {
+//   const { slug } = req.params;
+//   const org = await db.query.organizations.findFirst({
+//     where: eq(organizations.slug, slug),
+//     with: {
+//       samlConfig: true,
+//     },
+//   });
+
+//   if (!org || !org.samlConfig) {
+//     res.status(404).send("Organization not found");
+//     return;
+//   }
+
+//   const strategy = new SamlStrategy(
+//     {
+//       entryPoint: org.samlConfig.entryPoint,
+//       issuer: org.samlConfig.issuer,
+//       cert: org.samlConfig.cert,
+//       callbackUrl: org.samlConfig.callbackUrl,
+//     },
+//     (profile: any, done: any) => {
+//       done(null, profile);
+//     }
+//   );
+//   res.type("application/xml");
+//   res.send(strategy.generateServiceProviderMetadata(null));
+// });
+
 router.post("/logout", (req, res) => {
   const cookieOptions = {
     httpOnly: true,
@@ -46,36 +76,6 @@ router.post("/logout", (req, res) => {
   res.clearCookie("id", cookieOptions);
   res.clearCookie("rid", cookieOptions);
   res.status(200).send("Logged out");
-});
-
-// Metadata endpoint - IdP needs this to configure the integration
-router.get("/saml/:slug/metadata", async (req, res) => {
-  const { slug } = req.params;
-  const org = await db.query.organizations.findFirst({
-    where: eq(organizations.slug, slug),
-    with: {
-      samlConfig: true,
-    },
-  });
-
-  if (!org || !org.samlConfig) {
-    res.status(404).send("Organization not found");
-    return;
-  }
-
-  const strategy = new SamlStrategy(
-    {
-      entryPoint: org.samlConfig.entryPoint,
-      issuer: org.samlConfig.issuer,
-      cert: org.samlConfig.cert,
-      callbackUrl: org.samlConfig.callbackUrl,
-    },
-    (profile: any, done: any) => {
-      done(null, profile);
-    }
-  );
-  res.type("application/xml");
-  res.send(strategy.generateServiceProviderMetadata(null));
 });
 
 router.get("/me", async (req, res) => {

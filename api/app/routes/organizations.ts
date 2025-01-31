@@ -8,6 +8,7 @@ import {
   users,
 } from "../config/schema";
 import { authMiddleware } from "../middleware/auth";
+import { z } from "zod";
 
 const router = Router();
 
@@ -27,9 +28,15 @@ async function isOrgAdmin(req: any, res: Response, next: NextFunction) {
   next();
 }
 
+const createOrgSchema = z.object({
+  name: z.string().min(1).max(255),
+  domain: z.string().optional(), // Example email validation for domain
+});
+
 // Create organization
 router.post("/", authMiddleware, async (req, res) => {
-  const { name, domain } = req.body;
+  const validatedData = createOrgSchema.parse(req.body);
+  const { name, domain } = validatedData;
 
   try {
     if (!req.dbUser) {
@@ -70,7 +77,7 @@ router.post("/", authMiddleware, async (req, res) => {
 // Get organization by domain (used for SSO)
 router.get("/domain/:domain", async (req, res) => {
   const org = await db.query.organizations.findFirst({
-    where: sql`${organizations.domain} @> ARRAY[${req.params.domain}]`,
+    where: eq(organizations.domain, req.params.domain),
     with: {
       samlConfig: true,
     },
@@ -101,11 +108,34 @@ router.get("/me", async (req, res) => {
   );
 });
 
+const samlConfigSchema = z.object({
+  entryPoint: z.string().url(),
+  issuer: z.string().min(1),
+  cert: z.string().min(1),
+  callbackUrl: z.string().url(),
+});
+
+interface DecryptedSamlConfig {
+  entry_point: string;
+  issuer: string;
+  cert: string;
+  callback_url: string;
+}
+
 // Update organization settings (including SAML)
 router.put("/:orgId", authMiddleware, isOrgAdmin, async (req, res) => {
   const { name, domain, saml } = req.body;
 
   try {
+    if (saml) {
+      samlConfigSchema.parse(saml); // Validate SAML config
+    }
+
+    const passphrase = process.env.PGCRYPTO_KEY;
+    if (!passphrase) {
+      throw new Error("Encryption key not configured");
+    }
+
     await db.transaction(async (tx) => {
       // Update org details
       if (name || domain) {
@@ -114,6 +144,7 @@ router.put("/:orgId", authMiddleware, isOrgAdmin, async (req, res) => {
           .set({
             name: name || undefined,
             domain: domain || undefined,
+            updatedAt: new Date(),
           })
           .where(eq(organizations.id, req.params.orgId));
       }
@@ -124,20 +155,25 @@ router.put("/:orgId", authMiddleware, isOrgAdmin, async (req, res) => {
           where: eq(samlConfigs.organizationId, req.params.orgId),
         });
 
+        // Encrypt SAML data using pgcrypto
+        const encryptedConfig = {
+          entryPoint: sql`pgp_sym_encrypt(${saml.entryPoint}::text, ${passphrase})`,
+          issuer: sql`pgp_sym_encrypt(${saml.issuer}::text, ${passphrase})`,
+          cert: sql`pgp_sym_encrypt(${saml.cert}::text, ${passphrase})`,
+          callbackUrl: saml.callbackUrl,
+          updatedAt: new Date(),
+        };
+
+        // Insert or update SAML config
         if (existing) {
           await tx
             .update(samlConfigs)
-            .set({
-              entryPoint: saml.entryPoint,
-              issuer: saml.issuer,
-              cert: saml.cert,
-              callbackUrl: saml.callbackUrl,
-            })
+            .set(encryptedConfig)
             .where(eq(samlConfigs.id, existing.id));
         } else {
           await tx.insert(samlConfigs).values({
             organizationId: req.params.orgId,
-            ...saml,
+            ...encryptedConfig,
           });
         }
       }
@@ -149,6 +185,29 @@ router.put("/:orgId", authMiddleware, isOrgAdmin, async (req, res) => {
         samlConfig: true,
       },
     });
+
+    // If there's a SAML config, decrypt it before sending
+    if (org?.samlConfig) {
+      const decryptedConfig = await db
+        .execute(
+          sql`
+        SELECT 
+          pgp_sym_decrypt(${org.samlConfig.entryPoint}, ${passphrase})::text as entry_point,
+          pgp_sym_decrypt(${org.samlConfig.issuer}, ${passphrase})::text as issuer,
+          pgp_sym_decrypt(${org.samlConfig.cert}, ${passphrase})::text as cert,
+          ${org.samlConfig.callbackUrl} as callback_url
+      `
+        )
+        .then((result) => result.rows[0] as unknown as DecryptedSamlConfig);
+
+      // Replace the encrypted values with decrypted ones in the response
+      org.samlConfig = {
+        ...org.samlConfig,
+        entryPoint: decryptedConfig.entry_point as unknown as any,
+        issuer: decryptedConfig.issuer as unknown as any,
+        cert: decryptedConfig.cert as unknown as any,
+      };
+    }
 
     res.json(org);
   } catch (error) {

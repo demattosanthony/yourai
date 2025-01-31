@@ -8,6 +8,7 @@ import {
   uuid,
   varchar,
 } from "drizzle-orm/pg-core";
+import { customType } from "drizzle-orm/pg-core";
 
 const MESSAGE_ROLES = ["system", "user", "assistant", "tool"] as const;
 const TOOL_CALL_STATUS = ["pending", "completed", "failed"] as const;
@@ -23,6 +24,14 @@ const SUBSCRIPTION_STATUS = [
 ] as const;
 const SUBSCRIPTION_PLAN = ["basic"] as const;
 const IDENTITY_PROVIDER = ["google", "saml"] as const;
+
+export const bytea = customType<{
+  data: Buffer;
+}>({
+  dataType() {
+    return "bytea";
+  },
+});
 
 export const organizations = pgTable("organizations", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -51,9 +60,9 @@ export const samlConfigs = pgTable("saml_configs", {
   organizationId: uuid("organization_id")
     .notNull()
     .references(() => organizations.id, { onDelete: "cascade" }),
-  entryPoint: text("entry_point").notNull(),
-  issuer: text("issuer").notNull(),
-  cert: text("cert").notNull(),
+  entryPoint: bytea("entry_point").notNull(),
+  issuer: bytea("issuer").notNull(),
+  cert: bytea("cert").notNull(),
   callbackUrl: text("callback_url").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
