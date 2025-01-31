@@ -78,6 +78,20 @@
       "when": 1738336704349,
       "tag": "0010_sticky_silverclaw",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1738345559939,
+      "tag": "0011_clammy_dark_beast",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1738346463163,
+      "tag": "0012_harsh_lila_cheney",
+      "breakpoints": true
     }
   ]
 }

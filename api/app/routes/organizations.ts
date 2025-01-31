@@ -13,7 +13,7 @@ import { z } from "zod";
 const router = Router();
 
 // Middleware to check if user is org admin
-async function isOrgAdmin(req: any, res: Response, next: NextFunction) {
+async function isOrgOwner(req: any, res: Response, next: NextFunction) {
   const member = await db.query.organizationMembers.findFirst({
     where: and(
       eq(organizationMembers.organizationId, req.params.orgId),
@@ -25,57 +25,12 @@ async function isOrgAdmin(req: any, res: Response, next: NextFunction) {
     res.status(403).json({ error: "Not authorized" });
     return;
   }
+
   next();
 }
 
-const createOrgSchema = z.object({
-  name: z.string().min(1).max(255),
-  domain: z.string().optional(),
-});
-
-// Create organization
-router.post("/", authMiddleware, async (req, res) => {
-  const validatedData = createOrgSchema.parse(req.body);
-  const { name, domain } = validatedData;
-
-  try {
-    if (!req.dbUser) {
-      res.status(401).json({ error: "Unauthorized" });
-      return;
-    }
-
-    // Generate slug from name
-    const slug = name.toLowerCase().replace(/[^a-z0-9]/g, "-");
-
-    // Create org and add current user as owner in transaction
-    const [org] = await db.transaction(async (tx) => {
-      const [org] = await tx
-        .insert(organizations)
-        .values({
-          name,
-          slug,
-          domain: domain || null,
-        })
-        .returning();
-
-      await tx.insert(organizationMembers).values({
-        organizationId: org.id,
-        userId: req.dbUser!.id,
-        role: "owner",
-      });
-
-      return [org];
-    });
-
-    res.json(org);
-  } catch (error) {
-    console.error(error);
-    res.status(400).json({ error: "Failed to create organization" });
-  }
-});
-
 // Get organization by domain (used for SSO)
-router.get("/domain/:domain", async (req, res) => {
+router.get("/domain/:domain", isOrgOwner, async (req, res) => {
   const org = await db.query.organizations.findFirst({
     where: eq(organizations.domain, req.params.domain),
     with: {
@@ -89,23 +44,6 @@ router.get("/domain/:domain", async (req, res) => {
   }
 
   res.json(org);
-});
-
-// Get user's organizations
-router.get("/me", async (req, res) => {
-  const memberships = await db.query.organizationMembers.findMany({
-    where: eq(organizationMembers.userId, req.dbUser!.id),
-    with: {
-      organization: true,
-    },
-  });
-
-  res.json(
-    memberships.map((m) => ({
-      ...m.organization,
-      role: m.role,
-    }))
-  );
 });
 
 const samlConfigSchema = z.object({
@@ -123,8 +61,8 @@ interface DecryptedSamlConfig {
 }
 
 // Update organization settings (including SAML)
-router.put("/:orgId", authMiddleware, isOrgAdmin, async (req, res) => {
-  const { name, domain, saml } = req.body;
+router.put("/:orgId", authMiddleware, isOrgOwner, async (req, res) => {
+  const { name, domain, logo, saml } = req.body;
 
   try {
     if (saml) {
@@ -138,12 +76,13 @@ router.put("/:orgId", authMiddleware, isOrgAdmin, async (req, res) => {
 
     await db.transaction(async (tx) => {
       // Update org details
-      if (name || domain) {
+      if (name || domain || logo) {
         await tx
           .update(organizations)
           .set({
             name: name || undefined,
             domain: domain || undefined,
+            logo: logo || undefined,
             updatedAt: new Date(),
           })
           .where(eq(organizations.id, req.params.orgId));
@@ -217,7 +156,7 @@ router.put("/:orgId", authMiddleware, isOrgAdmin, async (req, res) => {
 });
 
 // Manage members
-router.post("/:orgId/members", authMiddleware, isOrgAdmin, async (req, res) => {
+router.post("/:orgId/members", authMiddleware, isOrgOwner, async (req, res) => {
   const { email, role } = req.body;
 
   try {
@@ -240,6 +179,23 @@ router.post("/:orgId/members", authMiddleware, isOrgAdmin, async (req, res) => {
   } catch (error) {
     res.status(400).json({ error: "Failed to add member" });
   }
+});
+
+// Get user's organizations
+router.get("/me", async (req, res) => {
+  const memberships = await db.query.organizationMembers.findMany({
+    where: eq(organizationMembers.userId, req.dbUser!.id),
+    with: {
+      organization: true,
+    },
+  });
+
+  res.json(
+    memberships.map((m) => ({
+      ...m.organization,
+      role: m.role,
+    }))
+  );
 });
 
 export default router;
