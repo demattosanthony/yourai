@@ -12,6 +12,7 @@ import { useMeQuery } from "@/queries/queries";
 import { useState } from "react";
 import { X } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import AIOrbScene from "./AiOrbScene";
 
 export function LoginOverlay() {
   const [isDismissed, setIsDismissed] = useState(false);
@@ -39,11 +40,7 @@ export function LoginOverlay() {
         </div>
         <CardHeader className="text-center">
           <div className="relative mx-auto w-20 h-20 mb-2">
-            <img
-              src="/yo-blob.png"
-              alt="logo"
-              className="w-full h-full object-contain"
-            />
+            <AIOrbScene height="80px" width="80px" isAnimating={true} />
           </div>
 
           <CardTitle className="text-3xl font-bold">Yo..ur AI</CardTitle>

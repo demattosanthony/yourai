@@ -3,23 +3,44 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { Environment, OrbitControls } from "@react-three/drei";
 
-export default function AIOrbScene() {
+interface AIOrbSceneProps {
+  width?: string;
+  height?: string;
+  isAnimating?: boolean;
+  autoRotateSpeed?: number;
+}
+
+export default function AIOrbScene({
+  width = "100%",
+  height = "200px",
+  isAnimating = true,
+  autoRotateSpeed = 1,
+}: AIOrbSceneProps) {
   return (
-    <div className="w-full h-[200px] md:h-[250px]">
+    <div style={{ width, height }}>
       <Canvas camera={{ position: [0, 0, 2] }}>
         <ambientLight intensity={0.1} />
         <directionalLight position={[3, 3, 5]} intensity={0.3} />
         <pointLight position={[-5, -5, -5]} intensity={0.1} color="#ffffff" />
-        <AIOrbMesh />
+        <AIOrbMesh isAnimating={isAnimating} />
         <Environment preset="studio" />
-        <OrbitControls enableZoom={false} autoRotate autoRotateSpeed={1} />
+        <OrbitControls
+          enableZoom={false}
+          autoRotate={isAnimating}
+          autoRotateSpeed={autoRotateSpeed}
+        />
       </Canvas>
     </div>
   );
 }
 
-function AIOrbMesh() {
+interface AIOrbMeshProps {
+  isAnimating: boolean;
+}
+
+function AIOrbMesh({ isAnimating }: AIOrbMeshProps) {
   const meshRef = useRef<THREE.Mesh>(null);
+  const timeRef = useRef(0);
 
   // Custom shader material for the morphing effect
   const material = useMemo(() => {
@@ -160,15 +181,18 @@ function AIOrbMesh() {
   }, []);
 
   useFrame((state) => {
-    if (meshRef.current) {
+    if (meshRef.current && isAnimating) {
       material.uniforms.time.value = state.clock.elapsedTime;
-      meshRef.current.rotation.y = state.clock.elapsedTime * 0.1; // 0.2 -> 0.1 (slower rotation)
+      meshRef.current.rotation.y = state.clock.elapsedTime * 0.1;
+    } else if (meshRef.current) {
+      // Keep the last animation frame when stopped
+      material.uniforms.time.value = timeRef.current;
     }
   });
 
   return (
     <mesh ref={meshRef} material={material}>
-      <sphereGeometry args={[1, 64, 64]} />{" "}
+      <sphereGeometry args={[1, 64, 64]} />
     </mesh>
   );
 }

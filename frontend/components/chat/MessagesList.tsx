@@ -1,139 +1,151 @@
 "use client";
 
-import MarkdownViewer from "../MarkdownViewer";
-import { useEffect } from "react";
-import { Check, Copy } from "lucide-react";
+import React, { useEffect } from "react";
 import { Message } from "ai/react";
-import React from "react";
+import { Check, Copy } from "lucide-react";
+import MarkdownViewer from "../MarkdownViewer";
 import { MessageRole } from "@/types/chat";
 import { ThinkingDropdown } from "./ThinkingDropdown";
 import ChatAttachment from "./ChatAttachment";
+import AIOrbScene from "../AiOrbScene";
 
-const MessageItem = React.memo(function MessageItem({
-  message,
-  index,
-}: {
-  message: Message;
-  index: number;
-}) {
-  const text = message?.content;
-  //   const data = message?.data;
-  const attachments = message?.experimental_attachments;
+interface MessageBubbleProps {
+  content: string;
+  isUser: boolean;
+  onCopy?: () => void;
+  copied?: boolean;
+}
 
+const MessageBubble = React.memo(
+  ({ content, isUser, onCopy, copied }: MessageBubbleProps) => (
+    <div
+      className={`relative group ${
+        isUser ? "justify-self-end" : "justify-self-start"
+      }`}
+      style={{ maxWidth: isUser ? "85%" : "100%" }}
+    >
+      <div
+        className={`px-3 py-2 rounded-lg ${
+          isUser ? "bg-primary text-white dark:text-black" : "bg-background"
+        }`}
+        style={{
+          whiteSpace: "pre-wrap",
+          wordBreak: "break-word",
+        }}
+      >
+        {content}
+      </div>
+      {isUser && onCopy && (
+        <div className="absolute -bottom-6 right-0 opacity-0 group-hover:opacity-100 transition-opacity">
+          {copied ? (
+            <Check className="w-4 h-4 text-green-500" />
+          ) : (
+            <Copy
+              className="w-4 h-4 cursor-pointer text-primary"
+              onClick={onCopy}
+            />
+          )}
+        </div>
+      )}
+    </div>
+  )
+);
+MessageBubble.displayName = "MessageBubble";
+
+const AssistantMessage = React.memo(({ message }: { message: Message }) => (
+  <div className="flex gap-2 items-start mb-4">
+    <div className="flex-shrink-0 mt-1">
+      <AIOrbScene width="24px" height="24px" isAnimating={true} />
+    </div>
+    <div className="flex flex-col gap-2 max-w-[750px]">
+      {message.reasoning && (
+        <ThinkingDropdown>
+          <MarkdownViewer content={message.reasoning} />
+        </ThinkingDropdown>
+      )}
+      <div className="overflow-hidden">
+        <MarkdownViewer content={message.content || ""} />
+      </div>
+    </div>
+  </div>
+));
+AssistantMessage.displayName = "AssistantMessage";
+
+const UserMessage = React.memo(({ message }: { message: Message }) => {
   const [copied, setCopied] = React.useState(false);
 
-  const handleCopyToClipboard = () => {
-    if (text) {
-      navigator.clipboard.writeText(text).then(() => {
+  const handleCopy = () => {
+    if (message.content) {
+      navigator.clipboard.writeText(message.content).then(() => {
         setCopied(true);
-        setTimeout(() => {
-          setCopied(false);
-        }, 2000);
+        setTimeout(() => setCopied(false), 2000);
       });
     }
   };
 
   return (
-    <div
-      key={index}
-      className={`flex flex-col ${
-        message.role === MessageRole.user ? "justify-end" : "justify-start"
-      } mb-4`}
-    >
-      {/** Attachments */}
-      {message.role === MessageRole.user &&
-        attachments &&
-        attachments?.map((attachment, index) => (
-          <ChatAttachment attachment={attachment} key={index} />
-        ))}
+    <div className="mb-4">
+      {message.experimental_attachments?.map((attachment, index) => (
+        <ChatAttachment key={index} attachment={attachment} />
+      ))}
+      <MessageBubble
+        content={message.content || ""}
+        isUser={true}
+        onCopy={handleCopy}
+        copied={copied}
+      />
+    </div>
+  );
+});
+UserMessage.displayName = "UserMessage";
 
-      <div
-        className={`md:max-w-full rounded-lg group relative flex flex-col ${
-          message.role === MessageRole.user
-            ? "bg-primary text-white self-end dark:text-black max-w-[85%]"
-            : "self-start max-w-full"
-        } ${text && text.length > 0 && "p-2"}`}
-        style={{
-          whiteSpace: message.role === MessageRole.user ? "pre-wrap" : "normal",
-        }}
-      >
-        {/** Icon for AI Message */}
-        <div className="flex gap-2">
-          {message.role === MessageRole.assistant && (
-            <>
-              <img
-                src={"/yo-blob.png"}
-                className="w-6 h-6 rounded mt-1 mr-1"
-                alt="modelIcon"
-              />
-            </>
-          )}
+// Add this new component for the loading state
+const LoadingMessage = React.memo(() => (
+  <div className="flex gap-2 items-start mb-4">
+    <div className="flex-shrink-0 mt-1">
+      <AIOrbScene width="24px" height="24px" isAnimating={true} />
+    </div>
+    <div className="flex items-center gap-1 text-muted-foreground mt-4">
+      <span className="animate-bounce">•</span>
+      <span className="animate-bounce delay-100">•</span>
+      <span className="animate-bounce delay-200">•</span>
+    </div>
+  </div>
+));
+LoadingMessage.displayName = "LoadingMessage";
 
-          {message.role === MessageRole.assistant && (
-            <div className="max-w-[750px] overflow-hidden">
-              {message.reasoning && (
-                <ThinkingDropdown>
-                  <MarkdownViewer content={message.reasoning ?? ""} />
-                </ThinkingDropdown>
-              )}
+// Modify the ChatMessagesList component to accept an isLoading prop
+const ChatMessagesList = React.memo(
+  ({ messages, isLoading }: { messages: Message[]; isLoading: boolean }) => {
+    useEffect(() => {
+      const messageContainer = document.querySelector(".overflow-y-auto");
+      if (messageContainer) {
+        messageContainer.scrollTop = messageContainer.scrollHeight;
+      }
+    }, [messages.length]);
 
-              <MarkdownViewer content={message.content ?? ""} />
-            </div>
-          )}
+    const lastMessage = messages[messages.length - 1];
+    const showLoadingState =
+      isLoading && lastMessage?.role === MessageRole.user;
 
-          {/** User message */}
-          {message.role === MessageRole.user && (
-            <div className="break-words whitespace-pre-wrap max-w-[750px] overflow-hidden">
-              {text}
-            </div>
-          )}
-        </div>
-
-        {/* Copy to clipboard icon for user text messages */}
-        {message.role === MessageRole.user && message.content && (
-          <div className="absolute -bottom-6 right-0 group-hover:opacity-100 opacity-0 transition-all duration-200">
-            {!copied && (
-              <Copy
-                className="w-4 h-4 cursor-pointer text-primary"
-                onClick={handleCopyToClipboard}
-              />
+    return (
+      <div className="flex-1 w-full h-full relative">
+        <div className="absolute inset-0 overflow-y-auto">
+          <div className="max-w-[840px] mx-auto pt-20 px-4 pb-4">
+            {messages.map((message, index) =>
+              message.role === MessageRole.user ? (
+                <UserMessage key={index} message={message} />
+              ) : (
+                <AssistantMessage key={index} message={message} />
+              )
             )}
-
-            {copied && <Check className="w-4 h-4 text-green-500" />}
+            {showLoadingState && <LoadingMessage />}
           </div>
-        )}
-      </div>
-    </div>
-  );
-});
-
-const ChatMessagesList = React.memo(function ChatMessagesList({
-  messages,
-}: {
-  messages: Message[];
-}) {
-  useEffect(() => {
-    const messageContainer = document.querySelector(".overflow-y-auto");
-    if (messageContainer) {
-      messageContainer.scrollTop = messageContainer.scrollHeight;
-    }
-  }, [messages.length]);
-
-  return (
-    <div className="flex-1 w-full h-full relative">
-      <div className="absolute inset-0 overflow-y-auto">
-        <div className={`max-w-[840px] mx-auto pt-20 p-4 w-full`}>
-          {messages.length > 0 && (
-            <>
-              {messages.map((message, index) => (
-                <MessageItem key={index} message={message} index={index} />
-              ))}
-            </>
-          )}
         </div>
       </div>
-    </div>
-  );
-});
+    );
+  }
+);
+ChatMessagesList.displayName = "ChatMessagesList";
 
 export default ChatMessagesList;

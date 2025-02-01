@@ -20,12 +20,12 @@ import {
 } from "@/components/ui/sidebar";
 import { NavUser } from "./NavUser";
 import { useMeQuery, useThreadsQuery } from "@/queries/queries";
-import Image from "next/image";
 import { Button } from "./ui/button";
 import { Collapsible } from "./ui/collapsible";
 import Link from "next/link";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useParams, usePathname } from "next/navigation";
+import AIOrbScene from "./AiOrbScene";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { data: user, isLoading } = useMeQuery();
@@ -48,12 +48,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <div className="w-full flex justify-between items-center">
             <Link href="/">
               <div className="flex aspect-square size-8 items-center justify-center">
-                <Image
+                <AIOrbScene width="24px" height="24px" isAnimating={false} />
+
+                {/* <Image
                   src={"/yo-blob.png"}
                   width={24}
                   height={24}
                   alt="YourOrg"
-                />
+                /> */}
               </div>
             </Link>
 
