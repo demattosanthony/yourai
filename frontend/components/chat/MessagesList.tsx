@@ -1,13 +1,7 @@
 "use client";
 
-import React, { useEffect } from "react";
-import { Message } from "ai/react";
+import React from "react";
 import { Check, Copy } from "lucide-react";
-import MarkdownViewer from "../MarkdownViewer";
-import { MessageRole } from "@/types/chat";
-import { ThinkingDropdown } from "./ThinkingDropdown";
-import ChatAttachment from "./ChatAttachment";
-import AIOrbScene from "../AiOrbScene";
 
 interface MessageBubbleProps {
   content: string;
@@ -19,60 +13,101 @@ interface MessageBubbleProps {
 const MessageBubble = React.memo(
   ({ content, isUser, onCopy, copied }: MessageBubbleProps) => (
     <div
-      className={`relative group ${
-        isUser ? "justify-self-end" : "justify-self-start"
+      className={`group mb-4 flex w-full ${
+        isUser ? "justify-end" : "justify-start"
       }`}
-      style={{ maxWidth: isUser ? "85%" : "100%" }}
     >
       <div
-        className={`px-3 py-2 rounded-lg ${
-          isUser ? "bg-primary text-white dark:text-black" : "bg-background"
-        }`}
+        className={`
+          relative flex flex-col rounded-lg p-2
+          ${
+            isUser
+              ? "bg-primary text-white dark:text-black max-w-[85%]"
+              : "bg-background max-w-full"
+          }
+        `}
         style={{
-          whiteSpace: "pre-wrap",
-          wordBreak: "break-word",
+          // For user messages, preserve whitespace but allow wrapping
+          whiteSpace: isUser ? "pre-wrap" : "normal",
         }}
       >
-        {content}
-      </div>
-      {isUser && onCopy && (
-        <div className="absolute -bottom-6 right-0 opacity-0 group-hover:opacity-100 transition-opacity">
-          {copied ? (
-            <Check className="w-4 h-4 text-green-500" />
-          ) : (
-            <Copy
-              className="w-4 h-4 cursor-pointer text-primary"
-              onClick={onCopy}
-            />
-          )}
+        {/* The inner wrapper ensures text breaks properly */}
+        <div
+          className="
+            break-words 
+            break-all 
+            whitespace-pre-wrap 
+            w-full 
+            overflow-hidden
+          "
+        >
+          {content}
         </div>
-      )}
+
+        {/* Copy to clipboard button for user messages */}
+        {isUser && onCopy && (
+          <div className="absolute -bottom-6 right-0 group-hover:opacity-100 opacity-0 transition-all duration-200">
+            {copied ? (
+              <Check className="w-4 h-4 text-green-500" />
+            ) : (
+              <Copy
+                className="w-4 h-4 cursor-pointer text-primary"
+                onClick={onCopy}
+              />
+            )}
+          </div>
+        )}
+      </div>
     </div>
   )
 );
+
 MessageBubble.displayName = "MessageBubble";
 
+import { Message } from "ai/react";
+import MarkdownViewer from "../MarkdownViewer";
+import { ThinkingDropdown } from "./ThinkingDropdown";
+import AIOrbScene from "../AiOrbScene";
+
 const AssistantMessage = React.memo(({ message }: { message: Message }) => (
-  <div className="flex gap-2 items-start mb-4">
-    <div className="flex-shrink-0 mt-1">
-      <AIOrbScene width="24px" height="24px" isAnimating={true} />
-    </div>
-    <div className="flex flex-col gap-2 max-w-[750px]">
-      {message.reasoning && (
-        <ThinkingDropdown>
-          <MarkdownViewer content={message.reasoning} />
-        </ThinkingDropdown>
-      )}
-      <div className="overflow-hidden">
+  <div className="mb-4 flex flex-col justify-start">
+    <div className="flex gap-2">
+      <div className="flex-shrink-0 mt-1">
+        <AIOrbScene width="24px" height="24px" isAnimating={true} />
+      </div>
+
+      {/* Constrain the assistant bubble */}
+      <div
+        className="
+          max-w-full
+          md:max-w-[750px]
+          overflow-hidden
+          rounded-lg
+          bg-background
+          p-2
+          break-words
+        "
+      >
+        {/* Optional reasoning dropdown */}
+        {message.reasoning && (
+          <ThinkingDropdown>
+            <MarkdownViewer content={message.reasoning || ""} />
+          </ThinkingDropdown>
+        )}
+
+        {/* Main assistant response content */}
         <MarkdownViewer content={message.content || ""} />
       </div>
     </div>
   </div>
 ));
+
 AssistantMessage.displayName = "AssistantMessage";
 
+import ChatAttachment from "./ChatAttachment";
+
 const UserMessage = React.memo(({ message }: { message: Message }) => {
-  const [copied, setCopied] = React.useState(false);
+  const [copied, setCopied] = React.useState<boolean>(false);
 
   const handleCopy = () => {
     if (message.content) {
@@ -85,8 +120,8 @@ const UserMessage = React.memo(({ message }: { message: Message }) => {
 
   return (
     <div className="mb-4">
-      {message.experimental_attachments?.map((attachment, index) => (
-        <ChatAttachment key={index} attachment={attachment} />
+      {message.experimental_attachments?.map((attachment, idx) => (
+        <ChatAttachment key={idx} attachment={attachment} />
       ))}
       <MessageBubble
         content={message.content || ""}
@@ -97,14 +132,16 @@ const UserMessage = React.memo(({ message }: { message: Message }) => {
     </div>
   );
 });
+
 UserMessage.displayName = "UserMessage";
 
-// Add this new component for the loading state
+import { useEffect } from "react";
+import { MessageRole } from "@/types/chat";
+
+// Optional loading state
 const LoadingMessage = React.memo(() => (
   <div className="flex gap-2 items-start mb-4">
-    <div className="flex-shrink-0 mt-1">
-      <AIOrbScene width="24px" height="24px" isAnimating={true} />
-    </div>
+    <div className="flex-shrink-0 mt-1">{/* your animation or orb */}</div>
     <div className="flex items-center gap-1 text-muted-foreground mt-4">
       <span className="animate-bounce">•</span>
       <span className="animate-bounce delay-100">•</span>
@@ -114,16 +151,16 @@ const LoadingMessage = React.memo(() => (
 ));
 LoadingMessage.displayName = "LoadingMessage";
 
-// Modify the ChatMessagesList component to accept an isLoading prop
 const ChatMessagesList = React.memo(
   ({ messages, isLoading }: { messages: Message[]; isLoading: boolean }) => {
     useEffect(() => {
-      const messageContainer = document.querySelector(".overflow-y-auto");
-      if (messageContainer) {
-        messageContainer.scrollTop = messageContainer.scrollHeight;
+      const container = document.querySelector(".overflow-y-auto");
+      if (container) {
+        container.scrollTop = container.scrollHeight;
       }
     }, [messages.length]);
 
+    // Example: show loading after the user's last message
     const lastMessage = messages[messages.length - 1];
     const showLoadingState =
       isLoading && lastMessage?.role === MessageRole.user;
@@ -131,7 +168,7 @@ const ChatMessagesList = React.memo(
     return (
       <div className="flex-1 w-full h-full relative">
         <div className="absolute inset-0 overflow-y-auto">
-          <div className="max-w-[840px] mx-auto pt-20 px-4 pb-4">
+          <div className="max-w-[840px] mx-auto pt-20 p-4">
             {messages.map((message, index) =>
               message.role === MessageRole.user ? (
                 <UserMessage key={index} message={message} />
@@ -146,6 +183,7 @@ const ChatMessagesList = React.memo(
     );
   }
 );
+
 ChatMessagesList.displayName = "ChatMessagesList";
 
 export default ChatMessagesList;
