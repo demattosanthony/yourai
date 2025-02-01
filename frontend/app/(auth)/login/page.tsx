@@ -64,7 +64,7 @@ export default function LoginPage() {
               variant={"outline"}
             >
               <Key className="mr-1 h-5 w-5" />
-              Single sign-on (SSO)
+              Continue with Organization
             </Button>
           </div>
         )}
@@ -98,7 +98,7 @@ export default function LoginPage() {
               className="font-semibold w-[320px] flex justify-center h-[50px]"
               disabled={!workEmail}
             >
-              Continue with SAML SSO
+              Continue
               <ArrowRight size={24} className="ml-1" />
             </Button>
           </form>

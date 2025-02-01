@@ -2,12 +2,72 @@ import { Attachment } from "@ai-sdk/ui-utils";
 import Link from "next/link";
 import { Button } from "../ui/button";
 import { File, Maximize2 } from "lucide-react";
+import { Card, CardContent } from "../ui/card";
+
+import { useRef, useEffect } from "react";
+
+import * as pdfjsLib from "pdfjs-dist";
+
+// Set worker path
+pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+const PdfThumbnail = ({
+  url,
+  width = 200,
+}: {
+  url: string;
+  width?: number;
+}) => {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  useEffect(() => {
+    const generateThumbnail = async () => {
+      try {
+        // Load the PDF
+        const loadingTask = pdfjsLib.getDocument(url);
+        const pdf = await loadingTask.promise;
+
+        // Get first page
+        const page = await pdf.getPage(1);
+
+        // Set scale for thumbnail
+        const viewport = page.getViewport({ scale: 1 });
+        const scale = width / viewport.width;
+        const scaledViewport = page.getViewport({ scale });
+
+        // Set canvas dimensions
+        const canvas = canvasRef.current;
+        if (!canvas) {
+          throw new Error("Canvas is null");
+        }
+        canvas.width = scaledViewport.width;
+        canvas.height = scaledViewport.height;
+
+        // Render PDF page to canvas
+        const context = canvas.getContext("2d");
+        if (!context) {
+          throw new Error("Could not get canvas context");
+        }
+        await page.render({
+          canvasContext: context,
+          viewport: scaledViewport,
+        }).promise;
+      } catch (error) {
+        console.error("Error generating thumbnail:", error);
+      }
+    };
+
+    generateThumbnail();
+  }, [url, width]);
+
+  return <canvas ref={canvasRef} />;
+};
 
 export default function ChatAttachment({
   attachment,
 }: {
   attachment: Attachment;
 }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const contentType = attachment.contentType || "";
   const index = Math.random();
 
@@ -32,27 +92,11 @@ export default function ChatAttachment({
       return (
         <div
           key={`pdf-${attachment.name}-${index}`}
-          className="relative w-full h-[400px] flex justify-end mb-4"
+          className="flex justify-end mb-4"
         >
-          <div className="max-w-[750px] rounded-lg overflow-hidden">
-            <iframe
-              src={`${attachment.url}#toolbar=0&navpanes=0&scrollbar=0&page=1&view=Fit`}
-              className="w-full h-full"
-              title={attachment.name}
-            />
-            <Link
-              href={attachment.url || ""}
-              target="_blank"
-              className="absolute bottom-2 right-2"
-            >
-              <Button size={"icon"} variant={"outline"}>
-                <Maximize2 className="h-4 w-4 text-primary" />
-              </Button>
-            </Link>
-          </div>
+          <PdfThumbnail url={attachment.url || ""} />
         </div>
       );
-
     default:
       return (
         <div
