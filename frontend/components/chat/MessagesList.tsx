@@ -72,7 +72,7 @@ import AIOrbScene from "../AiOrbScene";
 const AssistantMessage = React.memo(({ message }: { message: Message }) => (
   <div className="mb-4 flex flex-col justify-start">
     <div className="flex gap-2">
-      <div className="flex-shrink-0 mt-1">
+      <div className="flex-shrink-0 mt-[1px] mr-[2px]">
         <AIOrbScene width="24px" height="24px" isAnimating={true} />
       </div>
 
@@ -84,7 +84,6 @@ const AssistantMessage = React.memo(({ message }: { message: Message }) => (
           overflow-hidden
           rounded-lg
           bg-background
-          p-2
           break-words
         "
       >
@@ -141,8 +140,10 @@ import { MessageRole } from "@/types/chat";
 // Optional loading state
 const LoadingMessage = React.memo(() => (
   <div className="flex gap-2 items-start mb-4">
-    <div className="flex-shrink-0 mt-1">{/* your animation or orb */}</div>
-    <div className="flex items-center gap-1 text-muted-foreground mt-4">
+    <div className="flex-shrink-0 mt-1">
+      <AIOrbScene width="24px" height="24px" isAnimating={true} />
+    </div>
+    <div className="flex items-center gap-1 text-muted-foreground mt-3">
       <span className="animate-bounce">•</span>
       <span className="animate-bounce delay-100">•</span>
       <span className="animate-bounce delay-200">•</span>
