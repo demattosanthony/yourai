@@ -1,161 +1,190 @@
 "use client";
 
-import MarkdownViewer from "../MarkdownViewer";
-import { useEffect, useMemo } from "react";
-import { Check, Copy } from "lucide-react";
-import { Message } from "ai/react";
 import React from "react";
-import { MessageRole } from "@/types/chat";
+import { Check, Copy } from "lucide-react";
+
+interface MessageBubbleProps {
+  content: string;
+  isUser: boolean;
+  onCopy?: () => void;
+  copied?: boolean;
+}
+
+const MessageBubble = React.memo(
+  ({ content, isUser, onCopy, copied }: MessageBubbleProps) => (
+    <div
+      className={`group mb-4 flex w-full ${
+        isUser ? "justify-end" : "justify-start"
+      }`}
+    >
+      <div
+        className={`
+          relative flex flex-col rounded-lg p-2
+          ${
+            isUser
+              ? "bg-primary text-white dark:text-black max-w-[85%]"
+              : "bg-background max-w-full"
+          }
+        `}
+        style={{
+          // For user messages, preserve whitespace but allow wrapping
+          whiteSpace: isUser ? "pre-wrap" : "normal",
+        }}
+      >
+        {/* The inner wrapper ensures text breaks properly */}
+        <div
+          className="
+            break-words 
+            break-all 
+            whitespace-pre-wrap 
+            w-full 
+            overflow-hidden
+          "
+        >
+          {content}
+        </div>
+
+        {/* Copy to clipboard button for user messages */}
+        {isUser && onCopy && (
+          <div className="absolute -bottom-6 right-0 group-hover:opacity-100 opacity-0 transition-all duration-200">
+            {copied ? (
+              <Check className="w-4 h-4 text-green-500" />
+            ) : (
+              <Copy
+                className="w-4 h-4 cursor-pointer text-primary"
+                onClick={onCopy}
+              />
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+);
+
+MessageBubble.displayName = "MessageBubble";
+
+import { Message } from "ai/react";
+import MarkdownViewer from "../MarkdownViewer";
 import { ThinkingDropdown } from "./ThinkingDropdown";
+import AIOrbScene from "../AiOrbScene";
+
+const AssistantMessage = React.memo(({ message }: { message: Message }) => (
+  <div className="mb-4 flex flex-col justify-start">
+    <div className="flex gap-2">
+      <div className="flex-shrink-0 mt-[1px] mr-[2px]">
+        <AIOrbScene width="24px" height="24px" isAnimating={true} />
+      </div>
+
+      {/* Constrain the assistant bubble */}
+      <div
+        className="
+          max-w-full
+          md:max-w-[750px]
+          overflow-hidden
+          rounded-lg
+          bg-background
+          break-words
+        "
+      >
+        {/* Optional reasoning dropdown */}
+        {message.reasoning && (
+          <ThinkingDropdown>
+            <MarkdownViewer content={message.reasoning || ""} />
+          </ThinkingDropdown>
+        )}
+
+        {/* Main assistant response content */}
+        <MarkdownViewer content={message.content || ""} />
+      </div>
+    </div>
+  </div>
+));
+
+AssistantMessage.displayName = "AssistantMessage";
+
 import ChatAttachment from "./ChatAttachment";
 
-const MessageItem = React.memo(function MessageItem({
-  message,
-  index,
-}: {
-  message: Message;
-  index: number;
-}) {
-  const text = message?.content;
-  //   const data = message?.data;
-  const attachments = message?.experimental_attachments;
+const UserMessage = React.memo(({ message }: { message: Message }) => {
+  const [copied, setCopied] = React.useState<boolean>(false);
 
-  const [copied, setCopied] = React.useState(false);
-
-  const handleCopyToClipboard = () => {
-    if (text) {
-      navigator.clipboard.writeText(text).then(() => {
+  const handleCopy = () => {
+    if (message.content) {
+      navigator.clipboard.writeText(message.content).then(() => {
         setCopied(true);
-        setTimeout(() => {
-          setCopied(false);
-        }, 2000);
+        setTimeout(() => setCopied(false), 2000);
       });
     }
   };
 
   return (
-    <div
-      key={index}
-      className={`flex flex-col ${
-        message.role === MessageRole.user ? "justify-end" : "justify-start"
-      } mb-4`}
-    >
-      {/** Attachments */}
-      {message.role === MessageRole.user &&
-        attachments &&
-        attachments?.map((attachment, index) => (
-          <ChatAttachment attachment={attachment} key={index} />
-        ))}
-
-      <div
-        className={`md:max-w-full rounded-lg group relative flex flex-col ${
-          message.role === MessageRole.user
-            ? "bg-primary text-white self-end dark:text-black max-w-[85%]"
-            : "self-start max-w-full"
-        } ${text && text.length > 0 && "p-2"}`}
-        style={{
-          whiteSpace: message.role === MessageRole.user ? "pre-wrap" : "normal",
-        }}
-      >
-        {/** Icon for AI Message */}
-        <div className="flex gap-2">
-          {message.role === MessageRole.assistant && (
-            <>
-              <img
-                src={"/yo-blob.png"}
-                className="w-6 h-6 rounded mt-1 mr-1"
-                alt="modelIcon"
-              />
-            </>
-          )}
-
-          {message.role === MessageRole.assistant && (
-            <div className="max-w-[750px] overflow-hidden">
-              {message.reasoning && (
-                <ThinkingDropdown>
-                  <MarkdownViewer content={message.reasoning ?? ""} />
-                </ThinkingDropdown>
-              )}
-
-              <MarkdownViewer content={message.content ?? ""} />
-            </div>
-          )}
-
-          {/** User message */}
-          {message.role === MessageRole.user && (
-            <div className="break-words whitespace-pre-wrap max-w-[750px] overflow-hidden">
-              {text}
-            </div>
-          )}
-        </div>
-
-        {/* Copy to clipboard icon for user text messages */}
-        {message.role === MessageRole.user && message.content && (
-          <div className="absolute -bottom-6 right-0 group-hover:opacity-100 opacity-0 transition-all duration-200">
-            {!copied && (
-              <Copy
-                className="w-4 h-4 cursor-pointer text-primary"
-                onClick={handleCopyToClipboard}
-              />
-            )}
-
-            {copied && <Check className="w-4 h-4 text-green-500" />}
-          </div>
-        )}
-      </div>
+    <div className="mb-4">
+      {message.experimental_attachments?.map((attachment, idx) => (
+        <ChatAttachment key={idx} attachment={attachment} />
+      ))}
+      <MessageBubble
+        content={message.content || ""}
+        isUser={true}
+        onCopy={handleCopy}
+        copied={copied}
+      />
     </div>
   );
 });
 
-const ChatMessagesList = React.memo(function ChatMessagesList({
-  messages,
-  isGenerating,
-}: {
-  messages: Message[];
-  isGenerating: boolean;
-}) {
-  useEffect(() => {
-    const messageContainer = document.querySelector(".overflow-y-auto");
-    if (messageContainer) {
-      messageContainer.scrollTop = messageContainer.scrollHeight;
-    }
-  }, [messages.length]);
+UserMessage.displayName = "UserMessage";
 
-  // If last message is from user and isGenerating is true, show "Thinking..." message
-  const firstTokenNotGeneratedYet = useMemo(() => {
+import { useEffect } from "react";
+import { MessageRole } from "@/types/chat";
+
+// Optional loading state
+const LoadingMessage = React.memo(() => (
+  <div className="flex gap-2 items-start mb-4">
+    <div className="flex-shrink-0 mt-1">
+      <AIOrbScene width="24px" height="24px" isAnimating={true} />
+    </div>
+    <div className="flex items-center gap-1 text-muted-foreground mt-3">
+      <span className="animate-bounce">•</span>
+      <span className="animate-bounce delay-100">•</span>
+      <span className="animate-bounce delay-200">•</span>
+    </div>
+  </div>
+));
+LoadingMessage.displayName = "LoadingMessage";
+
+const ChatMessagesList = React.memo(
+  ({ messages, isLoading }: { messages: Message[]; isLoading: boolean }) => {
+    useEffect(() => {
+      const container = document.querySelector(".overflow-y-auto");
+      if (container) {
+        container.scrollTop = container.scrollHeight;
+      }
+    }, [messages.length]);
+
+    // Example: show loading after the user's last message
+    const lastMessage = messages[messages.length - 1];
+    const showLoadingState =
+      isLoading && lastMessage?.role === MessageRole.user;
+
     return (
-      messages.length > 0 &&
-      isGenerating &&
-      messages[messages.length - 1].role === MessageRole.user
-    );
-  }, [messages, isGenerating]);
-
-  return (
-    <div className="flex-1 w-full h-full relative">
-      <div className="absolute inset-0 overflow-y-auto">
-        <div className={`max-w-[840px] mx-auto pt-20 p-4 w-full`}>
-          {messages.length > 0 && (
-            <>
-              {messages.map((message, index) => (
-                <MessageItem key={index} message={message} index={index} />
-              ))}
-            </>
-          )}
-
-          {firstTokenNotGeneratedYet && (
-            <MessageItem
-              message={{
-                role: MessageRole.assistant,
-                content: "",
-                id: "",
-              }}
-              index={messages.length}
-            />
-          )}
+      <div className="flex-1 w-full h-full relative">
+        <div className="absolute inset-0 overflow-y-auto">
+          <div className="max-w-[840px] mx-auto pt-20 p-4">
+            {messages.map((message, index) =>
+              message.role === MessageRole.user ? (
+                <UserMessage key={index} message={message} />
+              ) : (
+                <AssistantMessage key={index} message={message} />
+              )
+            )}
+            {showLoadingState && <LoadingMessage />}
+          </div>
         </div>
       </div>
-    </div>
-  );
-});
+    );
+  }
+);
+
+ChatMessagesList.displayName = "ChatMessagesList";
 
 export default ChatMessagesList;

@@ -8,6 +8,7 @@ import { ArrowLeft, ArrowRight, Key } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import AIOrbScene from "@/components/AiOrbScene";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -35,10 +36,11 @@ export default function LoginPage() {
       </div>
 
       <main className="flex flex-col gap-8 items-center w-full justify-center h-[75%]">
-        <Image src="/yo-blob.png" alt="logo" height={75} width={75} />
+        {/* <Image src="/yo-blob.png" alt="logo" height={75} width={75} /> */}
+        <AIOrbScene height="75px" width="75px" isAnimating={true} />
 
         {/** Title and description */}
-        <div className="flex flex-col items-center w-[400px] gap-2 mt-4">
+        <div className="flex flex-col items-center w-[400px] gap-2">
           <h3 className="scroll-m-20 text-3xl font-semibold tracking-tight">
             Yo! Let's get started
           </h3>
