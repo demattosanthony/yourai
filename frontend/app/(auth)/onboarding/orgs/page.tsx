@@ -3,7 +3,7 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import { ArrowLeft, ArrowRight, Upload } from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { redirect, useRouter } from "next/navigation";
 import { Textarea } from "@/components/ui/textarea";
@@ -99,7 +99,13 @@ export default function CreateOrgPage() {
         </div>
 
         {step === "org" ? (
-          <div className="flex flex-col gap-4 w-[320px]">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleCreateOrg();
+            }}
+            className="flex flex-col gap-4 w-[320px]"
+          >
             <div className="flex items-center justify-center">
               <Input
                 type="file"
@@ -134,52 +140,63 @@ export default function CreateOrgPage() {
               placeholder="Organization name"
               className="h-[50px]"
               autoFocus
+              required
             />
             <Input
               value={domain}
               onChange={(e) => setDomain(e.target.value)}
               placeholder="Domain (e.g., company.com)"
               className="h-[50px]"
+              required
             />
             <Button
+              type="submit"
               className="font-semibold w-full flex justify-center h-[50px]"
-              onClick={handleCreateOrg}
               disabled={!name || !domain}
             >
               Create Organization
               <ArrowRight size={24} className="ml-1" />
             </Button>
-          </div>
+          </form>
         ) : (
-          <div className="flex flex-col gap-4 w-[320px]">
+          <form
+            className="flex flex-col gap-4 w-[320px]"
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleConfigureSaml();
+            }}
+          >
             <Input
               value={entryPoint}
               onChange={(e) => setEntryPoint(e.target.value)}
               placeholder="SAML Entry Point URL"
               className="h-[50px]"
               autoFocus
+              required
             />
             <Input
               value={issuer}
               onChange={(e) => setIssuer(e.target.value)}
               placeholder="Issuer"
               className="h-[50px]"
+              required
             />
             <Textarea
               value={cert}
               onChange={(e) => setCert(e.target.value)}
               placeholder="Paste SAML Certificate"
               className="h-[100px] resize-none"
+              required
             />
             <Button
+              type="submit"
               className="font-semibold w-full flex justify-center h-[50px]"
-              onClick={handleConfigureSaml}
               disabled={!entryPoint || !issuer || !cert}
             >
               Configure SSO
               <ArrowRight size={24} className="ml-1" />
             </Button>
-          </div>
+          </form>
         )}
       </main>
 
