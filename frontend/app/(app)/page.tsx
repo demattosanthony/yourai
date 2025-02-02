@@ -33,6 +33,7 @@ export default function Home() {
   );
 
   const { data: user } = useMeQuery();
+  console.log(user);
 
   const chatInputRef = useRef<ChatInputFormRef>(null);
 
@@ -87,7 +88,7 @@ export default function Home() {
           </div>
 
           <div className="flex flex-col gap-8">
-            <AnimatedGreeting name={user?.name.split(" ")[0] ?? ""} />
+            <AnimatedGreeting name={user?.name?.split(" ")[0] ?? ""} />
 
             <ConversationStarters
               triggerFileInput={() => chatInputRef.current?.triggerFileInput()}

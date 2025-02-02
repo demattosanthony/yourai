@@ -13,8 +13,8 @@ export const useAuth = () => {
 
     queryClient.invalidateQueries({ queryKey: ["me"] });
 
-    window.location.reload();
     router.push("/");
+    window.location.reload();
   }
 
   const handleGoogleLogin = () => {

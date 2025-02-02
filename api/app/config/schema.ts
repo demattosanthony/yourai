@@ -223,3 +223,6 @@ export type FileContent = BaseContentPart & {
 };
 
 export type ContentPart = TextContent | FileContent;
+
+// Response types
+export type ApiResponse<T> = T | { error: string };

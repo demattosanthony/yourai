@@ -1,5 +1,5 @@
 import { generateText } from "ai";
-import { MODELS } from "../models";
+import { MODELS } from "../features/models";
 
 export async function generateThreadTitle(message: string) {
   const { text } = await generateText({

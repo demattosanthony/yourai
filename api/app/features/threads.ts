@@ -1,83 +1,24 @@
-import { Router } from "express";
-import { CoreMessage, Message, smoothStream, streamText, TextPart } from "ai";
-import { eq } from "drizzle-orm";
-
-import db from "../config/db";
-import { messages, ContentPart, threads } from "../config/schema";
-import { MODELS } from "../models";
+import z from "zod";
 import s3 from "../config/s3";
-import { handleError } from "..";
-import { authMiddleware } from "../middleware/auth";
-import { createMessage, createThread, getThread, getThreads } from "../threads";
+import { ContentPart, messages, threads } from "../config/schema";
+import db from "../config/db";
+import { and, desc, eq, sql } from "drizzle-orm";
+import { Request, Response, Router } from "express";
+import { CoreMessage, Message, streamText } from "ai";
 import { CONFIG } from "../config/constants";
+import { handle } from "../utils/handlers";
+import { MODELS } from "./models";
 import { generateThreadTitle } from "../utils/generateThreadTitle";
-import { subscriptionCheckMiddleware } from "../middleware/subscriptionCheck";
 
-const router = Router();
-
-router.post(
-  "",
-  authMiddleware,
-  subscriptionCheckMiddleware,
-  async (req, res) => {
-    try {
-      const result = await createThread(req.userId!);
-      res.json(result);
-    } catch (error: any) {
-      handleError(res, error);
-    }
-  }
-);
-
-router.get("", authMiddleware, async (req, res) => {
-  try {
-    const page = parseInt(req.query.page as string) || 1;
-    const search = (req.query.search as string)?.trim() || "";
-    const threads = await getThreads(req.userId!, page, search);
-    res.json(threads);
-  } catch (error: any) {
-    handleError(res, error);
-  }
-});
-
-router.get("/:threadId", authMiddleware, async (req, res) => {
-  try {
-    const { threadId } = req.params;
-    const thread = await getThread(threadId);
-    if (!thread) {
-      res.status(404).json({ error: "Thread not found" });
-      return;
-    }
-    res.json(thread);
-  } catch (error: any) {
-    handleError(res, error);
-  }
-});
-
-router.post(
-  "/:threadId/messages",
-  authMiddleware,
-  subscriptionCheckMiddleware,
-  async (req, res) => {
-    try {
-      const { threadId } = req.params;
-      const { role, content } = req.body;
-      if (!["system", "user", "assistant"].includes(role)) {
-        res.status(400).json({ error: "Invalid role" });
-        return;
-      }
-      const thread = await getThread(threadId);
-      if (!thread) {
-        res.status(404).json({ error: "Thread not found" });
-        return;
-      }
-      const result = await createMessage(req.userId!, threadId, role, content);
-      res.status(201).json(result);
-    } catch (error: any) {
-      handleError(res, error);
-    }
-  }
-);
+// Input validation
+const schemas = {
+  inference: z.object({
+    model: z.string(),
+    maxTokens: z.number().optional(),
+    temperature: z.number().optional(),
+    instructions: z.string().optional(),
+  }),
+};
 
 type ExtendedAttachment = {
   name?: string;
@@ -86,30 +27,157 @@ type ExtendedAttachment = {
   file_key: string; // Changed from optional to required since it's needed
 };
 
-router.post(
-  "/:threadId/inference",
-  authMiddleware,
-  subscriptionCheckMiddleware,
-  async (req, res) => {
-    const { threadId } = req.params;
-    const { model, maxTokens, temperature, instructions } = req.body;
-    const message = req.body.message as Message & {
-      experimental_attachments?: ExtendedAttachment[]; // Use ExtendedAttachment instead of Attachment
-    };
-
-    // Set headers for SSE
-    res.setHeader("Content-Type", "text/event-stream");
-    res.setHeader("Cache-Control", "no-cache");
-    res.setHeader("Connection", "keep-alive");
-    res.setHeader("X-Accel-Buffering", "no"); // Disable Nginx buffering
-    res.setHeader("Transfer-Encoding", "chunked");
-    res.flushHeaders(); // send headers to establish SSE connection
-
+const ops = {
+  // Shared file processing logic
+  processFile: async (content: any) => {
     try {
+      if (content.type !== "file" && content.type !== "image") return content;
+      if (!content.file_metadata?.file_key) return content;
+
+      const metadata = s3.file(content.file_metadata.file_key);
+      const url = metadata.presign({
+        acl: "public-read",
+        expiresIn: 3600,
+        method: "GET",
+      });
+      return { ...content, data: url };
+    } catch (error) {
+      console.error("Error processing file:", error);
+      return content;
+    }
+  },
+
+  // Process all messages in a thread
+  processThreadMessages: async (thread: any) => {
+    if (!thread) return null;
+
+    for (const message of thread.messages) {
+      message.content = await ops.processFile(message.content);
+    }
+    return thread;
+  },
+
+  async createMessage(
+    userId: string,
+    threadId: string,
+    role: string,
+    content: ContentPart[]
+  ) {
+    for (const item of content) {
+      const messageId = crypto.randomUUID();
+      await db.insert(messages).values({
+        userId,
+        id: messageId,
+        threadId: threadId,
+        role: role as "system" | "user" | "assistant" | "tool", // Type assertion for role
+        content: item,
+        createdAt: new Date(),
+      });
+    }
+    return { message: "Messages created successfully" };
+  },
+
+  threads: {
+    create: async (userId: string): Promise<{ id: string }> => {
+      if (!userId) throw new Error("User ID is required");
+      const id = crypto.randomUUID();
+      const now = new Date();
+      await db.insert(threads).values({
+        id,
+        userId,
+        createdAt: now,
+        updatedAt: now,
+      });
+      return { id };
+    },
+
+    getThread: async (threadId: string) => {
+      const thread = await db.query.threads.findFirst({
+        where: eq(threads.id, threadId),
+        with: {
+          messages: {
+            orderBy: messages.createdAt,
+          },
+        },
+      });
+
+      return ops.processThreadMessages(thread);
+    },
+
+    getThreads: async (userId: string, page: number, search: string) => {
+      const LIMIT = 10;
+      const offset = (page - 1) * LIMIT;
+
+      let baseQuery = db
+        .select({
+          id: threads.id,
+          created_at: threads.createdAt,
+          updated_at: threads.updatedAt,
+        })
+        .from(threads)
+        .leftJoin(messages, eq(threads.id, messages.threadId));
+
+      const conditions = [eq(threads.userId, userId)];
+
+      if (search.length > 0) {
+        conditions.push(
+          sql`CASE 
+            WHEN jsonb_typeof(${messages.content}) = 'object' 
+            THEN (${messages.content}->>'text')::text ILIKE ${
+            "%" + search + "%"
+          }
+            ELSE ${messages.content}::text ILIKE ${"%" + search + "%"}
+          END`
+        );
+      }
+
+      const matchingThreads = await baseQuery
+        .where(and(...conditions))
+        .groupBy(threads.id, threads.createdAt, threads.updatedAt)
+        .orderBy(desc(threads.createdAt))
+        .limit(LIMIT)
+        .offset(offset);
+
+      const completeThreads = await db.query.threads.findMany({
+        where: (threads, { and, eq, inArray }) =>
+          and(
+            eq(threads.userId, userId),
+            inArray(
+              threads.id,
+              matchingThreads.map((t) => t.id)
+            )
+          ),
+        orderBy: [desc(threads.createdAt)],
+        with: {
+          messages: {
+            orderBy: messages.createdAt,
+          },
+        },
+      });
+
+      // Process all threads
+      return Promise.all(completeThreads.map(ops.processThreadMessages));
+    },
+
+    inference: async (req: Request, res: Response) => {
+      const { threadId } = req.params;
+      const { model, maxTokens, temperature, instructions } = req.body;
+      const message = req.body.message as Message & {
+        experimental_attachments?: ExtendedAttachment[]; // Use ExtendedAttachment instead of Attachment
+      };
+
+      // Set headers for SSE
+      res.setHeader("Content-Type", "text/event-stream");
+      res.setHeader("Cache-Control", "no-cache");
+      res.setHeader("Connection", "keep-alive");
+      res.setHeader("X-Accel-Buffering", "no"); // Disable Nginx buffering
+      res.setHeader("Transfer-Encoding", "chunked");
+      res.flushHeaders(); // send headers to establish SSE connection
+
       // Get model config
       const modelConfig = MODELS[model];
 
-      const thread = await getThread(threadId);
+      const thread = await ops.threads.getThread(threadId);
       if (!thread) {
         res.status(404).json({ error: "Thread not found" });
         return;
@@ -143,7 +211,7 @@ router.post(
       });
 
       // add the message to the thread
-      await createMessage(req.userId!, threadId, "user", contentParts);
+      await ops.createMessage(req.dbUser!.id, threadId, "user", contentParts);
 
       // Get and filter messages
       const rawMessages = await db.query.messages.findMany({
@@ -258,7 +326,7 @@ It is currently: ${new Date().toLocaleString("en-US", {
       // Handle client abort or end of response
       req.on("close", async () => {
         await db.insert(messages).values({
-          userId: req.userId!,
+          userId: req.dbUser!.id,
           id: crypto.randomUUID(),
           threadId: threadId,
           role: "assistant",
@@ -308,11 +376,35 @@ It is currently: ${new Date().toLocaleString("en-US", {
       return result.pipeDataStreamToResponse(res, {
         sendReasoning: true,
       });
-    } catch (error: any) {
-      console.error("Error processing inference:", error);
-      res.status(500).send(error);
-    }
-  }
-);
+    },
+  },
+};
 
-export default router;
+// Mount routes
+export default Router()
+  .post(
+    "/",
+    handle(async (req) => {
+      return ops.threads.create(req.dbUser!.id);
+    })
+  )
+  .get(
+    "/",
+    handle(async (req) => {
+      const { page, search } = req.query;
+      return ops.threads.getThreads(
+        req.dbUser!.id,
+        parseInt(page as string) || 1,
+        (search as string)?.trim() || ""
+      );
+    })
+  )
+  .get(
+    "/:threadId",
+    handle(async (req) => ops.threads.getThread(req.params.threadId))
+  )
+  .post("/:threadId/inference", (req, res) =>
+    schemas.inference
+      .parseAsync(req.body)
+      .then(() => ops.threads.inference(req, res))
+  );
