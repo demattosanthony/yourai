@@ -3,12 +3,13 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { ArrowLeft, ArrowRight, Camera } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { redirect, useRouter } from "next/navigation";
 import { Textarea } from "@/components/ui/textarea";
 import api from "@/lib/api";
 import { useMeQuery } from "@/queries/queries";
+import AIOrbScene from "@/components/AiOrbScene";
 
 export default function CreateOrgPage() {
   const { data: user, isLoading } = useMeQuery();
@@ -84,18 +85,20 @@ export default function CreateOrgPage() {
         </Button>
       </div>
 
-      <main className="flex flex-col gap-8 items-center w-full justify-center h-[75%]">
-        <Image src="/yo-blob.png" alt="logo" height={75} width={75} />
+      <main className="flex flex-col gap-6 items-center w-full justify-center h-[75%]">
+        <div className="flex flex-col items-center">
+          <AIOrbScene height="75px" width="75px" />
 
-        <div className="flex flex-col items-center w-[400px] gap-2 mt-4">
-          <h3 className="scroll-m-20 text-3xl font-semibold tracking-tight">
-            {step === "org" ? "Create Organization" : "Configure SSO"}
-          </h3>
-          <p className="text-base text-muted-foreground text-center">
-            {step === "org"
-              ? "Set up your organization for team collaboration"
-              : "Configure SAML single sign-on for your organization"}
-          </p>
+          <div className="flex flex-col items-center w-[400px] gap-2 mt-4">
+            <h3 className="scroll-m-20 text-3xl font-semibold tracking-tight">
+              {step === "org" ? "Create Organization" : "Configure SSO"}
+            </h3>
+            <p className="text-base text-muted-foreground text-center">
+              {step === "org"
+                ? "Set up your organization for team collaboration"
+                : "Configure SAML single sign-on for your organization"}
+            </p>
+          </div>
         </div>
 
         {step === "org" ? (
@@ -107,32 +110,35 @@ export default function CreateOrgPage() {
             className="flex flex-col gap-4 w-[320px]"
           >
             <div className="flex items-center justify-center">
-              <Input
-                type="file"
-                accept="image/*"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) {
-                    const reader = new FileReader();
-                    reader.onloadend = () => {
-                      setLogo(reader.result as string);
-                    };
-                    reader.readAsDataURL(file);
-                  }
-                }}
-                className="h-[50px] w-[50px] rounded-full text-center"
-              />
-              {logo && (
-                <div className="ml-2">
+              <label className="relative w-14 h-14 rounded-full bg-accent flex items-center justify-center cursor-pointer overflow-hidden hover:bg-gray-200 transition-colors">
+                {logo ? (
                   <Image
                     src={logo}
-                    alt="Organization logo preview"
-                    width={50}
-                    height={50}
-                    className="rounded-full"
+                    alt="Organization logo"
+                    fill
+                    className="object-cover"
                   />
-                </div>
-              )}
+                ) : (
+                  <div className="text-gray-400">
+                    <Camera size={24} />
+                  </div>
+                )}
+                <input
+                  type="file"
+                  className="hidden"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onload = (e) => {
+                        setLogo(e.target?.result as string);
+                      };
+                      reader.readAsDataURL(file);
+                    }
+                  }}
+                />
+              </label>
             </div>
             <Input
               value={name}
@@ -198,18 +204,18 @@ export default function CreateOrgPage() {
             </Button>
           </form>
         )}
-      </main>
 
-      {step === "saml" && (
-        <div className="mt-4 text-sm text-muted-foreground text-center">
-          Your callback URL will be:
-          <br />
-          <code className="text-xs">
-            {api.baseUrl}/auth/saml/
-            {name.toLowerCase().replace(/[^a-z0-9]/g, "-")}/callback
-          </code>
-        </div>
-      )}
+        {step === "saml" && (
+          <div className="text-sm text-muted-foreground text-center">
+            Your callback URL will be:
+            <br />
+            <code className="text-xs">
+              {api.baseUrl}/auth/saml/
+              {name.toLowerCase().replace(/[^a-z0-9]/g, "-")}/callback
+            </code>
+          </div>
+        )}
+      </main>
     </div>
   );
 }
