@@ -6,7 +6,8 @@
     "dev": "next dev -p 4001",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "postinstall": "cp node_modules/pdfjs-dist/build/pdf.worker.min.mjs public/"
   },
   "dependencies": {
     "@radix-ui/react-avatar": "^1.1.2",
