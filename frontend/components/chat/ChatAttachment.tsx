@@ -1,15 +1,13 @@
 import { Attachment } from "@ai-sdk/ui-utils";
 import Link from "next/link";
-import { Button } from "../ui/button";
-import { File, Maximize2 } from "lucide-react";
-import { Card, CardContent } from "../ui/card";
-
+import { File } from "lucide-react";
 import { useRef, useEffect } from "react";
 
 import * as pdfjsLib from "pdfjs-dist";
 
 // Set worker path
 pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+
 const PdfThumbnail = ({
   url,
   width = 200,
@@ -67,7 +65,6 @@ export default function ChatAttachment({
 }: {
   attachment: Attachment;
 }) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const contentType = attachment.contentType || "";
   const index = Math.random();
 
