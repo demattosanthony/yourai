@@ -9,11 +9,14 @@ import { SidebarTrigger } from "./ui/sidebar";
 import { Button } from "./ui/button";
 import { Plus } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import Link from "next/link";
+import { useMeQuery } from "@/queries/queries";
 
 export default function Header() {
   const router = useRouter();
   const [, setMessages] = useAtom(messagesAtom);
   const isMobile = useIsMobile();
+  const { data: user, isFetched } = useMeQuery();
 
   // Add useEffect for keyboard shortcut
   useEffect(() => {
@@ -33,34 +36,49 @@ export default function Header() {
   }, [router]);
 
   return (
-    <div className="w-full p-4 h-14 items-center justify-center flex absolute top-0 left-0 right-0 z-10 bg-background md:backdrop-blur-xl md:bg-background/50 transition-all ml-2">
-      {isMobile && (
-        <div className="absolute left-2">
-          <SidebarTrigger />
+    <header className="absolute inset-x-0 top-0 z-0 flex h-14 items-center bg-background/50 px-4 backdrop-blur-xl transition-all">
+      <div className="flex w-full items-center justify-between">
+        <div className="flex items-center gap-2">
+          {isMobile && <SidebarTrigger />}
+
+          <div className="hidden md:flex items-center">
+            <Suspense>
+              <ModelSelector />
+            </Suspense>
+          </div>
         </div>
-      )}
 
-      <div className="absolute right-6 md:left-4 md:right-none bg-opacity-50 z-10">
-        <div className="flex items-center ">
-          <Suspense>
-            <ModelSelector />
-          </Suspense>
+        <div className="flex items-center gap-2">
+          <div className="flex md:hidden items-center">
+            <Suspense>
+              <ModelSelector />
+            </Suspense>
 
-          <Button
-            variant={"ghost"}
-            onClick={() => {
-              setMessages([]);
-              router.push("/");
-            }}
-            size={"icon"}
-            className="rounded-full md:hidden"
-          >
-            <Plus size={16} className="min-h-4 min-w-4" />
-          </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="md:hidden"
+              onClick={() => {
+                setMessages([]);
+                router.push("/");
+              }}
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
 
-          {/* <ProfileMenu /> */}
+          {!user && isFetched && (
+            <div className="flex items-center gap-2">
+              <Link href="/login">
+                <Button>Login</Button>
+              </Link>
+              <Link href="/login">
+                <Button variant="secondary">Sign up</Button>
+              </Link>
+            </div>
+          )}
         </div>
       </div>
-    </div>
+    </header>
   );
 }

@@ -1,7 +1,6 @@
 import { AppSidebar } from "@/components/AppSidebar";
 import { DragAndDropProvider } from "@/components/DragDropProvider";
 import Header from "@/components/Header";
-import { LoginOverlay } from "@/components/LoginOverlay";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { cookies } from "next/headers";
 
@@ -19,7 +18,6 @@ export default async function MainAppLayout({
       <SidebarInset>
         <div className="h-full w-full flex flex-col max-h-[-webkit-fill-available] relative">
           <DragAndDropProvider>
-            <LoginOverlay />
             <Header />
 
             {children}

@@ -28,7 +28,7 @@ import { useParams, usePathname } from "next/navigation";
 import AIOrbScene from "./AiOrbScene";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { data: user, isLoading } = useMeQuery();
+  const { data: user, isLoading, isFetched } = useMeQuery();
   const { state } = useSidebar();
   const isMobile = useIsMobile();
   const params = useParams();
@@ -42,7 +42,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const threads = data?.pages[0]?.threads ?? [];
 
   return (
-    <Sidebar collapsible="icon" {...props}>
+    <Sidebar collapsible={!user && isFetched ? "offcanvas" : "icon"} {...props}>
       <SidebarHeader>
         <SidebarMenu>
           <div className="w-full flex justify-between items-center">
