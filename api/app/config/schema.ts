@@ -39,7 +39,7 @@ export const organizations = pgTable("organizations", {
   name: varchar("name", { length: 255 }).notNull(),
   slug: varchar("slug", { length: 255 }).unique().notNull(), // for subdomains or URLs
   domain: varchar("domain", { length: 255 }), // for email matching & auto-assignment
-  logo: varchar("logo", { length: 255 }), // URL to logo image
+  logo: varchar("logo", { length: 255 }), // file key for s3
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
