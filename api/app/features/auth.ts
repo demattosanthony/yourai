@@ -4,7 +4,7 @@ import db from "../config/db";
 import { eq } from "drizzle-orm";
 import myPassport, { authenticateSaml } from "../config/passport";
 import { users } from "../config/schema";
-import { handle } from "../utils/handlers";
+import { handle } from "../utils";
 
 // Pure business logic operations
 const ops = {

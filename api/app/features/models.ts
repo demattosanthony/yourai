@@ -318,6 +318,15 @@ export const togetherAiModels = (
       supportsSystemMessages: true,
       description: `DeepSeek-V3 is an open-source large language model that builds upon LLaMA (Meta’s foundational language model) to enable versatile functionalities such as text generation, code completion, and more. The model is hosted on Together AI and running on USA servers, no data gets shared with DeepSeek or china.`,
     },
+    "llama-3.1-405B": {
+      model: togetherai("meta-llama/Meta-Llama-3.1-405B-Instruct-Turbo"),
+      supportsToolUse: true,
+      supportsStreaming: true,
+      provider: "meta",
+      supportsSystemMessages: true,
+      description:
+        "The Meta Llama 3.1 multilingual large language model (LLM) is a pretrained and instruction tuned generative model in 405B (text in/text out). The Llama 3.1 instruction tuned text only model is optimized for multilingual dialogue use cases and outperforms many of the available open source and closed chat models on common industry benchmarks.",
+    },
   };
 };
 
@@ -333,15 +342,6 @@ export const groqModels = (apiKey?: string): Record<string, ModelConfig> => {
       provider: "meta",
       description:
         "The Meta Llama 3.3 multilingual large language model (LLM) is a pretrained and instruction tuned generative model in 70B (text in/text out). The Llama 3.3 instruction tuned text only model is optimized for multilingual dialogue use cases and outperforms many of the available open source and closed chat models on common industry benchmarks.",
-    },
-    "llama-3.1-8b": {
-      model: groq("llama-3.1-8b-instant"),
-      supportsToolUse: false,
-      supportsStreaming: true,
-      supportsSystemMessages: true,
-      provider: "meta",
-      description:
-        "Llama is a 8 billion parameter open source model by Meta fine-tuned for instruction following purposes served by Groq on their LPU hardware.",
     },
   };
 };

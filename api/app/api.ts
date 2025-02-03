@@ -13,7 +13,7 @@ import paymentRoutes from "./features/payments";
 import organizationRoutes from "./features/organizations";
 import adminRoutes from "./features/admin";
 import s3 from "./config/s3";
-import { handle } from "./utils/handlers";
+import { handle } from "./utils";
 
 // Extend Express Request type to include user
 declare global {

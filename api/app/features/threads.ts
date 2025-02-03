@@ -6,9 +6,8 @@ import { and, desc, eq, sql } from "drizzle-orm";
 import { Request, Response, Router } from "express";
 import { CoreMessage, Message, streamText } from "ai";
 import { CONFIG } from "../config/constants";
-import { handle } from "../utils/handlers";
+import { handle, generateThreadTitle } from "../utils";
 import { MODELS } from "./models";
-import { generateThreadTitle } from "../utils/generateThreadTitle";
 
 // Input validation
 const schemas = {
