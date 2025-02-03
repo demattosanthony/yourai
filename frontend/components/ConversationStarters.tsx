@@ -5,7 +5,7 @@ import { Button } from "./ui/button";
 import { useAtom } from "jotai";
 import {
   CLAUDE_3_5_CONFIG,
-  inputAtom,
+  initalInputAtom,
   modelAtom,
   SONAR_PRO_CONFIG,
 } from "@/atoms/chat";
@@ -78,7 +78,7 @@ export default function ConversationStarters({
   triggerFileInput,
   triggerTextAreaFocus,
 }: ConversationStartersProps) {
-  const [, setInput] = useAtom(inputAtom);
+  const [, setInput] = useAtom(initalInputAtom);
   const [selectedModel, setModel] = useAtom(modelAtom);
   const [alreadyAnimated] = useAtom(animatedAtom);
 
