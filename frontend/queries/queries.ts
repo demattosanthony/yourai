@@ -84,3 +84,11 @@ export function useUpdateAdminOrgMutation() {
     },
   });
 }
+
+export function useAdminDeleteOrgMutation() {
+  return useMutation({
+    mutationFn: async (orgId: string) => {
+      return api.adminDeleteOrganization(orgId);
+    },
+  });
+}

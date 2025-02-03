@@ -72,12 +72,12 @@ class ApiClient {
     return res;
   }
 
-  async adminCreateOrganization(name: string, domain: string) {
+  async adminCreateOrganization(name: string, domain: string, logo?: string) {
     const res = await fetch(`${this.baseUrl}/admin/organizations`, {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, domain }),
+      body: JSON.stringify({ name, domain, logo }),
     });
 
     if (!res.ok) {
@@ -85,6 +85,15 @@ class ApiClient {
     }
 
     return await res.json();
+  }
+
+  async adminDeleteOrganization(orgId: string) {
+    const res = await fetch(`${this.baseUrl}/admin/organizations/${orgId}`, {
+      method: "DELETE",
+      credentials: "include",
+    });
+
+    return res;
   }
 
   async organizationConfigureSaml(

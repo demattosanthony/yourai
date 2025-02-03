@@ -23,7 +23,7 @@ export default function CreateOrgPage() {
   const [org, setOrg] = React.useState<{ id: string; slug: string } | null>(
     null
   );
-  const [logo, setLogo] = React.useState("");
+  const [logo, setLogo] = React.useState<File | null>(null);
 
   // SAML config
   const [entryPoint, setEntryPoint] = React.useState("");
@@ -32,7 +32,28 @@ export default function CreateOrgPage() {
 
   const handleCreateOrg = async () => {
     try {
-      const org = await api.adminCreateOrganization(name, domain);
+      let fileKey = undefined;
+      // If logo is provided, upload it first
+      if (logo) {
+        const { url, file_metadata } = await api.getPresignedUrl(
+          logo.name,
+          logo.type,
+          logo.size
+        );
+
+        const res = await fetch(url, {
+          method: "PUT",
+          body: logo,
+        });
+
+        if (!res.ok) {
+          throw new Error("Failed to upload logo");
+        }
+
+        fileKey = file_metadata.file_key;
+      }
+
+      const org = await api.adminCreateOrganization(name, domain, fileKey);
       setOrg(org);
       setStep("saml");
       return org;
@@ -113,7 +134,7 @@ export default function CreateOrgPage() {
               <label className="relative w-14 h-14 rounded-full bg-accent flex items-center justify-center cursor-pointer overflow-hidden hover:bg-gray-200 transition-colors">
                 {logo ? (
                   <Image
-                    src={logo}
+                    src={URL.createObjectURL(logo)}
                     alt="Organization logo"
                     fill
                     className="object-cover"
@@ -130,11 +151,7 @@ export default function CreateOrgPage() {
                   onChange={(e) => {
                     const file = e.target.files?.[0];
                     if (file) {
-                      const reader = new FileReader();
-                      reader.onload = (e) => {
-                        setLogo(e.target?.result as string);
-                      };
-                      reader.readAsDataURL(file);
+                      setLogo(file);
                     }
                   }}
                 />

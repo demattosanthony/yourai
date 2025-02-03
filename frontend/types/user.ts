@@ -25,4 +25,5 @@ export interface Organization {
   logo?: string;
   createdAt: string;
   updatedAt: string;
+  logoUrl?: string;
 }
