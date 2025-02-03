@@ -142,16 +142,7 @@ function OrganizationCard({
           </div>
         </div>
 
-        <Dialog
-          open={open}
-          onOpenChange={(newOpen) => {
-            if (!newOpen && imagePreview) {
-              URL.revokeObjectURL(imagePreview);
-              setImagePreview(null);
-            }
-            setOpen(newOpen);
-          }}
-        >
+        <Dialog open={open} onOpenChange={(newOpen) => setOpen(newOpen)}>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon">
@@ -309,6 +300,7 @@ function OrganizationCard({
                         id="cert"
                         name="cert"
                         defaultValue={org.samlConfig?.cert}
+                        className="h-[100px]"
                       />
                     </div>
                   </CollapsibleContent>

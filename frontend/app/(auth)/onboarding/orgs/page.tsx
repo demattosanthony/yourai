@@ -68,11 +68,18 @@ export default function CreateOrgPage() {
         return;
       }
 
-      const res = await api.organizationConfigureSaml(
-        { id: org.id, slug: org.slug },
-        entryPoint,
-        issuer,
-        cert
+      console.log(org);
+
+      const res = await api.updateAdminOrganization(
+        org.id,
+        undefined,
+        undefined,
+        undefined,
+        {
+          entryPoint,
+          issuer,
+          cert,
+        }
       );
 
       if (res.ok) {
