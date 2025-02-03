@@ -10,6 +10,7 @@ import {
   SONAR_PRO_CONFIG,
 } from "@/atoms/chat";
 import { NotebookPen, Plug, Search, LucideIcon, Globe } from "lucide-react";
+import { animatedAtom } from "./AnimatedGreeting";
 
 interface ConversationStartersProps {
   triggerFileInput: () => void;
@@ -79,6 +80,7 @@ export default function ConversationStarters({
 }: ConversationStartersProps) {
   const [, setInput] = useAtom(inputAtom);
   const [selectedModel, setModel] = useAtom(modelAtom);
+  const [alreadyAnimated] = useAtom(animatedAtom);
 
   const handleButtonClick = async (starter: StarterButtonProps) => {
     const { requiresFile, inputText, requiresWebSearch } = starter;
@@ -104,9 +106,9 @@ export default function ConversationStarters({
   return (
     <motion.div
       className="flex flex-wrap gap-2 justify-center items-center max-w-[750px]"
-      initial={{ opacity: 0 }}
+      initial={alreadyAnimated ? false : { opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ delay: 1, duration: 1 }}
+      transition={alreadyAnimated ? {} : { delay: 1, duration: 1 }}
     >
       {CONVERSATION_STARTERS.map((starter, index) => (
         <StarterButton
