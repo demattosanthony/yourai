@@ -36,7 +36,7 @@ export default function Header() {
   }, [router]);
 
   return (
-    <header className="absolute inset-x-0 top-0 z-0 flex h-14 items-center bg-background/50 px-4 backdrop-blur-xl transition-all">
+    <header className="absolute inset-x-0 top-0 z-[5] flex h-14 items-center bg-background/50 px-4 backdrop-blur-xl transition-all">
       <div className="flex w-full items-center justify-between">
         <div className="flex items-center gap-2">
           {isMobile && <SidebarTrigger />}
