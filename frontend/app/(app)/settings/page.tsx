@@ -15,7 +15,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useTheme } from "next-themes";
 import { useAtom } from "jotai";
 import { instructionsAtom, temperatureAtom } from "@/atoms/chat";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import AdminSettings from "@/components/settings/admin-settings";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -28,6 +28,9 @@ export default function UserSettings() {
   const router = useRouter();
 
   const isSuperAdmin = user?.systemRole === "super_admin";
+  const isOrgOwner = useMemo(() => {
+    return user?.organizationMembers?.some((member) => member.role === "owner");
+  }, [user]);
 
   const [temperature, setTemperature] = useAtom(temperatureAtom);
   const [, setInputValue] = useState(temperature.toFixed(2));
@@ -80,12 +83,14 @@ export default function UserSettings() {
               </TabsTrigger>
             )}
 
-            <TabsTrigger
-              value="organization"
-              className="bg-transparent px-0 data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-9"
-            >
-              Organization
-            </TabsTrigger>
+            {isOrgOwner && (
+              <TabsTrigger
+                value="organization"
+                className="bg-transparent px-0 data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-9"
+              >
+                Organization
+              </TabsTrigger>
+            )}
           </TabsList>
         </div>
 

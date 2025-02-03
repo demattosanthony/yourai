@@ -33,7 +33,6 @@ export default function Home() {
   );
 
   const { data: user } = useMeQuery();
-  console.log(user);
 
   const chatInputRef = useRef<ChatInputFormRef>(null);
 

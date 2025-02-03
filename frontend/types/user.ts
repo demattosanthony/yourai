@@ -15,6 +15,11 @@ export interface User {
   subscriptionPlan?: "basic";
   stripeCustomerId?: string;
   systemRole?: "super_admin";
+  organizationMembers?: {
+    organization: Organization;
+    role: "owner" | "member";
+    id: string;
+  }[];
 }
 
 export interface Organization {

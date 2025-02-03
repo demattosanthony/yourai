@@ -13,6 +13,7 @@ const ops = {
       where: eq(users.id, userId),
       with: {
         organizationMembers: {
+          limit: 1,
           with: {
             organization: true,
           },
