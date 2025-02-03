@@ -7,7 +7,13 @@ import { Card } from "@/components/ui/card";
 import { Organization } from "@/types/user";
 import { useEffect, useRef, useCallback, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-import { Camera, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import {
+  Camera,
+  ChevronDown,
+  MoreHorizontal,
+  Pencil,
+  Trash2,
+} from "lucide-react";
 import { Button } from "../ui/button";
 import {
   DropdownMenu,
@@ -28,6 +34,12 @@ import { Label } from "../ui/label";
 import { useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
 import api from "@/lib/api";
+import { Textarea } from "../ui/textarea";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "../ui/collapsible";
 
 export default function AdminSettings() {
   // Query hooks
@@ -108,6 +120,8 @@ function OrganizationCard({
   const [imagePreview, setImagePreview] = useState<string | null>(
     org.logoUrl || null
   );
+  const [newLogoFile, setNewLogoFile] = useState<File | null>(null);
+
   const queryClient = useQueryClient();
   const updateOrgMutation = useUpdateAdminOrgMutation();
 
@@ -173,7 +187,7 @@ function OrganizationCard({
 
                 // If new logo is uploaded, need to store it in s3 first
                 let file_key = undefined;
-                if (formData.get("logo") instanceof File) {
+                if (newLogoFile) {
                   const file = formData.get("logo") as File;
                   // Store file in s3
                   const { url, file_metadata } = await api.getPresignedUrl(
@@ -199,7 +213,18 @@ function OrganizationCard({
                     orgId: org.id,
                     name: formData.get("name") as string,
                     domain: formData.get("domain") as string,
-                    logo: file_key,
+                    ...(file_key && { logo: file_key }),
+                    saml: {
+                      ...(formData.get("entryPoint") && {
+                        entryPoint: formData.get("entryPoint") as string,
+                      }),
+                      ...(formData.get("issuer") && {
+                        issuer: formData.get("issuer") as string,
+                      }),
+                      ...(formData.get("cert") && {
+                        cert: formData.get("cert") as string,
+                      }),
+                    },
                   },
                   {
                     onSuccess: () => {
@@ -235,18 +260,13 @@ function OrganizationCard({
                       onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (file) {
-                          // Store file in form data
-                          const formData = new FormData();
-                          formData.append("logo", file);
-
-                          // Set preview
+                          setNewLogoFile(file);
                           setImagePreview(URL.createObjectURL(file));
                         }
                       }}
                     />
                   </label>
                 </div>
-
                 <div className="space-y-2">
                   <Label htmlFor="name">Name</Label>
                   <Input id="name" name="name" defaultValue={org.name} />
@@ -257,32 +277,42 @@ function OrganizationCard({
                   <Input id="domain" name="domain" defaultValue={org.domain} />
                 </div>
 
-                {/* <div className="space-y-2">
-                            <Label htmlFor="entryPoint">SAML Entry Point</Label>
-                            <Input
-                              id="entryPoint"
-                              name="entryPoint"
-                              defaultValue={org.samlConfig?.entryPoint}
-                            />
-                          </div>
+                <Collapsible>
+                  <CollapsibleTrigger asChild>
+                    <Button variant="ghost" className="w-full justify-between">
+                      Advanced Settings
+                      <ChevronDown className="h-4 w-4" />
+                    </Button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="entryPoint">SAML Entry Point</Label>
+                      <Input
+                        id="entryPoint"
+                        name="entryPoint"
+                        defaultValue={org.samlConfig?.entryPoint}
+                      />
+                    </div>
 
-                          <div className="space-y-2">
-                            <Label htmlFor="issuer">SAML Issuer</Label>
-                            <Input
-                              id="issuer"
-                              name="issuer"
-                              defaultValue={org.samlConfig?.issuer}
-                            />
-                          </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="issuer">SAML Issuer</Label>
+                      <Input
+                        id="issuer"
+                        name="issuer"
+                        defaultValue={org.samlConfig?.issuer}
+                      />
+                    </div>
 
-                          <div className="space-y-2">
-                            <Label htmlFor="cert">SAML Certificate</Label>
-                            <Textarea
-                              id="cert"
-                              name="cert"
-                              defaultValue={org.samlConfig?.cert}
-                            />
-                          </div> */}
+                    <div className="space-y-2">
+                      <Label htmlFor="cert">SAML Certificate</Label>
+                      <Textarea
+                        id="cert"
+                        name="cert"
+                        defaultValue={org.samlConfig?.cert}
+                      />
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
 
                 <DialogFooter>
                   <Button type="submit">Save</Button>

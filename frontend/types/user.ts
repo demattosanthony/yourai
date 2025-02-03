@@ -26,4 +26,9 @@ export interface Organization {
   createdAt: string;
   updatedAt: string;
   logoUrl?: string;
+  samlConfig?: {
+    entryPoint: string;
+    issuer: string;
+    cert: string;
+  };
 }

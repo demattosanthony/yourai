@@ -18,11 +18,14 @@ import { instructionsAtom, temperatureAtom } from "@/atoms/chat";
 import { useEffect, useState } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import AdminSettings from "@/components/settings/admin-settings";
+import { useSearchParams, useRouter } from "next/navigation";
 
 export default function UserSettings() {
   const { data: user } = useMeQuery();
   const { setTheme, theme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const searchParams = useSearchParams();
+  const router = useRouter();
 
   const isSuperAdmin = user?.systemRole === "super_admin";
 
@@ -30,9 +33,21 @@ export default function UserSettings() {
   const [, setInputValue] = useState(temperature.toFixed(2));
   const [instructions, setInstructions] = useAtom(instructionsAtom);
 
+  const tab = searchParams.get("tab") || "account";
+
   const handleTemperatureChange = (value: number[]) => {
     const newTemp = value[0];
     setTemperature(newTemp);
+  };
+
+  const handleTabChange = (value: string) => {
+    const params = new URLSearchParams(searchParams);
+    if (value === "account") {
+      params.delete("tab");
+    } else {
+      params.set("tab", value);
+    }
+    router.push(`/settings?${params.toString()}`);
   };
 
   useEffect(() => {
@@ -46,7 +61,7 @@ export default function UserSettings() {
 
   return (
     <div className="max-w-2xl mx-auto py-20 px-6 w-full">
-      <Tabs defaultValue="account" className="w-full">
+      <Tabs value={tab} onValueChange={handleTabChange} className="w-full">
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-xl font-semibold">Settings</h1>
           <TabsList className="bg-transparent p-0 h-9 gap-6">
