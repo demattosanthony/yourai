@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useAtom } from "jotai";
 import { messagesAtom } from "@/atoms/chat";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "./ui/button";
 import { Plus } from "lucide-react";
 
@@ -15,7 +14,6 @@ export default function HeaderActions({
 }) {
   const router = useRouter();
   const [, setMessages] = useAtom(messagesAtom);
-  const isMobile = useIsMobile();
 
   // Add useEffect for keyboard shortcut
   useEffect(() => {

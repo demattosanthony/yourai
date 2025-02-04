@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import { History, Plus } from "lucide-react";
-
 import {
   Sidebar,
   SidebarContent,

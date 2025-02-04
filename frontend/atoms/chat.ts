@@ -23,12 +23,10 @@ export const SONAR_PRO_CONFIG = {
 };
 
 // Persistent atoms
-export const modelAtom = atomWithStorage<Model>("selectedAiModel", {
-  name: "claude-3.5-sonnet",
-  provider: "anthropic",
-  supportsToolUse: true,
-  supportsStreaming: true,
-});
+export const modelAtom = atomWithStorage<Model>(
+  "selectedAiModel",
+  CLAUDE_3_5_CONFIG
+);
 export const temperatureAtom = atomWithStorage("chatTemp", 0.5);
 export const instructionsAtom = atomWithStorage("customInstructions", "");
 
