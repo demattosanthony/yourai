@@ -32,7 +32,7 @@ export function AppSidebar({
   user,
   ...props
 }: React.ComponentProps<typeof Sidebar> & { user: User }) {
-  const { state } = useSidebar();
+  const { state, toggleSidebar } = useSidebar();
   const isMobile = useIsMobile();
   const params = useParams();
   const pathname = usePathname();
@@ -65,13 +65,20 @@ export function AppSidebar({
           <SidebarGroup>
             <SidebarGroupContent className="px-1.5 md:px-0">
               <SidebarMenu>
-                <Link href={"/"}>
+                <Link
+                  href={"/"}
+                  onMouseDown={() => isMobile && toggleSidebar()}
+                >
                   <Button variant={"outline"} className="w-full">
                     {state === "collapsed" ? <Plus /> : "New Thread"}
                   </Button>
                 </Link>
 
-                <Link href={"/threads"} prefetch>
+                <Link
+                  href={"/threads"}
+                  prefetch
+                  onMouseDown={() => isMobile && toggleSidebar()}
+                >
                   <Button
                     variant={"ghost"}
                     className={`w-full px-2 ${
@@ -125,6 +132,7 @@ export function AppSidebar({
                           >
                             <Link
                               href={`/threads/${thread.id}`}
+                              onMouseDown={() => isMobile && toggleSidebar()}
                               className="text-ellipsis overflow-hidden whitespace-nowrap"
                             >
                               {thread.title.length > 28
@@ -138,7 +146,10 @@ export function AppSidebar({
                   )}
 
                   {user && (
-                    <Link href={"/threads"}>
+                    <Link
+                      href={"/threads"}
+                      onMouseDown={() => isMobile && toggleSidebar()}
+                    >
                       <Button
                         variant={"link"}
                         className="justify-start px-2"
