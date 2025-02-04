@@ -15,7 +15,7 @@ export default async function ThreadsPage({
 
   const initalMessages = isNew
     ? []
-    : (await getThread(threadId)).messages.map((message) => ({
+    : (await getThread(threadId))?.messages.map((message) => ({
         content: message.content?.text || "",
         role: message.role as "user" | "assistant",
         id: message.id,
