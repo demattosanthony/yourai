@@ -53,7 +53,11 @@ export default function CreateOrgPage() {
         fileKey = file_metadata.file_key;
       }
 
-      const org = await api.adminCreateOrganization(name, domain, fileKey);
+      const org = await api.createOrganization({
+        name,
+        domain,
+        logo: fileKey,
+      });
       setOrg(org);
       setStep("saml");
       return org;
@@ -70,19 +74,15 @@ export default function CreateOrgPage() {
 
       console.log(org);
 
-      const res = await api.updateAdminOrganization(
-        org.id,
-        undefined,
-        undefined,
-        undefined,
-        {
+      const res = await api.updateOrganization(org.id, {
+        saml: {
           entryPoint,
           issuer,
           cert,
-        }
-      );
+        },
+      });
 
-      if (res.ok) {
+      if (res) {
         router.push("/");
       }
     } catch (error) {

@@ -40,20 +40,16 @@ export function useModelsQuery() {
   });
 }
 
-export function useAdminOrgsQuery({
-  limit = 10,
-}: {
-  limit?: number;
-} = {}) {
+export function useOrganizationsQuery() {
   return useInfiniteQuery({
-    queryKey: ["adminOrgs"],
+    queryKey: ["organizations"],
     queryFn: async ({ pageParam = 1 }) => {
-      const data = await api.getAdminOrganizations(pageParam, limit);
-      console.log("HERE");
-      console.log(`LOGGIN DATA`, data);
+      const response = await api.listOrganizations(pageParam);
       return {
-        organizations: data.data,
-        nextPage: data.total > pageParam * limit ? pageParam + 1 : undefined,
+        organizations: response.data,
+        pagination: response.pagination,
+        nextPage:
+          pageParam < response.pagination.pages ? pageParam + 1 : undefined,
       };
     },
     getNextPageParam: (lastPage) => lastPage.nextPage,
@@ -61,34 +57,48 @@ export function useAdminOrgsQuery({
   });
 }
 
-export function useUpdateAdminOrgMutation() {
+export function useCreateOrganizationMutation() {
   return useMutation({
-    mutationFn: async ({
-      orgId,
-      name,
-      domain,
-      logo,
-      saml,
-    }: {
-      orgId: string;
-      name?: string;
+    mutationFn: (data: {
+      name: string;
       domain?: string;
       logo?: string;
+      ownerEmail?: string;
+      ownerName?: string;
       saml?: {
-        entryPoint?: string;
-        issuer?: string;
-        cert?: string;
+        entryPoint: string;
+        issuer: string;
+        cert: string;
+        callbackUrl: string;
       };
-    }) => {
-      return api.updateAdminOrganization(orgId, name, domain, logo, saml);
-    },
+    }) => api.createOrganization(data),
   });
 }
 
-export function useAdminDeleteOrgMutation() {
+export function useUpdateOrganizationMutation() {
   return useMutation({
-    mutationFn: async (orgId: string) => {
-      return api.adminDeleteOrganization(orgId);
-    },
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: Partial<{
+        name: string;
+        domain: string;
+        logo: string;
+        saml: Partial<{
+          entryPoint: string;
+          issuer: string;
+          cert: string;
+          callbackUrl: string;
+        }>;
+      }>;
+    }) => api.updateOrganization(id, data),
+  });
+}
+
+export function useDeleteOrganizationMutation() {
+  return useMutation({
+    mutationFn: (id: string) => api.deleteOrganization(id),
   });
 }

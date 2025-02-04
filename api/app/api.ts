@@ -11,7 +11,6 @@ import modelRoutes from "./features/models";
 import threadRoutes from "./features/threads";
 import paymentRoutes from "./features/payments";
 import organizationRoutes from "./features/organizations";
-import adminRoutes from "./features/admin";
 import s3 from "./config/s3";
 import { handle } from "./utils";
 
@@ -94,8 +93,7 @@ export default Router()
   .use("/models", modelRoutes)
   .use("/threads", auth, checkSub, threadRoutes)
   .use("/payments", auth, paymentRoutes)
-  .use("/organizations", auth, isOrgOwner, organizationRoutes)
-  .use("/admin", auth, superAdminMiddleware, adminRoutes)
+  .use("/organizations", auth, superAdminMiddleware, organizationRoutes)
   .post(
     "/presigned-url",
     auth,

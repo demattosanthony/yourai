@@ -1,8 +1,3 @@
-import {
-  useAdminDeleteOrgMutation,
-  useAdminOrgsQuery,
-  useUpdateAdminOrgMutation,
-} from "@/queries/queries";
 import { Card } from "@/components/ui/card";
 import { Organization } from "@/types/user";
 import { useEffect, useRef, useCallback, useState } from "react";
@@ -51,13 +46,18 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "../ui/alert-dialog";
+import {
+  useDeleteOrganizationMutation,
+  useOrganizationsQuery,
+  useUpdateOrganizationMutation,
+} from "@/queries/queries";
 
 export default function AdminSettings() {
   // Query hooks
   const queryClient = useQueryClient();
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    useAdminOrgsQuery();
-  const deleteOrgMutation = useAdminDeleteOrgMutation();
+    useOrganizationsQuery();
+  const deleteOrgMutation = useDeleteOrganizationMutation();
 
   // State
   const observerTarget = useRef(null);
@@ -134,7 +134,7 @@ function OrganizationCard({
   const [newLogoFile, setNewLogoFile] = useState<File | null>(null);
 
   const queryClient = useQueryClient();
-  const updateOrgMutation = useUpdateAdminOrgMutation();
+  const updateOrgMutation = useUpdateOrganizationMutation();
 
   return (
     <Card className="p-4">
@@ -238,26 +238,28 @@ function OrganizationCard({
 
                 updateOrgMutation.mutate(
                   {
-                    orgId: org.id,
-                    name: formData.get("name") as string,
-                    domain: formData.get("domain") as string,
-                    ...(file_key && { logo: file_key }),
-                    saml: {
-                      ...(formData.get("entryPoint") && {
-                        entryPoint: formData.get("entryPoint") as string,
-                      }),
-                      ...(formData.get("issuer") && {
-                        issuer: formData.get("issuer") as string,
-                      }),
-                      ...(formData.get("cert") && {
-                        cert: formData.get("cert") as string,
-                      }),
+                    id: org.id,
+                    data: {
+                      name: formData.get("name") as string,
+                      domain: formData.get("domain") as string,
+                      ...(file_key && { logo: file_key }),
+                      saml: {
+                        ...(formData.get("entryPoint") && {
+                          entryPoint: formData.get("entryPoint") as string,
+                        }),
+                        ...(formData.get("issuer") && {
+                          issuer: formData.get("issuer") as string,
+                        }),
+                        ...(formData.get("cert") && {
+                          cert: formData.get("cert") as string,
+                        }),
+                      },
                     },
                   },
                   {
                     onSuccess: () => {
                       queryClient.invalidateQueries({
-                        queryKey: ["adminOrgs"],
+                        queryKey: ["organizations"],
                       });
                       setOpen(false);
                     },

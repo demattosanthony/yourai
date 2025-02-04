@@ -30,93 +30,84 @@ class ApiClient {
     return await response.json();
   }
 
-  // ADMIN ROUTES
-  async getAdminOrganizations(
-    page: number = 1,
-    limit: number = 10
-  ): Promise<{ data: Organization[]; total: number }> {
+  // ORGANIZATION ROUTES
+  async listOrganizations(
+    page = 1,
+    limit = 10
+  ): Promise<{
+    data: Organization[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      pages: number;
+    };
+  }> {
     const response = await fetch(
-      `${this.baseUrl}/admin/organizations?page=${page}&limit=${limit}`,
+      `${this.baseUrl}/organizations?page=${page}&limit=${limit}`,
       {
         method: "GET",
         credentials: "include",
       }
     );
-
     return await response.json();
   }
 
-  async updateAdminOrganization(
-    orgId: string,
-    name?: string,
-    domain?: string,
-    logo?: string,
+  async createOrganization(data: {
+    name: string;
+    domain?: string;
+    logo?: string;
+    ownerEmail?: string;
+    ownerName?: string;
     saml?: {
-      entryPoint?: string;
-      issuer?: string;
-      cert?: string;
-    }
-  ) {
-    const res = await fetch(`${this.baseUrl}/admin/organizations/${orgId}`, {
-      method: "PUT",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name,
-        domain,
-        logo,
-        saml,
-      }),
-    });
-
-    return res;
-  }
-
-  async adminCreateOrganization(name: string, domain: string, logo?: string) {
-    const res = await fetch(`${this.baseUrl}/admin/organizations`, {
+      entryPoint: string;
+      issuer: string;
+      cert: string;
+      callbackUrl: string;
+    };
+  }): Promise<Organization> {
+    const response = await fetch(`${this.baseUrl}/organizations`, {
       method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
       credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, domain, logo }),
+      body: JSON.stringify(data),
     });
-
-    if (!res.ok) {
-      throw new Error("Failed to create organization");
-    }
-
-    return await res.json();
+    return await response.json();
   }
 
-  async adminDeleteOrganization(orgId: string) {
-    const res = await fetch(`${this.baseUrl}/admin/organizations/${orgId}`, {
+  async updateOrganization(
+    id: string,
+    data: Partial<{
+      name: string;
+      domain: string;
+      logo: string;
+      saml: Partial<{
+        entryPoint: string;
+        issuer: string;
+        cert: string;
+        callbackUrl: string;
+      }>;
+    }>
+  ): Promise<Organization> {
+    const response = await fetch(`${this.baseUrl}/organizations/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify(data),
+    });
+    return await response.json();
+  }
+
+  async deleteOrganization(id: string): Promise<{ success: boolean }> {
+    const response = await fetch(`${this.baseUrl}/organizations/${id}`, {
       method: "DELETE",
       credentials: "include",
     });
-
-    return res;
-  }
-
-  async organizationConfigureSaml(
-    org: { id: string; slug: string },
-    entryPoint: string,
-    issuer: string,
-    cert: string
-  ) {
-    const res = await fetch(`${this.baseUrl}/organizations/${org.id}`, {
-      method: "PUT",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        saml: {
-          entryPoint,
-          issuer,
-          cert,
-          callbackUrl: `${this.baseUrl}/auth/saml/${org.slug}/callback`,
-        },
-      }),
-    });
-
-    return res;
+    return await response.json();
   }
 
   async createCheckoutSession(lookupKey: string): Promise<string> {
