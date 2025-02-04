@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronsUpDown, WandSparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/popover";
 import { useEffect, useState } from "react";
 import { useAtom } from "jotai";
-import { modelAtom } from "@/atoms/chat";
+import { AUTO_MODEL_CONFIG, modelAtom } from "@/atoms/chat";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "./ui/hover-card";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Badge } from "./ui/badge";
@@ -66,7 +66,11 @@ const ModelSelector: React.FC = () => {
           className="h-[36px] justify-between gap-0 p-1"
         >
           <div className="flex items-center">
-            {getModelImage(selectedModel.provider)}
+            {selectedModel.provider === "Auto" ? (
+              <WandSparkles className="w-4 h-4 mr-2" />
+            ) : (
+              getModelImage(selectedModel.provider)
+            )}
             <div className="hidden md:flex truncate ">
               {selectedModel.name || "Select model..."}
             </div>
@@ -81,6 +85,26 @@ const ModelSelector: React.FC = () => {
           <CommandList className="max-h-[450px]">
             <CommandEmpty>No model found.</CommandEmpty>
             <CommandGroup>
+              <CommandItem
+                key={"Auto"}
+                value={"Auto"}
+                onSelect={() => {
+                  setSelectedModel(AUTO_MODEL_CONFIG);
+                  setOpen(false);
+                }}
+              >
+                <div className="flex items-center">
+                  <WandSparkles className="w-4 h-4 mr-2" />
+                  <span>Auto</span>
+                </div>
+                <Check
+                  className={cn(
+                    "ml-auto h-4 w-4",
+                    selectedModel.name === "auto" ? "opacity-100" : "opacity-0"
+                  )}
+                />
+              </CommandItem>
+
               {models?.map((model) => (
                 <HoverCard key={model.name} openDelay={0.5} closeDelay={0}>
                   <HoverCardTrigger>

@@ -4,7 +4,7 @@ import { ContentPart, messages, threads } from "../config/schema";
 import db from "../config/db";
 import { and, desc, eq, sql } from "drizzle-orm";
 import { Request, Response, Router } from "express";
-import { CoreMessage, Message, streamText } from "ai";
+import { CoreMessage, generateObject, Message, streamText } from "ai";
 import { CONFIG } from "../config/constants";
 import { handle, generateThreadTitle } from "../utils";
 import { MODELS } from "./models";
@@ -74,6 +74,66 @@ const ops = {
       });
     }
     return { message: "Messages created successfully" };
+  },
+
+  // Get model config
+  async getModelConfig(
+    model: string,
+    messageContent: string,
+    attachments?: ExtendedAttachment[]
+  ) {
+    if (model !== "Auto") {
+      return MODELS[model];
+    }
+
+    // Check for PDFs or images in attachments
+    if (
+      attachments?.some(
+        (attachment) =>
+          attachment.contentType?.includes("pdf") ||
+          attachment.contentType?.includes("image")
+      )
+    ) {
+      return MODELS["gemini-2.0-flash-exp"];
+    }
+
+    const { object } = await generateObject({
+      prompt: `Based on the users message, classify the type of request into one of these categories:
+
+- web_search: For queries requiring up-to-date information, current events, research, or fact-checking
+- coding: For programming help, code reviews, debugging, or technical implementation questions
+- type_1_thinking: For quick, straightforward responses requiring direct logic and factual analysis
+- type_2_thinking: For complex reasoning, deep analysis, or creative problem-solving tasks
+
+User message:
+
+${messageContent}`,
+      schema: z.object({
+        request_type: z.enum([
+          "web_search",
+          "coding",
+          "type_1_thinking",
+          "type_2_thinking",
+        ]),
+      }),
+      model: MODELS["claude-3.5-sonnet"].model,
+    });
+
+    const type = object.request_type;
+    if (type === "coding") {
+      return MODELS["claude-3.5-sonnet"];
+    }
+    if (type === "type_1_thinking") {
+      return MODELS["gpt-4o"];
+    }
+    if (type === "type_2_thinking") {
+      return MODELS["deepseek-r1"];
+    }
+    if (type === "web_search") {
+      return MODELS["sonar-pro"];
+    }
+
+    return MODELS[object.request_type];
   },
 
   threads: {
@@ -173,8 +233,12 @@ const ops = {
       res.setHeader("Transfer-Encoding", "chunked");
       res.flushHeaders(); // send headers to establish SSE connection
 
-      // Get model config
-      const modelConfig = MODELS[model];
+      // In the inference function, replace the modelConfig section with:
+      const modelConfig = await ops.getModelConfig(
+        model,
+        message.content,
+        message.experimental_attachments
+      );
 
       const thread = await ops.threads.getThread(threadId);
       if (!thread) {
