@@ -79,7 +79,7 @@ export default function Home() {
       {user &&
         user?.subscriptionStatus !== "active" &&
         showPricingDialog &&
-        !user.organizationMembers && <PricingDialog />}
+        user.organizationMembers?.length === 0 && <PricingDialog />}
 
       <div className="w-full flex flex-1 items-center justify-center">
         <div className="flex flex-col h-[70%] md:h-[65%] items-center w-full ">

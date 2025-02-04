@@ -3,7 +3,7 @@ import { checkTokens, DbUser, sendAuthCookies } from "../createAuthToken";
 import db from "../config/db";
 import { eq } from "drizzle-orm";
 import myPassport, { authenticateSaml } from "../config/passport";
-import { users } from "../config/schema";
+import { organizations, users } from "../config/schema";
 
 // Pure business logic operations
 const ops = {
@@ -85,5 +85,25 @@ export default Router()
   )
   .get("/saml/:slug", authenticateSaml)
   .post("/saml/:slug/callback", authenticateSaml, handlers.samlCallback)
+  .get("/saml/check/:slug", async (req: Request, res: Response) => {
+    const { slug } = req.params;
+
+    const org = await db.query.organizations.findFirst({
+      where: eq(organizations.slug, slug),
+      with: {
+        samlConfig: true,
+      },
+    });
+
+    if (!org || !org.samlConfig) {
+      res.status(404).json({
+        error: "Organization not found.",
+      });
+      return;
+    }
+
+    res.status(200).json({ valid: true });
+    return;
+  })
   .post("/logout", handlers.logout)
   .get("/me", handlers.me);

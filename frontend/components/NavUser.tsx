@@ -115,6 +115,7 @@ export function NavUser({ user }: { user: User }) {
                       className="w-full"
                       variant={"default"}
                       onClick={(e) => {
+                        console.log("Upgrade to Pro");
                         e.preventDefault();
                         e.stopPropagation();
                         setShowPricingPlanDialog(true);

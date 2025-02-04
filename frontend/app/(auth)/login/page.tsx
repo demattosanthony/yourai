@@ -16,6 +16,36 @@ export default function LoginPage() {
   const [ssoSelected, setSsoSelected] = React.useState(false);
   const [workEmail, setWorkEmail] = React.useState("");
 
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [error, setError] = React.useState("");
+
+  const handleSSOSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError("");
+
+    const domain = workEmail.split("@")[1].split(".")[0];
+
+    try {
+      // Check if org exists first
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/auth/saml/check/${domain}`
+      );
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Organization not found");
+      }
+
+      // If org exists, proceed with SSO
+      handleSSOLogin(domain);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col items-center px-4 py-12 h-full">
       <div className="absolute top-1 left-1">
@@ -70,37 +100,35 @@ export default function LoginPage() {
         )}
 
         {ssoSelected && (
-          <form
-            className="flex flex-col gap-4"
-            onSubmit={(e) => {
-              e.preventDefault();
-              // Basic email validation regex
-              const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-              if (!emailRegex.test(workEmail)) {
-                alert("Please enter a valid email address");
-                return;
-              }
-              handleSSOLogin(workEmail.split("@")[1].split(".")[0]);
-            }}
-          >
-            <Input
-              type="email"
-              value={workEmail}
-              onChange={(e) => setWorkEmail(e.target.value)}
-              placeholder="Enter your work email"
-              className="w-[320px] h-[50px]"
-              autoFocus
-              required
-            />
+          <form className="flex flex-col" onSubmit={handleSSOSubmit}>
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col">
+                <Input
+                  type="email"
+                  value={workEmail}
+                  onChange={(e) => {
+                    setWorkEmail(e.target.value);
+                    setError("");
+                  }}
+                  placeholder="Enter your work email"
+                  className="w-[320px] h-[50px]"
+                  autoFocus
+                  required
+                />
+                {error && (
+                  <p className="text-sm text-red-500 mt-1 px-2">{error}</p>
+                )}
+              </div>
 
-            <Button
-              type="submit"
-              className="font-semibold w-[320px] flex justify-center h-[50px]"
-              disabled={!workEmail}
-            >
-              Continue
-              <ArrowRight size={24} className="ml-1" />
-            </Button>
+              <Button
+                type="submit"
+                className="font-semibold w-[320px] flex justify-center h-[50px]"
+                disabled={!workEmail || isLoading}
+              >
+                {isLoading ? "Checking..." : "Continue"}
+                {!isLoading && <ArrowRight size={24} className="ml-1" />}
+              </Button>
+            </div>
           </form>
         )}
       </main>
