@@ -107,7 +107,7 @@ export default function ChatAttachment({
             key={index}
             src={attachment.url}
             alt="user attachment"
-            className="overflow-hidden rounded-lg h-80 max-w-[500px] object-contain"
+            className="overflow-hidden rounded-lg h-52 max-w-[400px] object-contain"
           />
         </div>
       );
