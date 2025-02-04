@@ -45,11 +45,7 @@ export interface Thread {
     id: string;
     thread_id: string;
     role: string;
-    content: {
-      type: "text" | "image" | "file";
-      text?: string;
-      image?: string;
-    };
+    content: MessageContent;
     createdAt: string;
     model?: string;
     provider?: string;

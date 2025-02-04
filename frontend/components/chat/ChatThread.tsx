@@ -3,8 +3,7 @@
 import api from "@/lib/api";
 
 // Types
-import { ChatMessage } from "@/types/chat";
-import { Attachment } from "@ai-sdk/ui-utils";
+import { Attachment, Message } from "@ai-sdk/ui-utils";
 
 // Atoms
 import {
@@ -39,7 +38,7 @@ type ExtendedAttachment = Attachment & {
 export default function ThreadPage({
   initalMessages,
 }: {
-  initalMessages: ChatMessage[];
+  initalMessages: Message[];
 }) {
   const queryClient = useQueryClient();
   const router = useRouter();
@@ -73,25 +72,7 @@ export default function ThreadPage({
     api: `${process.env.NEXT_PUBLIC_API_URL}/threads/${threadId}/inference`,
     credentials: "include",
     initialInput: isNew ? initalInput : "",
-    initialMessages:
-      initalMessages?.map((message) => ({
-        content: message.content?.text || "",
-        role: message.role as "user" | "assistant",
-        id: message.id,
-        createdAt: message.createdAt ? new Date(message.createdAt) : undefined,
-        reasoning: message.reasoning,
-        experimental_attachments:
-          message.content?.type === "image" || message.content?.type === "file"
-            ? [
-                {
-                  name: message.content.file_metadata?.filename,
-                  url: message.content?.data || "",
-                  file_key: message.content.file_metadata?.file_key,
-                  contentType: message.content.file_metadata?.mime_type,
-                },
-              ]
-            : [],
-      })) ?? [],
+    initialMessages: initalMessages,
     experimental_prepareRequestBody({ messages, id }) {
       return {
         message: messages[messages.length - 1],
