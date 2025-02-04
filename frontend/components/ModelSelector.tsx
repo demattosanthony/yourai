@@ -85,25 +85,49 @@ const ModelSelector: React.FC = () => {
           <CommandList className="max-h-[450px]">
             <CommandEmpty>No model found.</CommandEmpty>
             <CommandGroup>
-              <CommandItem
-                key={"Auto"}
-                value={"Auto"}
-                onSelect={() => {
-                  setSelectedModel(AUTO_MODEL_CONFIG);
-                  setOpen(false);
-                }}
-              >
-                <div className="flex items-center">
-                  <WandSparkles className="w-4 h-4 mr-2" />
-                  <span>Auto</span>
-                </div>
-                <Check
-                  className={cn(
-                    "ml-auto h-4 w-4",
-                    selectedModel.name === "auto" ? "opacity-100" : "opacity-0"
-                  )}
-                />
-              </CommandItem>
+              <HoverCard openDelay={0.5} closeDelay={0}>
+                <HoverCardTrigger>
+                  <CommandItem
+                    key={"Auto"}
+                    value={"Auto"}
+                    onSelect={() => {
+                      setSelectedModel(AUTO_MODEL_CONFIG);
+                      setOpen(false);
+                    }}
+                  >
+                    <div className="flex items-center">
+                      <WandSparkles className="w-4 h-4 mr-2" />
+                      <span>Auto</span>
+                    </div>
+                    <Check
+                      className={cn(
+                        "ml-auto h-4 w-4",
+                        selectedModel.name === "auto"
+                          ? "opacity-100"
+                          : "opacity-0"
+                      )}
+                    />
+                  </CommandItem>
+                </HoverCardTrigger>
+                <HoverCardContent
+                  side="left"
+                  align="center"
+                  className="w-[400px]"
+                >
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-semibold flex items-center">
+                      <WandSparkles className="w-4 h-4 mr-2" />
+                      Auto Model Selection
+                    </h4>
+                    <p className="text-xs text-muted-foreground">
+                      Automatically selects the most suitable model based on
+                      your message content. For example, it will choose models
+                      with image capabilities for messages containing images, or
+                      models optimized for code when discussing programming.
+                    </p>
+                  </div>
+                </HoverCardContent>
+              </HoverCard>
 
               {models?.map((model) => (
                 <HoverCard key={model.name} openDelay={0.5} closeDelay={0}>
