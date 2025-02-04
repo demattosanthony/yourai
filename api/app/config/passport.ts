@@ -89,9 +89,6 @@ export async function authenticateSaml(
       },
     });
 
-    console.log(`org: ${org?.id}`);
-    console.log(`org.samlConfig: ${JSON.stringify(org?.samlConfig)}`);
-
     if (!org || !org.samlConfig) {
       res.status(404).send("Organization or SAML configuration not found");
       return;
@@ -110,8 +107,6 @@ export async function authenticateSaml(
       )
       .then((result) => result.rows[0]);
 
-    console.log(`decryptedConfig: ${JSON.stringify(decryptedConfig)}`);
-
     if (!decryptedConfig) {
       throw new Error("Failed to decrypt SAML configuration");
     }
@@ -129,7 +124,6 @@ export async function authenticateSaml(
         },
         async function (profile: any, done: VerifiedCallback) {
           try {
-            console.log("SAML Profile:", JSON.stringify(profile, null, 2));
             const samlEmail =
               profile[
                 "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"

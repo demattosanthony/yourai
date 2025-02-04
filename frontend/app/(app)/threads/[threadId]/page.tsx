@@ -20,12 +20,18 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import { useChat } from "ai/react";
 import { useAtom } from "jotai";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import {
+  redirect,
+  useParams,
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
 import { useEffect } from "react";
 
 // Components
 import ChatInputForm from "@/components/chat/ChatInputForm";
 import ChatMessagesList from "@/components/chat/MessagesList";
+import { useMeQuery } from "@/queries/queries";
 
 type ExtendedAttachment = Attachment & {
   file_key: string;
@@ -44,6 +50,14 @@ export default function ThreadPage() {
   const [uploads, setUploads] = useAtom(uploadsAtom);
   const [temperature] = useAtom(temperatureAtom);
   const [instructions] = useAtom(instructionsAtom);
+  const { data: user, isFetched } = useMeQuery();
+
+  // Move the auth check to the top of the component, before other hooks
+  useEffect(() => {
+    if (isFetched && !user) {
+      redirect("/");
+    }
+  }, [isFetched, user, router]);
 
   const {
     input,

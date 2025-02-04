@@ -76,9 +76,10 @@ export default function Home() {
     <>
       <InstallPrompt />
 
-      {user && user?.subscriptionStatus !== "active" && showPricingDialog && (
-        <PricingDialog />
-      )}
+      {user &&
+        user?.subscriptionStatus !== "active" &&
+        showPricingDialog &&
+        !user.organizationMembers && <PricingDialog />}
 
       <div className="w-full flex flex-1 items-center justify-center">
         <div className="flex flex-col h-[70%] md:h-[65%] items-center w-full ">

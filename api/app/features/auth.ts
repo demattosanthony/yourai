@@ -1,10 +1,9 @@
-import { Router, Request } from "express";
+import { Router, Request, Response } from "express";
 import { checkTokens, DbUser, sendAuthCookies } from "../createAuthToken";
 import db from "../config/db";
 import { eq } from "drizzle-orm";
 import myPassport, { authenticateSaml } from "../config/passport";
 import { users } from "../config/schema";
-import { handle } from "../utils";
 
 // Pure business logic operations
 const ops = {
@@ -54,12 +53,19 @@ const handlers = {
     res.status(200).send("Logged out");
   },
 
-  me: async (req: Request) => {
-    const { id, rid } = req.cookies;
-    if (!id || !rid) return null;
-    const { userId } = await checkTokens(id, rid);
-    const user = await ops.getUser(userId);
-    return user || null;
+  me: async (req: Request, res: any) => {
+    try {
+      const { id, rid } = req.cookies;
+      if (!id || !rid) {
+        res.status(200).json(null);
+        return;
+      }
+      const { userId } = await checkTokens(id, rid);
+      const user = (await ops.getUser(userId)) || null;
+      res.status(200).json(user);
+    } catch (error) {
+      res.status(200).json(null);
+    }
   },
 };
 
@@ -80,4 +86,4 @@ export default Router()
   .get("/saml/:slug", authenticateSaml)
   .post("/saml/:slug/callback", authenticateSaml, handlers.samlCallback)
   .post("/logout", handlers.logout)
-  .get("/me", handle(handlers.me));
+  .get("/me", handlers.me);
