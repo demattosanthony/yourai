@@ -19,16 +19,19 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { NavUser } from "./NavUser";
-import { useMeQuery, useThreadsQuery } from "@/queries/queries";
+import { useThreadsQuery } from "@/queries/queries";
 import { Button } from "./ui/button";
 import { Collapsible } from "./ui/collapsible";
 import Link from "next/link";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useParams, usePathname } from "next/navigation";
 import AIOrbScene from "./AiOrbScene";
+import { User } from "@/types/user";
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { data: user, isLoading, isFetched } = useMeQuery();
+export function AppSidebar({
+  user,
+  ...props
+}: React.ComponentProps<typeof Sidebar> & { user: User }) {
   const { state } = useSidebar();
   const isMobile = useIsMobile();
   const params = useParams();
@@ -42,20 +45,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const threads = data?.pages[0]?.threads ?? [];
 
   return (
-    <Sidebar collapsible={!user && isFetched ? "offcanvas" : "icon"} {...props}>
+    <Sidebar collapsible={"icon"} {...props}>
       <SidebarHeader>
         <SidebarMenu>
           <div className="w-full flex justify-between items-center">
             <Link href="/">
               <div className="flex aspect-square size-8 items-center justify-center">
                 <AIOrbScene width="24px" height="24px" isAnimating={false} />
-
-                {/* <Image
-                  src={"/yo-blob.png"}
-                  width={24}
-                  height={24}
-                  alt="YourOrg"
-                /> */}
               </div>
             </Link>
 
@@ -162,17 +158,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarFooter>
         {state === "collapsed" && <SidebarTrigger className="w-full" />}
 
-        {!user && state === "expanded" && !isLoading && (
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <Link href={"/login"}>
-                <Button className="w-full">Login</Button>
-              </Link>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        )}
-
-        {user && <NavUser user={user} />}
+        <NavUser user={user} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
