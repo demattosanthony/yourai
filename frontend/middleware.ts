@@ -2,11 +2,11 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { me } from "./app/actions";
 
-const protectedRoutes = ["/settings", "/threads"];
-
 export async function middleware(req: NextRequest) {
   const user = await me();
   const path = req.nextUrl.pathname;
+
+  const protectedRoutes = ["/settings", "/threads"];
 
   // Redirect unauthenticated users
   if (protectedRoutes.includes(path) && user === null) {
@@ -17,5 +17,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: protectedRoutes,
+  matcher: ["/settings", "/threads", "/threads/:threadId"],
 };

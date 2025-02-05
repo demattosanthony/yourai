@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  FileText,
-  Paperclip,
-  SendHorizonal,
-  StopCircle,
-  X,
-} from "lucide-react";
+import { Paperclip, SendHorizonal, StopCircle, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Textarea } from "../ui/textarea";
 import { Button } from "../ui/button";
