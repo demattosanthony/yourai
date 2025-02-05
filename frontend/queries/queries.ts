@@ -1,6 +1,11 @@
 import api from "@/lib/api";
 import { Thread } from "@/types/chat";
-import { useInfiniteQuery, useMutation, useQuery } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 
 export function useMeQuery() {
   return useQuery({
@@ -37,6 +42,16 @@ export function useThreadQuery(threadId: string, isNewThread: boolean) {
     enabled: !isNewThread, // Only fetch if it's not a new thread
     staleTime: 1000 * 60 * 5, // Consider data fresh for 5 minutes
     refetchOnWindowFocus: false,
+  });
+}
+
+export function useDeleteThreadMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (threadId: string) => api.deleteThread(threadId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["threads"] });
+    },
   });
 }
 

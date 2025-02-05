@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { History, Plus } from "lucide-react";
+import { History, MoreHorizontal, Plus, Trash } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -18,7 +18,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { NavUser } from "./NavUser";
-import { useThreadsQuery } from "@/queries/queries";
+import { useDeleteThreadMutation, useThreadsQuery } from "@/queries/queries";
 import { Button } from "./ui/button";
 import { Collapsible } from "./ui/collapsible";
 import Link from "next/link";
@@ -26,6 +26,23 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useParams, usePathname } from "next/navigation";
 import AIOrbScene from "./AiOrbScene";
 import { User } from "@/types/user";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "./ui/alert-dialog";
 
 export function AppSidebar({
   user,
@@ -40,6 +57,8 @@ export function AppSidebar({
   const isThreadsPage = pathname === "/threads";
 
   const { data, isLoading: threadsLoading } = useThreadsQuery();
+  const deleteThread = useDeleteThreadMutation();
+
   // Take only the first page of results since that's all we need
   const threads = data?.pages[0]?.threads ?? [];
 
@@ -129,21 +148,73 @@ export function AppSidebar({
                         <SidebarMenuItem key={thread.id}>
                           <SidebarMenuButton
                             asChild
-                            className={`${
+                            className={`group/thread flex justify-between items-center ${
                               currentThread === thread.id
                                 ? "bg-accent text-accent-foreground"
                                 : ""
                             }`}
                           >
-                            <Link
-                              href={`/threads/${thread.id}`}
-                              onMouseDown={() => isMobile && toggleSidebar()}
-                              className="text-ellipsis overflow-hidden whitespace-nowrap"
-                            >
-                              {thread.title.length > 28
-                                ? thread.title.slice(0, 28) + "..."
-                                : thread.title}
-                            </Link>
+                            <div className="w-full flex justify-between items-center">
+                              <Link
+                                href={`/threads/${thread.id}`}
+                                onMouseDown={() => isMobile && toggleSidebar()}
+                                className="text-ellipsis overflow-hidden whitespace-nowrap flex-1"
+                              >
+                                {thread.title.length > 28
+                                  ? thread.title.slice(0, 28) + "..."
+                                  : thread.title}
+                              </Link>
+
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    className="h-8 w-8 p-0 opacity-0 group-hover/thread:opacity-100 border-none ring-0 focus-visible:ring-0 focus:ring-0 text-muted-foreground"
+                                    onClick={(e) => e.preventDefault()}
+                                  >
+                                    <MoreHorizontal className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" side="right">
+                                  <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                      <DropdownMenuItem
+                                        className="text-destructive"
+                                        onSelect={(e) => e.preventDefault()}
+                                      >
+                                        <Trash className="h-2 w-2" />
+                                        Delete
+                                      </DropdownMenuItem>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                      <AlertDialogHeader>
+                                        <AlertDialogTitle>
+                                          Delete Thread
+                                        </AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                          Are you sure you want to delete this
+                                          thread and all its messages? This
+                                          action cannot be undone.
+                                        </AlertDialogDescription>
+                                      </AlertDialogHeader>
+                                      <AlertDialogFooter>
+                                        <AlertDialogCancel>
+                                          Cancel
+                                        </AlertDialogCancel>
+                                        <AlertDialogAction
+                                          onClick={() =>
+                                            deleteThread.mutate(thread.id)
+                                          }
+                                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                        >
+                                          Delete
+                                        </AlertDialogAction>
+                                      </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                  </AlertDialog>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </div>
                           </SidebarMenuButton>
                         </SidebarMenuItem>
                       );

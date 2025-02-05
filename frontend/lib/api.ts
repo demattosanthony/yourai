@@ -279,6 +279,26 @@ class ApiClient {
 
     return await response.json();
   }
+
+  /**
+   * Deletes a specific thread and its messages
+   * @param threadId - ID of the thread to delete
+   * @returns Promise containing success status
+   */
+  async deleteThread(threadId: string): Promise<{ success: boolean }> {
+    const url = `${this.baseUrl}/threads/${threadId}`;
+
+    const response = await fetch(url, {
+      method: "DELETE",
+      credentials: "include",
+    });
+
+    if (!response.ok) {
+      throw new Error("failed_to_delete_thread");
+    }
+
+    return await response.json();
+  }
 }
 
 // Create and export a instance of ApiClient
