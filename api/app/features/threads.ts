@@ -4,7 +4,13 @@ import { ContentPart, messages, threads } from "../config/schema";
 import db from "../config/db";
 import { and, desc, eq, sql } from "drizzle-orm";
 import { Request, Response, Router } from "express";
-import { CoreMessage, generateObject, Message, streamText } from "ai";
+import {
+  CoreMessage,
+  generateObject,
+  Message,
+  smoothStream,
+  streamText,
+} from "ai";
 import { CONFIG } from "../config/constants";
 import { handle, generateThreadTitle } from "../utils";
 import { MODELS } from "./models";
@@ -424,7 +430,7 @@ It is currently: ${new Date().toLocaleString("en-US", {
 
       const result = streamText({
         ...inferenceParams,
-        // experimental_transform: smoothStream(),
+        experimental_transform: smoothStream(),
         onChunk: ({ chunk }) => {
           if (chunk.type === "text-delta") {
             aiResponse += chunk.textDelta;
