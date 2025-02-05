@@ -1,4 +1,5 @@
 import api from "@/lib/api";
+import { Thread } from "@/types/chat";
 import { useInfiniteQuery, useMutation, useQuery } from "@tanstack/react-query";
 
 export function useMeQuery() {
@@ -8,9 +9,15 @@ export function useMeQuery() {
   });
 }
 
-export function useThreadsQuery(search?: string) {
+export function useThreadsQuery(search?: string, initalThreads?: Thread[]) {
   return useInfiniteQuery({
     queryKey: ["threads", search],
+    initialData: initalThreads
+      ? {
+          pages: [{ threads: initalThreads, nextPage: 2 }],
+          pageParams: [1],
+        }
+      : undefined,
     queryFn: async ({ pageParam = 1 }) => {
       const threads = await api.getThreads(pageParam, search);
       return {
