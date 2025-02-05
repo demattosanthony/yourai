@@ -373,6 +373,7 @@ ${conversationText}`,
       const inferenceMessages = await Promise.all(
         filteredMessages.map(async (msg) => ({
           role: msg.role,
+          reasoning: msg.reasoning,
           content: await processMessageContent(msg.content as ContentPart),
         }))
       );
