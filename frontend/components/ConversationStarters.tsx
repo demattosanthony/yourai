@@ -3,12 +3,7 @@
 import { motion } from "framer-motion";
 import { Button } from "./ui/button";
 import { useAtom } from "jotai";
-import {
-  CLAUDE_3_5_CONFIG,
-  initalInputAtom,
-  modelAtom,
-  SONAR_PRO_CONFIG,
-} from "@/atoms/chat";
+import { AUTO_MODEL_CONFIG, initalInputAtom, modelAtom } from "@/atoms/chat";
 import { NotebookPen, Plug, Search, LucideIcon, Globe } from "lucide-react";
 import { animatedAtom } from "./AnimatedGreeting";
 
@@ -79,24 +74,18 @@ export default function ConversationStarters({
   triggerTextAreaFocus,
 }: ConversationStartersProps) {
   const [, setInput] = useAtom(initalInputAtom);
-  const [selectedModel, setModel] = useAtom(modelAtom);
+  const [, setModel] = useAtom(modelAtom);
   const [alreadyAnimated] = useAtom(animatedAtom);
 
   const handleButtonClick = async (starter: StarterButtonProps) => {
-    const { requiresFile, inputText, requiresWebSearch } = starter;
+    const { requiresFile, inputText } = starter;
+
+    setModel(AUTO_MODEL_CONFIG);
 
     if (requiresFile) {
-      if (
-        selectedModel.name !== CLAUDE_3_5_CONFIG.name &&
-        !selectedModel.name.includes("gemini")
-      ) {
-        setModel(CLAUDE_3_5_CONFIG);
-      }
-
       await new Promise((r) => setTimeout(r, 100));
+
       triggerFileInput();
-    } else if (requiresWebSearch) {
-      setModel(SONAR_PRO_CONFIG);
     }
 
     setInput(inputText);

@@ -69,7 +69,11 @@ export function AppSidebar({
                   onMouseDown={() => isMobile && toggleSidebar()}
                 >
                   <Button variant={"outline"} className="w-full">
-                    {state === "collapsed" ? <Plus /> : "New Thread"}
+                    {state === "collapsed" && !isMobile ? (
+                      <Plus />
+                    ) : (
+                      "New Thread"
+                    )}
                   </Button>
                 </Link>
 
@@ -81,7 +85,9 @@ export function AppSidebar({
                   <Button
                     variant={"ghost"}
                     className={`w-full px-2 ${
-                      state === "collapsed" ? "justify-center" : "justify-start"
+                      state === "collapsed" && !isMobile
+                        ? "justify-center"
+                        : "justify-start"
                     }
                     ${isThreadsPage ? "bg-accent text-accent-foreground" : ""}
                     `}
@@ -100,7 +106,7 @@ export function AppSidebar({
             </SidebarGroupContent>
           </SidebarGroup>
 
-          {state === "expanded" && (
+          {(state === "expanded" || isMobile) && (
             <SidebarGroup key={"Recents"}>
               <SidebarGroupLabel>{"Recents"}</SidebarGroupLabel>
               <SidebarGroupContent>
@@ -165,8 +171,10 @@ export function AppSidebar({
         </Collapsible>
       </SidebarContent>
 
-      <SidebarFooter>
-        {state === "collapsed" && <SidebarTrigger className="w-full" />}
+      <SidebarFooter className="mb-4 md:mb-0">
+        {state === "collapsed" && !isMobile && (
+          <SidebarTrigger className="w-full" />
+        )}
 
         <NavUser user={user} />
       </SidebarFooter>
