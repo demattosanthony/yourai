@@ -360,7 +360,10 @@ export const perplexityModels = (
 
   return {
     "sonar-reasoning": {
-      model: perplexity("sonar-reasoning"),
+      model: wrapLanguageModel({
+        model: perplexity("sonar-reasoning"),
+        middleware: extractReasoningMiddleware({ tagName: "think" }),
+      }),
       supportsToolUse: false,
       supportsStreaming: true,
       provider: "perplexity",
