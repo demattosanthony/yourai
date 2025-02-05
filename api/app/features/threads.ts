@@ -466,6 +466,22 @@ It is currently: ${new Date().toLocaleString("en-US", {
         sendReasoning: true,
       });
     },
+
+    deleteThread: async (userId: string, threadId: string) => {
+      // Delete all messages first due to foreign key constraint
+      await db
+        .delete(messages)
+        .where(
+          and(eq(messages.threadId, threadId), eq(messages.userId, userId))
+        );
+
+      // Delete the thread
+      await db
+        .delete(threads)
+        .where(and(eq(threads.id, threadId), eq(threads.userId, userId)));
+
+      return { success: true };
+    },
   },
 };
 
@@ -496,4 +512,10 @@ export default Router()
     schemas.inference
       .parseAsync(req.body)
       .then(() => ops.threads.inference(req, res))
+  )
+  .delete(
+    "/:threadId",
+    handle(async (req) => {
+      return ops.threads.deleteThread(req.dbUser!.id, req.params.threadId);
+    })
   );
