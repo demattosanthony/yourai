@@ -79,35 +79,51 @@ const ops = {
   // Get model config
   async getModelConfig(
     model: string,
-    messageContent: string,
+    messages: { role: string; content: ContentPart }[],
     attachments?: ExtendedAttachment[]
   ) {
     if (model !== "Auto") {
       return MODELS[model];
     }
 
-    // Check for PDFs or images in attachments
-    if (
+    // Check for PDFs or images in attachments or previous messages
+    const hasMediaContent =
       attachments?.some(
         (attachment) =>
           attachment.contentType?.includes("pdf") ||
           attachment.contentType?.includes("image")
-      )
-    ) {
+      ) ||
+      messages.some(
+        (msg) =>
+          (msg.content as ContentPart).type === "image" ||
+          ((msg.content as ContentPart).type === "file" &&
+            (msg.content as any).file_metadata?.mime_type?.includes("pdf"))
+      );
+
+    if (hasMediaContent) {
       return MODELS["gemini-2.0-flash-exp"];
     }
 
+    // Get the full conversation text for context
+    const conversationText = messages
+      .map((msg) => {
+        const content = msg.content as ContentPart;
+        return content.type === "text" ? `${msg.role}: ${content.text}` : "";
+      })
+      .filter(Boolean)
+      .join("\n\n");
+
     const { object } = await generateObject({
-      prompt: `Based on the users message, classify the type of request into one of these categories:
+      prompt: `Based on the conversation below, classify the type of request into one of these categories:
 
 - web_search: For queries requiring up-to-date information, current events, research, or fact-checking
 - coding: For programming help, code reviews, debugging, or technical implementation questions
 - type_1_thinking: For quick, straightforward responses requiring direct logic and factual analysis
 - type_2_thinking: For complex reasoning, deep analysis, or creative problem-solving tasks
 
-User message:
+Conversation:
 
-${messageContent}`,
+${conversationText}`,
       schema: z.object({
         request_type: z.enum([
           "web_search",
@@ -233,13 +249,6 @@ ${messageContent}`,
       res.setHeader("Transfer-Encoding", "chunked");
       res.flushHeaders(); // send headers to establish SSE connection
 
-      // In the inference function, replace the modelConfig section with:
-      const modelConfig = await ops.getModelConfig(
-        model,
-        message.content,
-        message.experimental_attachments
-      );
-
       const thread = await ops.threads.getThread(threadId);
       if (!thread) {
         res.status(404).json({ error: "Thread not found" });
@@ -281,6 +290,16 @@ ${messageContent}`,
         where: eq(messages.threadId, threadId),
         orderBy: messages.createdAt,
       });
+
+      // In the inference function, replace the modelConfig section with:
+      const modelConfig = await ops.getModelConfig(
+        model,
+        rawMessages.map((msg) => ({
+          role: msg.role,
+          content: msg.content as ContentPart,
+        })),
+        message.experimental_attachments
+      );
 
       // If thread has no title, find first user text message and generate title
       if (!thread.title) {
