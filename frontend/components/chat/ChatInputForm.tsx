@@ -14,6 +14,7 @@ import { useAtom } from "jotai";
 import { useFileUpload } from "@/hooks/useFileUpload";
 import { modelAtom } from "@/atoms/chat";
 import React from "react";
+import { PdfThumbnail } from "../pdf-thumbnail";
 
 interface ChatInputFormProps {
   onSubmit: (e: React.FormEvent) => void;
@@ -152,19 +153,7 @@ function ChatInputForm(
                   className="h-full w-full object-cover transition-transform group-hover:scale-105"
                 />
               ) : (
-                <div className="h-full w-full bg-muted flex flex-col items-center justify-center p-2 gap-1">
-                  <div className="bg-background rounded-lg p-2 shadow-sm">
-                    <FileText className="w-6 h-6 text-primary" />
-                  </div>
-                  <div className="flex flex-col items-center">
-                    <span className="text-xs font-medium text-foreground">
-                      PDF
-                    </span>
-                    <span className="text-[10px] text-muted-foreground max-w-[80px] truncate">
-                      {upload.file.name}
-                    </span>
-                  </div>
-                </div>
+                <PdfThumbnail url={upload.preview} width={96} />
               )}
 
               <button

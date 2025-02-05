@@ -107,7 +107,7 @@ const ops = {
       );
 
     if (hasMediaContent) {
-      return MODELS["gemini-2.0-flash-exp"];
+      return MODELS["gemini-2.0-flash"];
     }
 
     // Get the full conversation text for context
