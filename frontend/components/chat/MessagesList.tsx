@@ -122,12 +122,14 @@ const UserMessage = React.memo(({ message }: { message: Message }) => {
       {message.experimental_attachments?.map((attachment, idx) => (
         <ChatAttachment key={idx} attachment={attachment} />
       ))}
-      <MessageBubble
-        content={message.content || ""}
-        isUser={true}
-        onCopy={handleCopy}
-        copied={copied}
-      />
+      {message.content && (
+        <MessageBubble
+          content={message.content || ""}
+          isUser={true}
+          onCopy={handleCopy}
+          copied={copied}
+        />
+      )}
     </div>
   );
 });

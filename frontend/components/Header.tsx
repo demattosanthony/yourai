@@ -1,73 +1,32 @@
-"use client";
+"use server";
 
 import ModelSelector from "./ModelSelector";
-import { useRouter } from "next/navigation";
-import { Suspense, useEffect } from "react";
-import { useAtom } from "jotai";
-import { messagesAtom } from "@/atoms/chat";
-import { SidebarTrigger } from "./ui/sidebar";
 import { Button } from "./ui/button";
-import { Plus } from "lucide-react";
-import { useIsMobile } from "@/hooks/use-mobile";
 import Link from "next/link";
-import { useMeQuery } from "@/queries/queries";
+import { me } from "@/app/actions";
+import { SidebarTrigger } from "./ui/sidebar";
+import HeaderActions from "./HeaderActions";
 
-export default function Header() {
-  const router = useRouter();
-  const [, setMessages] = useAtom(messagesAtom);
-  const isMobile = useIsMobile();
-  const { data: user, isFetched } = useMeQuery();
-
-  // Add useEffect for keyboard shortcut
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.metaKey && e.key === "h") {
-        e.preventDefault();
-        router.push("/threads");
-      } else if ((e.metaKey || e.ctrlKey) && e.key === "m") {
-        e.preventDefault();
-        setMessages([]);
-        router.push("/");
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [router]);
+export default async function Header() {
+  const user = await me();
 
   return (
-    <header className="absolute inset-x-0 top-0 z-[5] flex h-14 items-center bg-background/50 px-4 backdrop-blur-xl transition-all">
+    <header className="absolute inset-x-0 top-0 z-[5] flex h-14 items-center bg-background md:bg-background/50 px-4 md:backdrop-blur-xl transition-all">
       <div className="flex w-full items-center justify-between">
-        <div className="flex items-center gap-2">
-          {isMobile && <SidebarTrigger />}
-
-          <div className="hidden md:flex items-center">
-            <Suspense>
-              <ModelSelector />
-            </Suspense>
+        <div className="flex items-center gap-2 justify-between w-full md:justify-start">
+          <div className="md:hidden">
+            <SidebarTrigger />
           </div>
+
+          <HeaderActions>
+            <div className="order-1 md:order-none">
+              <ModelSelector />
+            </div>
+          </HeaderActions>
         </div>
 
         <div className="flex items-center gap-2">
-          <div className="flex md:hidden items-center">
-            <Suspense>
-              <ModelSelector />
-            </Suspense>
-
-            <Button
-              variant="ghost"
-              size="icon"
-              className="md:hidden"
-              onClick={() => {
-                setMessages([]);
-                router.push("/");
-              }}
-            >
-              <Plus className="h-4 w-4" />
-            </Button>
-          </div>
-
-          {!user && isFetched && (
+          {!user && (
             <div className="flex items-center gap-2">
               <Link href="/login">
                 <Button>Login</Button>

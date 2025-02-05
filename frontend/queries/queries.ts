@@ -1,5 +1,5 @@
 import api from "@/lib/api";
-import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQuery } from "@tanstack/react-query";
 
 export function useMeQuery() {
   return useQuery({
@@ -37,5 +37,68 @@ export function useModelsQuery() {
   return useQuery({
     queryKey: ["models"],
     queryFn: () => api.getAvailableModels(),
+  });
+}
+
+export function useOrganizationsQuery() {
+  return useInfiniteQuery({
+    queryKey: ["organizations"],
+    queryFn: async ({ pageParam = 1 }) => {
+      const response = await api.listOrganizations(pageParam);
+      return {
+        organizations: response.data,
+        pagination: response.pagination,
+        nextPage:
+          pageParam < response.pagination.pages ? pageParam + 1 : undefined,
+      };
+    },
+    getNextPageParam: (lastPage) => lastPage.nextPage,
+    initialPageParam: 1,
+  });
+}
+
+export function useCreateOrganizationMutation() {
+  return useMutation({
+    mutationFn: (data: {
+      name: string;
+      domain?: string;
+      logo?: string;
+      ownerEmail?: string;
+      ownerName?: string;
+      saml?: {
+        entryPoint: string;
+        issuer: string;
+        cert: string;
+        callbackUrl: string;
+      };
+    }) => api.createOrganization(data),
+  });
+}
+
+export function useUpdateOrganizationMutation() {
+  return useMutation({
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: Partial<{
+        name: string;
+        domain: string;
+        logo: string;
+        saml: Partial<{
+          entryPoint: string;
+          issuer: string;
+          cert: string;
+          callbackUrl: string;
+        }>;
+      }>;
+    }) => api.updateOrganization(id, data),
+  });
+}
+
+export function useDeleteOrganizationMutation() {
+  return useMutation({
+    mutationFn: (id: string) => api.deleteOrganization(id),
   });
 }

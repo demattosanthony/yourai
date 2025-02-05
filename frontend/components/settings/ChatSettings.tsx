@@ -9,9 +9,9 @@ import {
 import { Settings } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { useState, useEffect } from "react";
-import { Textarea } from "./ui/textarea";
 import { useAtom } from "jotai";
 import { instructionsAtom, temperatureAtom } from "@/atoms/chat";
+import { Textarea } from "../ui/textarea";
 
 export default function ChatSettings() {
   const [temperature, setTemperature] = useAtom(temperatureAtom);

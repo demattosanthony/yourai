@@ -1,12 +1,12 @@
 import { Thread } from "@/types/chat";
 import { Model } from "@/types/model";
-import { User } from "@/types/user";
+import { Organization, User } from "@/types/user";
 
 /**
  * ApiClient class handles all API communication with the backend server
  */
 class ApiClient {
-  private baseUrl: string;
+  public baseUrl: string;
 
   constructor(baseUrl: string) {
     this.baseUrl = baseUrl;
@@ -27,6 +27,86 @@ class ApiClient {
       credentials: "include",
     });
 
+    return await response.json();
+  }
+
+  // ORGANIZATION ROUTES
+  async listOrganizations(
+    page = 1,
+    limit = 10
+  ): Promise<{
+    data: Organization[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      pages: number;
+    };
+  }> {
+    const response = await fetch(
+      `${this.baseUrl}/organizations?page=${page}&limit=${limit}`,
+      {
+        method: "GET",
+        credentials: "include",
+      }
+    );
+    return await response.json();
+  }
+
+  async createOrganization(data: {
+    name: string;
+    domain?: string;
+    logo?: string;
+    ownerEmail?: string;
+    ownerName?: string;
+    saml?: {
+      entryPoint: string;
+      issuer: string;
+      cert: string;
+      callbackUrl: string;
+    };
+  }): Promise<Organization> {
+    const response = await fetch(`${this.baseUrl}/organizations`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify(data),
+    });
+    return await response.json();
+  }
+
+  async updateOrganization(
+    id: string,
+    data: Partial<{
+      name: string;
+      domain: string;
+      logo: string;
+      saml: Partial<{
+        entryPoint: string;
+        issuer: string;
+        cert: string;
+        callbackUrl: string;
+      }>;
+    }>
+  ): Promise<Organization> {
+    const response = await fetch(`${this.baseUrl}/organizations/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify(data),
+    });
+    return await response.json();
+  }
+
+  async deleteOrganization(id: string): Promise<{ success: boolean }> {
+    const response = await fetch(`${this.baseUrl}/organizations/${id}`, {
+      method: "DELETE",
+      credentials: "include",
+    });
     return await response.json();
   }
 

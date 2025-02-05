@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import { History, Plus } from "lucide-react";
-
 import {
   Sidebar,
   SidebarContent,
@@ -19,17 +18,20 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { NavUser } from "./NavUser";
-import { useMeQuery, useThreadsQuery } from "@/queries/queries";
+import { useThreadsQuery } from "@/queries/queries";
 import { Button } from "./ui/button";
 import { Collapsible } from "./ui/collapsible";
 import Link from "next/link";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useParams, usePathname } from "next/navigation";
 import AIOrbScene from "./AiOrbScene";
+import { User } from "@/types/user";
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { data: user, isLoading, isFetched } = useMeQuery();
-  const { state } = useSidebar();
+export function AppSidebar({
+  user,
+  ...props
+}: React.ComponentProps<typeof Sidebar> & { user: User }) {
+  const { state, toggleSidebar } = useSidebar();
   const isMobile = useIsMobile();
   const params = useParams();
   const pathname = usePathname();
@@ -42,20 +44,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const threads = data?.pages[0]?.threads ?? [];
 
   return (
-    <Sidebar collapsible={!user && isFetched ? "offcanvas" : "icon"} {...props}>
+    <Sidebar collapsible={"icon"} {...props}>
       <SidebarHeader>
         <SidebarMenu>
           <div className="w-full flex justify-between items-center">
             <Link href="/">
               <div className="flex aspect-square size-8 items-center justify-center">
                 <AIOrbScene width="24px" height="24px" isAnimating={false} />
-
-                {/* <Image
-                  src={"/yo-blob.png"}
-                  width={24}
-                  height={24}
-                  alt="YourOrg"
-                /> */}
               </div>
             </Link>
 
@@ -69,13 +64,20 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarGroup>
             <SidebarGroupContent className="px-1.5 md:px-0">
               <SidebarMenu>
-                <Link href={"/"}>
+                <Link
+                  href={"/"}
+                  onMouseDown={() => isMobile && toggleSidebar()}
+                >
                   <Button variant={"outline"} className="w-full">
                     {state === "collapsed" ? <Plus /> : "New Thread"}
                   </Button>
                 </Link>
 
-                <Link href={"/threads"} prefetch>
+                <Link
+                  href={"/threads"}
+                  prefetch
+                  onMouseDown={() => isMobile && toggleSidebar()}
+                >
                   <Button
                     variant={"ghost"}
                     className={`w-full px-2 ${
@@ -129,6 +131,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                           >
                             <Link
                               href={`/threads/${thread.id}`}
+                              onMouseDown={() => isMobile && toggleSidebar()}
                               className="text-ellipsis overflow-hidden whitespace-nowrap"
                             >
                               {thread.title.length > 28
@@ -142,7 +145,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   )}
 
                   {user && (
-                    <Link href={"/threads"}>
+                    <Link
+                      href={"/threads"}
+                      onMouseDown={() => isMobile && toggleSidebar()}
+                    >
                       <Button
                         variant={"link"}
                         className="justify-start px-2"
@@ -162,17 +168,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarFooter>
         {state === "collapsed" && <SidebarTrigger className="w-full" />}
 
-        {!user && state === "expanded" && !isLoading && (
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <Link href={"/login"}>
-                <Button className="w-full">Login</Button>
-              </Link>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        )}
-
-        {user && <NavUser user={user} />}
+        <NavUser user={user} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

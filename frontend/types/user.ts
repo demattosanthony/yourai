@@ -14,4 +14,26 @@ export interface User {
     | "unpaid";
   subscriptionPlan?: "basic";
   stripeCustomerId?: string;
+  systemRole?: "super_admin";
+  organizationMembers?: {
+    organization: Organization;
+    role: "owner" | "member";
+    id: string;
+  }[];
+}
+
+export interface Organization {
+  id: string;
+  name: string;
+  slug: string;
+  domain?: string;
+  logo?: string;
+  createdAt: string;
+  updatedAt: string;
+  logoUrl?: string;
+  samlConfig?: {
+    entryPoint: string;
+    issuer: string;
+    cert: string;
+  };
 }

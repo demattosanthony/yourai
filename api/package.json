@@ -4,9 +4,9 @@
   "module": "index.ts",
   "main": "index.ts",
   "scripts": {
-    "dev": "bun run --watch app/index.ts",
-    "start": "bun run app/index.ts",
-    "build": "bun build app/index.ts --target bun",
+    "dev": "bun run --watch app/server.ts",
+    "start": "bun run app/server.ts",
+    "build": "bun build app/server.ts --target bun",
     "mig": "drizzle-kit generate"
   },
   "devDependencies": {
@@ -39,9 +39,9 @@
     "drizzle-orm": "^0.39.1",
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2",
-    "llamacpp-ai-provider": "^0.0.9",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
+    "passport-saml": "^3.2.4",
     "pg": "^8.13.1",
     "stripe": "^17.6.0"
   }
