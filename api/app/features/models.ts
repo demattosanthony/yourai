@@ -9,6 +9,7 @@ import { google } from "@ai-sdk/google";
 import { xai } from "@ai-sdk/xai";
 import { togetherai } from "@ai-sdk/togetherai";
 import { createPerplexity } from "@ai-sdk/perplexity";
+import { wrapLanguageModel, extractReasoningMiddleware } from "ai";
 
 const perplexity = createPerplexity({
   apiKey: process.env.PPLX_API_KEY ?? "",
@@ -302,7 +303,10 @@ export const togetherAiModels = (
 
   return {
     "deepseek-r1": {
-      model: togetherai("deepseek-ai/DeepSeek-R1"),
+      model: wrapLanguageModel({
+        model: togetherai("deepseek-ai/DeepSeek-R1"),
+        middleware: extractReasoningMiddleware({ tagName: "think" }),
+      }),
       supportsToolUse: true,
       supportsStreaming: true,
       provider: "deepseek",
@@ -335,7 +339,10 @@ export const groqModels = (apiKey?: string): Record<string, ModelConfig> => {
 
   return {
     "llama-3.3-70b": {
-      model: groq("deepseek-r1-distill-llama-70b"),
+      model: wrapLanguageModel({
+        model: groq("deepseek-r1-distill-llama-70b"),
+        middleware: extractReasoningMiddleware({ tagName: "think" }),
+      }),
       supportsToolUse: false,
       supportsStreaming: true,
       supportsSystemMessages: true,

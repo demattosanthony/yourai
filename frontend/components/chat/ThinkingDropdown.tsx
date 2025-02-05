@@ -12,10 +12,10 @@ export function ThinkingDropdown({ children }: ThinkingDropdownProps) {
     <div className="w-full rounded-lg mb-2">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center justify-between gap-2 rounded-lg px-2 py-2 text-sm text-muted-foreground hover:bg-accent"
+        className="flex items-center justify-between gap-1 rounded-lg text-sm text-muted-foreground hover:text-primary"
       >
         <div className="flex items-center gap-2">
-          <span>Internal Monologue</span>
+          <span>Reasoning</span>
         </div>
         <ChevronDown
           className={`h-4 w-4 transition-transform duration-200 ${
@@ -23,7 +23,7 @@ export function ThinkingDropdown({ children }: ThinkingDropdownProps) {
           }`}
         />
       </button>
-      {isOpen && <div className="text-muted-foreground">{children}</div>}
+      {isOpen && <div className="text-muted-foreground mt-2">{children}</div>}
     </div>
   );
 }

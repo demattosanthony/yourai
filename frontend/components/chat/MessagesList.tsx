@@ -82,7 +82,6 @@ const AssistantMessage = React.memo(({ message }: { message: Message }) => (
           max-w-full
           md:max-w-[750px]
           overflow-hidden
-          rounded-lg
           bg-background
           break-words
         "
