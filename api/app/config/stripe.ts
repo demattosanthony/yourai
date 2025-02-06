@@ -71,7 +71,7 @@ export async function syncStripeData(customerId: string) {
     // but if using a single-subscription approach, store them on the user record.
     await db
       .update(users)
-      .set({ subscriptionStatus: status, subscriptionPlan: "basic" })
+      .set({ subscriptionStatus: status, subscriptionPlan: "pro" })
       .where(eq(users.stripeCustomerId, customerId));
 
     return {

@@ -92,6 +92,13 @@
       "when": 1738346463163,
       "tag": "0012_harsh_lila_cheney",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1738866309390,
+      "tag": "0013_subscription_plan_pro",
+      "breakpoints": true
     }
   ]
 }

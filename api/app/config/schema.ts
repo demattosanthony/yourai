@@ -22,7 +22,7 @@ const SUBSCRIPTION_STATUS = [
   "trialing",
   "unpaid",
 ] as const;
-const SUBSCRIPTION_PLAN = ["basic"] as const;
+const SUBSCRIPTION_PLAN = ["pro"] as const;
 const IDENTITY_PROVIDER = ["google", "saml"] as const;
 
 // Custom type for bytea columns (pgcrypto extension)
