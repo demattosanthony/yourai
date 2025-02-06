@@ -80,6 +80,7 @@ const CodeBlock = React.memo<{
     <TypographyInlineCode>{children}</TypographyInlineCode>
   );
 });
+CodeBlock.displayName = "CodeBlock";
 
 // MarkdownViewer component for rendering markdown content
 const MarkdownViewer: React.FC<{ content: string }> = ({ content }) => {
