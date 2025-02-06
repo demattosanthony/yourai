@@ -25,10 +25,10 @@ const SyntaxHighlighter =
   Prism as typeof React.Component<SyntaxHighlighterProps>;
 
 // CodeBlock component for rendering code with copy functionality
-const CodeBlock: React.FC<{
+const CodeBlock = React.memo<{
   className?: string;
   children: React.ReactNode;
-}> = ({ className = "", children }) => {
+}>(({ className = "", children }) => {
   const match = /language-(\w+)/.exec(className || "");
   const codeString = String(children).trim();
   const [buttonText, setButtonText] = useState("Copy");
@@ -79,51 +79,63 @@ const CodeBlock: React.FC<{
   ) : (
     <TypographyInlineCode>{children}</TypographyInlineCode>
   );
-};
+});
 
 // MarkdownViewer component for rendering markdown content
-const MarkdownViewer: React.FC<{ content: string }> = ({ content }) => (
-  <ReactMarkdown
-    components={{
-      h1: ({ children }) => <TypographyH1>{children}</TypographyH1>,
-      h2: ({ children }) => <TypographyH2>{children}</TypographyH2>,
-      h3: ({ children }) => <TypographyH3>{children}</TypographyH3>,
-      h4: ({ children }) => <TypographyH4>{children}</TypographyH4>,
-      p: ({ children }) => <TypographyP>{children}</TypographyP>,
-      blockquote: ({ children }) => (
-        <TypographyBlockquote>{children}</TypographyBlockquote>
-      ),
-      table: ({ children }) => <TypographyTable>{children}</TypographyTable>,
-      thead: ({ children }) => <thead>{children}</thead>,
-      tbody: ({ children }) => <tbody>{children}</tbody>,
-      tr: ({ children }) => <TypographyTr>{children}</TypographyTr>,
-      th: ({ children }) => <TypographyTh>{children}</TypographyTh>,
-      td: ({ children }) => <TypographyTd>{children}</TypographyTd>,
-      ul: ({ children }) => <TypographyList>{children}</TypographyList>,
-      ol: ({ children }) => <TypographyList>{children}</TypographyList>,
-      li: ({ children }) => <TypographyLi>{children}</TypographyLi>,
-      code: ({ className, children }) => (
-        <CodeBlock className={className}>{children}</CodeBlock>
-      ),
-      em: ({ children }) => <em>{children}</em>,
-      strong: ({ children }) => <strong>{children}</strong>,
-      a: ({ children, ...props }) => (
-        <a
-          className="text-blue-500 hover:underline"
-          target="_blank"
-          rel="noopener noreferrer"
-          {...props}
-        >
-          {children}
-        </a>
-      ),
-      img: ({ ...props }) => <img className="max-w-full h-auto" {...props} />,
-    }}
-    remarkPlugins={[remarkGfm]}
-    className="flex flex-col gap-1"
-  >
-    {content}
-  </ReactMarkdown>
-);
+const MarkdownViewer: React.FC<{ content: string }> = ({ content }) => {
+  // Memoize the markdown component to prevent unnecessary re-renders
+  const MemoizedMarkdown = React.useMemo(
+    () => (
+      <ReactMarkdown
+        components={{
+          h1: ({ children }) => <TypographyH1>{children}</TypographyH1>,
+          h2: ({ children }) => <TypographyH2>{children}</TypographyH2>,
+          h3: ({ children }) => <TypographyH3>{children}</TypographyH3>,
+          h4: ({ children }) => <TypographyH4>{children}</TypographyH4>,
+          p: ({ children }) => <TypographyP>{children}</TypographyP>,
+          blockquote: ({ children }) => (
+            <TypographyBlockquote>{children}</TypographyBlockquote>
+          ),
+          table: ({ children }) => (
+            <TypographyTable>{children}</TypographyTable>
+          ),
+          thead: ({ children }) => <thead>{children}</thead>,
+          tbody: ({ children }) => <tbody>{children}</tbody>,
+          tr: ({ children }) => <TypographyTr>{children}</TypographyTr>,
+          th: ({ children }) => <TypographyTh>{children}</TypographyTh>,
+          td: ({ children }) => <TypographyTd>{children}</TypographyTd>,
+          ul: ({ children }) => <TypographyList>{children}</TypographyList>,
+          ol: ({ children }) => <TypographyList>{children}</TypographyList>,
+          li: ({ children }) => <TypographyLi>{children}</TypographyLi>,
+          code: ({ className, children }) => (
+            <CodeBlock className={className}>{children}</CodeBlock>
+          ),
+          em: ({ children }) => <em>{children}</em>,
+          strong: ({ children }) => <strong>{children}</strong>,
+          a: ({ children, ...props }) => (
+            <a
+              className="text-blue-500 hover:underline"
+              target="_blank"
+              rel="noopener noreferrer"
+              {...props}
+            >
+              {children}
+            </a>
+          ),
+          img: ({ ...props }) => (
+            <img className="max-w-full h-auto" {...props} />
+          ),
+        }}
+        remarkPlugins={[remarkGfm]}
+        className="flex flex-col gap-1"
+      >
+        {content}
+      </ReactMarkdown>
+    ),
+    [content]
+  );
+
+  return <div className="markdown-viewer">{MemoizedMarkdown}</div>;
+};
 
 export default MarkdownViewer;
