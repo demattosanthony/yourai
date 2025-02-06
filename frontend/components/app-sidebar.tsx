@@ -1,7 +1,14 @@
 "use client";
 
 import * as React from "react";
-import { History, MoreHorizontal, Plus, Trash } from "lucide-react";
+import {
+  History,
+  MoreHorizontal,
+  Plus,
+  Trash,
+  Command,
+  AudioWaveform,
+} from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -43,6 +50,26 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "./ui/alert-dialog";
+import { WorkSpaceSwitcher } from "./workspace-switcher";
+
+const teams = [
+  {
+    name: "Personal",
+    useAiOrb: true,
+    plan: "Enterprise",
+    logo: null,
+  },
+  {
+    name: "Syyclops Inc.",
+    logo: AudioWaveform,
+    plan: "Startup",
+  },
+  {
+    name: "Setty & Associates",
+    logo: Command,
+    plan: "Free",
+  },
+];
 
 export function AppSidebar({
   user,
@@ -65,16 +92,10 @@ export function AppSidebar({
   return (
     <Sidebar collapsible={"icon"} {...props}>
       <SidebarHeader>
-        <SidebarMenu>
-          <div className="w-full flex justify-between items-center">
-            <Link href="/">
-              <div className="flex aspect-square size-8 items-center justify-center">
-                <AIOrbScene width="24px" height="24px" isAnimating={false} />
-              </div>
-            </Link>
+        <SidebarMenu className="flex flex-row items-center group-data-[collapsible=icon]:justify-center justify-between">
+          <WorkSpaceSwitcher teams={teams} />
 
-            {state === "expanded" && <SidebarTrigger />}
-          </div>
+          {state === "expanded" && <SidebarTrigger />}
         </SidebarMenu>
       </SidebarHeader>
 
@@ -83,44 +104,54 @@ export function AppSidebar({
           <SidebarGroup>
             <SidebarGroupContent className="px-1.5 md:px-0">
               <SidebarMenu>
-                <Link
-                  href={"/"}
-                  onMouseDown={() => isMobile && toggleSidebar()}
-                >
-                  <Button variant={"outline"} className="w-full">
-                    {state === "collapsed" && !isMobile ? (
-                      <Plus />
-                    ) : (
-                      "New Thread"
-                    )}
-                  </Button>
-                </Link>
+                <SidebarMenuItem>
+                  <Link
+                    href={"/"}
+                    onMouseDown={() => isMobile && toggleSidebar()}
+                  >
+                    <Button
+                      variant={"outline"}
+                      className="w-full"
+                      size={
+                        state === "collapsed" && !isMobile ? "sm" : "default"
+                      }
+                    >
+                      {state === "collapsed" && !isMobile ? (
+                        <Plus />
+                      ) : (
+                        "New Thread"
+                      )}
+                    </Button>
+                  </Link>
+                </SidebarMenuItem>
 
-                <Link
-                  href={"/threads"}
-                  prefetch
-                  onMouseDown={() => isMobile && toggleSidebar()}
-                >
-                  <Button
-                    variant={"ghost"}
-                    className={`w-full px-2 ${
-                      state === "collapsed" && !isMobile
-                        ? "justify-center"
-                        : "justify-start"
-                    }
+                <SidebarMenuItem>
+                  <Link
+                    href={"/threads"}
+                    prefetch
+                    onMouseDown={() => isMobile && toggleSidebar()}
+                  >
+                    <Button
+                      variant={"ghost"}
+                      className={`w-full px-2 ${
+                        state === "collapsed" && !isMobile
+                          ? "justify-center"
+                          : "justify-start"
+                      }
                     ${isThreadsPage ? "bg-accent text-accent-foreground" : ""}
                     `}
-                  >
-                    {state === "collapsed" && !isMobile ? (
-                      <History />
-                    ) : (
-                      <>
+                    >
+                      {state === "collapsed" && !isMobile ? (
                         <History />
-                        Threads
-                      </>
-                    )}
-                  </Button>
-                </Link>
+                      ) : (
+                        <>
+                          <History />
+                          Threads
+                        </>
+                      )}
+                    </Button>
+                  </Link>
+                </SidebarMenuItem>
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
