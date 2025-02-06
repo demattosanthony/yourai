@@ -25,10 +25,13 @@ const SyntaxHighlighter =
   Prism as typeof React.Component<SyntaxHighlighterProps>;
 
 // CodeBlock component for rendering code with copy functionality
-const CodeBlock = React.memo<{
+const CodeBlock = ({
+  className = "",
+  children,
+}: {
   className?: string;
   children: React.ReactNode;
-}>(({ className = "", children }) => {
+}) => {
   const match = /language-(\w+)/.exec(className || "");
   const codeString = String(children).trim();
   const [buttonText, setButtonText] = useState("Copy");
@@ -79,14 +82,12 @@ const CodeBlock = React.memo<{
   ) : (
     <TypographyInlineCode>{children}</TypographyInlineCode>
   );
-});
-CodeBlock.displayName = "CodeBlock";
+};
 
 // MarkdownViewer component for rendering markdown content
 const MarkdownViewer: React.FC<{ content: string }> = ({ content }) => {
-  // Memoize the markdown component to prevent unnecessary re-renders
-  const MemoizedMarkdown = React.useMemo(
-    () => (
+  return (
+    <div className="markdown-viewer">
       <ReactMarkdown
         components={{
           h1: ({ children }) => <TypographyH1>{children}</TypographyH1>,
@@ -132,11 +133,8 @@ const MarkdownViewer: React.FC<{ content: string }> = ({ content }) => {
       >
         {content}
       </ReactMarkdown>
-    ),
-    [content]
+    </div>
   );
-
-  return <div className="markdown-viewer">{MemoizedMarkdown}</div>;
 };
 
 export default MarkdownViewer;
