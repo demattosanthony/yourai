@@ -17,7 +17,7 @@ import { useState } from "react";
 const PRICING_PLANS = {
   BASIC: {
     name: "Pro Plan",
-    price: "$10",
+    price: "$20",
     features: [
       "Chat with all the top AI models",
       "Upload images and PDFs",
