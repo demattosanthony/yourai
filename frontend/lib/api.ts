@@ -210,13 +210,18 @@ class ApiClient {
 
   /**
    * Creates a new conversation thread
+   * @param organizationId - Optional organization ID for organizational threads
    * @returns Promise containing the thread ID
    */
-  async createThread(): Promise<{ id: string }> {
+  async createThread(organizationId?: string): Promise<{ id: string }> {
     const url = `${this.baseUrl}/threads`;
 
     const response = await fetch(url, {
       method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ organizationId }),
       credentials: "include",
     });
 
@@ -233,12 +238,23 @@ class ApiClient {
 
   /**
    * Retrieves all conversation threads with their messages
+   * @param page - Page number for pagination
+   * @param search - Search term to filter threads
+   * @param organizationId - Optional organization ID to filter threads by organization
    * @returns Promise containing array of thread objects with messages
    */
-  async getThreads(page: number = 1, search: string = ""): Promise<Thread[]> {
-    const url = `${
-      this.baseUrl
-    }/threads?page=${page}&search=${encodeURIComponent(search)}`;
+  async getThreads(
+    page: number = 1,
+    search: string = "",
+    organizationId?: string
+  ): Promise<Thread[]> {
+    const queryParams = new URLSearchParams({
+      page: page.toString(),
+      search: search,
+      ...(organizationId && { organizationId }),
+    });
+
+    const url = `${this.baseUrl}/threads?${queryParams.toString()}`;
 
     try {
       const response = await fetch(url, {
@@ -289,10 +305,17 @@ class ApiClient {
   /**
    * Deletes a specific thread and its messages
    * @param threadId - ID of the thread to delete
+   * @param organizationId - Optional organization ID for organizational threads
    * @returns Promise containing success status
    */
-  async deleteThread(threadId: string): Promise<{ success: boolean }> {
-    const url = `${this.baseUrl}/threads/${threadId}`;
+  async deleteThread(
+    threadId: string,
+    organizationId?: string
+  ): Promise<{ success: boolean }> {
+    const queryParams = new URLSearchParams({
+      ...(organizationId && { organizationId }),
+    });
+    const url = `${this.baseUrl}/threads/${threadId}?${queryParams.toString()}`;
 
     const response = await fetch(url, {
       method: "DELETE",

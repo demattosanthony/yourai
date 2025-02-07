@@ -159,13 +159,17 @@ ${conversationText}`,
   },
 
   threads: {
-    create: async (userId: string): Promise<{ id: string }> => {
+    create: async (
+      userId: string,
+      organizationId?: string
+    ): Promise<{ id: string }> => {
       if (!userId) throw new Error("User ID is required");
       const id = crypto.randomUUID();
       const now = new Date();
       await db.insert(threads).values({
         id,
         userId,
+        organizationId: organizationId || null,
         createdAt: now,
         updatedAt: now,
       });
@@ -185,7 +189,12 @@ ${conversationText}`,
       return ops.processThreadMessages(thread);
     },
 
-    getThreads: async (userId: string, page: number, search: string) => {
+    getThreads: async (
+      userId: string,
+      page: number,
+      search: string,
+      organizationId?: string
+    ) => {
       const LIMIT = 10;
       const offset = (page - 1) * LIMIT;
 
@@ -199,6 +208,13 @@ ${conversationText}`,
         .leftJoin(messages, eq(threads.id, messages.threadId));
 
       const conditions = [eq(threads.userId, userId)];
+
+      // Add organization condition
+      if (organizationId) {
+        conditions.push(eq(threads.organizationId, organizationId));
+      } else {
+        conditions.push(sql`${threads.organizationId} IS NULL`);
+      }
 
       if (search.length > 0) {
         conditions.push(
@@ -223,6 +239,9 @@ ${conversationText}`,
         where: (threads, { and, eq, inArray }) =>
           and(
             eq(threads.userId, userId),
+            organizationId
+              ? eq(threads.organizationId, organizationId)
+              : sql`${threads.organizationId} IS NULL`,
             inArray(
               threads.id,
               matchingThreads.map((t) => t.id)
@@ -467,18 +486,35 @@ It is currently: ${new Date().toLocaleString("en-US", {
       });
     },
 
-    deleteThread: async (userId: string, threadId: string) => {
+    deleteThread: async (
+      userId: string,
+      threadId: string,
+      organizationId?: string
+    ) => {
+      const conditions = [
+        eq(messages.threadId, threadId),
+        eq(messages.userId, userId),
+      ];
+
+      if (organizationId) {
+        conditions.push(eq(threads.organizationId, organizationId));
+      }
+
       // Delete all messages first due to foreign key constraint
-      await db
-        .delete(messages)
-        .where(
-          and(eq(messages.threadId, threadId), eq(messages.userId, userId))
-        );
+      await db.delete(messages).where(and(...conditions));
 
       // Delete the thread
       await db
         .delete(threads)
-        .where(and(eq(threads.id, threadId), eq(threads.userId, userId)));
+        .where(
+          and(
+            eq(threads.id, threadId),
+            eq(threads.userId, userId),
+            organizationId
+              ? eq(threads.organizationId, organizationId)
+              : sql`${threads.organizationId} IS NULL`
+          )
+        );
 
       return { success: true };
     },
@@ -490,17 +526,19 @@ export default Router()
   .post(
     "/",
     handle(async (req) => {
-      return ops.threads.create(req.dbUser!.id);
+      const { organizationId } = req.body;
+      return ops.threads.create(req.dbUser!.id, organizationId);
     })
   )
   .get(
     "/",
     handle(async (req) => {
-      const { page, search } = req.query;
+      const { page, search, organizationId } = req.query;
       return ops.threads.getThreads(
         req.dbUser!.id,
         parseInt(page as string) || 1,
-        (search as string)?.trim() || ""
+        (search as string)?.trim() || "",
+        organizationId as string | undefined
       );
     })
   )

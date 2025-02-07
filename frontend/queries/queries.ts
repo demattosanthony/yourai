@@ -1,3 +1,4 @@
+import { useWorkspace } from "@/components/workspace-context";
 import api from "@/lib/api";
 import { Thread } from "@/types/chat";
 import {
@@ -14,17 +15,25 @@ export function useMeQuery() {
   });
 }
 
-export function useThreadsQuery(search?: string, initalThreads?: Thread[]) {
+export function useThreadsQuery(search?: string, initialThreads?: Thread[]) {
+  const { activeWorkspace } = useWorkspace();
+
   return useInfiniteQuery({
-    queryKey: ["threads", search],
-    initialData: initalThreads
+    queryKey: ["threads", search, activeWorkspace?.id],
+    initialData: initialThreads
       ? {
-          pages: [{ threads: initalThreads, nextPage: 2 }],
+          pages: [{ threads: initialThreads, nextPage: 2 }],
           pageParams: [1],
         }
       : undefined,
     queryFn: async ({ pageParam = 1 }) => {
-      const threads = await api.getThreads(pageParam, search);
+      const threads = await api.getThreads(
+        pageParam,
+        search,
+        activeWorkspace?.type === "organization"
+          ? activeWorkspace.id
+          : undefined
+      );
       return {
         threads,
         nextPage: threads.length === 10 ? pageParam + 1 : undefined,
@@ -47,10 +56,20 @@ export function useThreadQuery(threadId: string, isNewThread: boolean) {
 
 export function useDeleteThreadMutation() {
   const queryClient = useQueryClient();
+  const { activeWorkspace } = useWorkspace();
+
   return useMutation({
-    mutationFn: (threadId: string) => api.deleteThread(threadId),
+    mutationFn: (threadId: string) =>
+      api.deleteThread(
+        threadId,
+        activeWorkspace?.type === "organization"
+          ? activeWorkspace.id
+          : undefined
+      ),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["threads"] });
+      queryClient.invalidateQueries({
+        queryKey: ["threads", activeWorkspace?.id],
+      });
     },
   });
 }

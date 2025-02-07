@@ -108,6 +108,9 @@ export const threads = pgTable("threads", {
   title: varchar("title", { length: 255 }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  organizationId: uuid("organization_id").references(() => organizations.id, {
+    onDelete: "cascade",
+  }),
 });
 
 // Messages table with user association
@@ -153,6 +156,10 @@ export const threadsRelations = relations(threads, ({ one, many }) => ({
     fields: [threads.userId],
     references: [users.id],
   }),
+  organization: one(organizations, {
+    fields: [threads.organizationId],
+    references: [organizations.id],
+  }),
   messages: many(messages),
 }));
 
@@ -178,6 +185,7 @@ export const organizationsRelations = relations(
   organizations,
   ({ many, one }) => ({
     members: many(organizationMembers),
+    threads: many(threads),
     samlConfig: one(samlConfigs, {
       fields: [organizations.id],
       references: [samlConfigs.organizationId],
