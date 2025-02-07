@@ -288,7 +288,7 @@ const ops = {
       .delete(organizationInvites)
       .where(eq(organizationInvites.organizationId, orgId));
 
-    const token = randomBytes(32).toString("hex");
+    const token = randomBytes(16).toString("hex");
     await db.insert(organizationInvites).values({
       organizationId: orgId,
       token,

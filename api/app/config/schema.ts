@@ -195,9 +195,24 @@ export const organizationsRelations = relations(
   ({ many, one }) => ({
     members: many(organizationMembers),
     threads: many(threads),
-    samlConfig: one(samlConfigs, {
-      fields: [organizations.id],
-      references: [samlConfigs.organizationId],
+    samlConfig: one(samlConfigs),
+  })
+);
+
+export const organizationMembersRelations = relations(
+  organizationMembers,
+  ({ one }) => ({
+    organization: one(organizations),
+    user: one(users),
+  })
+);
+
+export const organizationInvitesRelations = relations(
+  organizationInvites,
+  ({ one }) => ({
+    organization: one(organizations, {
+      fields: [organizationInvites.organizationId],
+      references: [organizations.id],
     }),
   })
 );
@@ -208,20 +223,6 @@ export const samlConfigsRelations = relations(samlConfigs, ({ one }) => ({
     references: [organizations.id],
   }),
 }));
-
-export const organizationMembersRelations = relations(
-  organizationMembers,
-  ({ one }) => ({
-    organization: one(organizations, {
-      fields: [organizationMembers.organizationId],
-      references: [organizations.id],
-    }),
-    user: one(users, {
-      fields: [organizationMembers.userId],
-      references: [users.id],
-    }),
-  })
-);
 
 // Types
 type BaseContentPart = {

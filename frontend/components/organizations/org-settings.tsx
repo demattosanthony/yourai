@@ -147,13 +147,13 @@ export function OrganizationSettings({ orgId }: { orgId: string }) {
             <Input
               type="text"
               readOnly
-              value={`${window.location.origin}/orgs/join/${inviteLinkData?.token}`}
+              value={`${window.location.origin}/onboarding/orgs/join/${inviteLinkData?.token}`}
               className="w-full border border-gray-300 rounded p-2 mr-2"
             />
             <Button
               onClick={() => {
                 navigator.clipboard.writeText(
-                  `${window.location.origin}/orgs/join/${inviteLinkData?.token}`
+                  `${window.location.origin}/onboarding/orgs/join/${inviteLinkData?.token}`
                 );
                 setCopied(true);
 

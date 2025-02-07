@@ -1,3 +1,5 @@
+"use client";
+
 import api from "@/lib/api";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
@@ -31,6 +33,22 @@ export const useAuth = () => {
     `);
   };
 
+  const handleJoinOrg = async (token: string) => {
+    try {
+      const result = await api.joinWithInvite(token);
+
+      if (result.requiresAuth) {
+        return { requiresAuth: true };
+      }
+
+      // Success case
+      await queryClient.invalidateQueries({ queryKey: ["me"] });
+      return { success: true };
+    } catch (error) {
+      throw error;
+    }
+  };
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const error = params.get("error");
@@ -46,5 +64,5 @@ export const useAuth = () => {
     }
   }, []);
 
-  return { logOut, handleGoogleLogin, handleSSOLogin };
+  return { logOut, handleGoogleLogin, handleSSOLogin, handleJoinOrg };
 };

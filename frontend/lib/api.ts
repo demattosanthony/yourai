@@ -30,22 +30,24 @@ class ApiClient {
     return await response.json();
   }
 
-  async joinWithInvite(
-    token: string,
-    user?: { email: string; name: string }
-  ): Promise<{ success: boolean; error?: string }> {
+  async joinWithInvite(token: string): Promise<{
+    success?: boolean;
+    requiresAuth?: boolean;
+    error?: string;
+  }> {
     const response = await fetch(`${this.baseUrl}/auth/invite/${token}`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
       credentials: "include",
-      body: JSON.stringify({ user }),
     });
 
+    const data = await response.json();
+
+    if (response.status === 401) {
+      return { requiresAuth: true };
+    }
+
     if (!response.ok) {
-      const errorData = await response.json();
-      return { success: false, error: errorData.error };
+      return { success: false, error: data.error };
     }
 
     return { success: true };

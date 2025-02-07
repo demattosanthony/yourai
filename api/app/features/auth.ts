@@ -10,6 +10,7 @@ import {
   users,
 } from "../config/schema";
 import s3 from "../config/s3";
+import { Console } from "console";
 
 // Pure business logic operations
 const ops = {
@@ -120,7 +121,6 @@ const handlers = {
 
     res.redirect(process.env.FRONTEND_URL!);
   },
-
   samlCallback: (req: Request, res: any) => {
     sendAuthCookies(res, req.user as DbUser);
     res.redirect(process.env.FRONTEND_URL!);
@@ -151,36 +151,24 @@ const handlers = {
   joinWithInvite: async (req: Request, res: Response) => {
     try {
       const { token } = req.params;
-      const { user } = req.body;
 
-      // Verify invite token
+      // Verify invite token first
       const invite = await ops.verifyInvite(token);
 
-      let userId: string;
-
-      // If user is already logged in, use their ID
-      if (req.dbUser) {
-        userId = req.dbUser.id;
-      } else if (user) {
-        // Create new user if not logged in
-        const [newUser] = await db
-          .insert(users)
-          .values({
-            email: user.email,
-            name: user.name,
-          })
-          .returning();
-        userId = newUser.id;
-
-        // Send auth cookies for the new user
-        sendAuthCookies(res, newUser as DbUser);
-      } else {
-        throw new Error("User information required");
+      // If user is not logged in, return unauthorized status
+      if (!req.dbUser) {
+        res.status(401).json({
+          error: "Authentication required",
+          inviteToken: token, // Include the token so frontend can use it after auth
+        });
+        return;
       }
 
-      // Join the organization
-      await ops.joinOrganization(invite.organizationId as string, userId!);
-
+      // If user is already logged in, proceed with joining
+      await ops.joinOrganization(
+        invite.organizationId as string,
+        req.dbUser.id
+      );
       res.json({ success: true });
     } catch (error: any) {
       res.status(400).json({ error: error.message });
