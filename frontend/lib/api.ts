@@ -30,6 +30,27 @@ class ApiClient {
     return await response.json();
   }
 
+  async joinWithInvite(
+    token: string,
+    user?: { email: string; name: string }
+  ): Promise<{ success: boolean; error?: string }> {
+    const response = await fetch(`${this.baseUrl}/auth/invite/${token}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({ user }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      return { success: false, error: errorData.error };
+    }
+
+    return { success: true };
+  }
+
   // ORGANIZATION ROUTES
   async getOrg(id: string): Promise<Organization> {
     const response = await fetch(`${this.baseUrl}/organizations/${id}`, {

@@ -13,7 +13,6 @@ export default function CreateOrgPage() {
   const handleCreateOrgComplete = async (org: { id: string }) => {
     // go to checkout for the org
     const url = await api.createCheckoutSession("yo-teams-plan", 1, org.id);
-    console.log(`url`, url);
     window.location.href = url;
   };
 
