@@ -101,15 +101,26 @@ const ops = {
     }
 
     return db.transaction(async (tx) => {
-      const [org] = await tx
-        .insert(organizations)
-        .values({
-          name: data.name,
-          slug: slug!,
-          domain: data.domain,
-          logo: data.logo,
-        })
-        .returning();
+      const values: {
+        name: string;
+        slug?: string;
+        domain?: string;
+        logo?: string;
+      } = {
+        name: data.name,
+      };
+
+      // Only add domain and slug if they exist
+      if (data.domain) {
+        values.domain = data.domain;
+        values.slug = slug;
+      }
+
+      if (data.logo) {
+        values.logo = data.logo;
+      }
+
+      const [org] = await tx.insert(organizations).values(values).returning();
 
       await tx.insert(organizationMembers).values({
         organizationId: org.id,

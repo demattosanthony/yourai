@@ -20,6 +20,7 @@ import { useMeQuery } from "@/queries/queries";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "./ui/dialog";
 import { CreateOrgForm } from "./organizations/create-org-form";
+import api from "@/lib/api";
 
 type Workspace = {
   id: string;
@@ -54,8 +55,12 @@ export function WorkSpaceSwitcher() {
   const workspaces = [personalWorkspace, ...organizationWorkspaces];
   const [activeWorkspace, setActiveWorkspace] = React.useState(workspaces[0]);
 
-  const handleCreateOrgComplete = () => {
-    window.location.reload();
+  const handleCreateOrgComplete = async (org: { id: string }) => {
+    // window.location.reload();
+    // go to checkout for the org
+    const url = await api.createCheckoutSession("yo-teams-plan", 1, org.id);
+    console.log(`url`, url);
+    window.location.href = url;
   };
 
   const WorkspaceLogo = ({ workspace }: { workspace: Workspace }) => {

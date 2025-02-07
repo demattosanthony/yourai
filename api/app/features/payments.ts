@@ -1,7 +1,7 @@
 import { Stripe } from "stripe";
 import stripe, { allowedEvents, syncStripeData } from "../config/stripe";
 import db from "../config/db";
-import { users } from "../config/schema";
+import { organizations, users } from "../config/schema";
 import { eq } from "drizzle-orm";
 import { Request, Response, Router } from "express";
 
@@ -10,6 +10,8 @@ export interface CheckoutSessionParams {
   email: string;
   lookupKey: string;
   stripeCustomerId?: string;
+  quantity?: number;
+  organizationId?: string;
 }
 
 export interface PortalSessionParams {
@@ -18,16 +20,23 @@ export interface PortalSessionParams {
 
 const ops = {
   customers: {
-    create: async (email: string, userId: string) => {
+    create: async (email: string, userId: string, organizationId?: string) => {
       const customer = await stripe.customers.create({
         email,
-        metadata: { userId },
+        metadata: organizationId ? { organizationId } : { userId },
       });
 
-      await db
-        .update(users)
-        .set({ stripeCustomerId: customer.id })
-        .where(eq(users.id, userId));
+      if (organizationId) {
+        await db
+          .update(organizations)
+          .set({ stripeCustomerId: customer.id })
+          .where(eq(organizations.id, organizationId));
+      } else {
+        await db
+          .update(users)
+          .set({ stripeCustomerId: customer.id })
+          .where(eq(users.id, userId));
+      }
 
       return customer;
     },
@@ -39,10 +48,13 @@ const ops = {
       email,
       lookupKey,
       stripeCustomerId,
+      organizationId,
+      quantity = 1,
     }: CheckoutSessionParams) => {
       // Create customer if needed
       const customerId =
-        stripeCustomerId || (await ops.customers.create(email, userId)).id;
+        stripeCustomerId ||
+        (await ops.customers.create(email, userId, organizationId)).id;
 
       const prices = await stripe.prices.list({
         lookup_keys: [lookupKey],
@@ -52,12 +64,18 @@ const ops = {
       return stripe.checkout.sessions.create({
         billing_address_collection: "auto",
         customer: customerId,
-        line_items: [{ price: prices.data[0].id, quantity: 1 }],
+        line_items: [{ price: prices.data[0].id, quantity: quantity }],
         mode: "subscription",
         success_url: `${process.env.FRONTEND_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: process.env.FRONTEND_URL,
-        metadata: { user_id: userId },
-        subscription_data: { metadata: { user_id: userId } },
+        metadata: organizationId
+          ? { organization_id: organizationId }
+          : { user_id: userId },
+        subscription_data: {
+          metadata: organizationId
+            ? { organization_id: organizationId }
+            : { user_id: userId },
+        },
       });
     },
   },
@@ -102,11 +120,21 @@ const ops = {
 const handlers = {
   createCheckoutSession: async (req: Request, res: Response) => {
     try {
+      const { lookup_key, organization_id, seat_count } = req.body;
+
       const session = await ops.checkout.createSession({
         userId: req.dbUser!.id,
         email: req.dbUser!.email,
-        lookupKey: req.body.lookup_key,
-        stripeCustomerId: req.dbUser?.stripeCustomerId || undefined,
+        lookupKey: lookup_key,
+        stripeCustomerId: organization_id
+          ? (
+              await db.query.organizations.findFirst({
+                where: eq(organizations.id, organization_id),
+              })
+            )?.stripeCustomerId || undefined
+          : undefined,
+        quantity: seat_count || 1,
+        organizationId: organization_id,
       });
 
       res.json({ url: session.url });

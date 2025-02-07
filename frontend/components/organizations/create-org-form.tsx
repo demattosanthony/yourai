@@ -10,7 +10,8 @@ import api from "@/lib/api";
 import AIOrbScene from "@/components/AiOrbScene";
 
 interface CreateOrgFormProps {
-  onComplete?: () => void;
+  onComplete?: (org: { id: string }) => void;
+
   onBack?: () => void;
   showBackButton?: boolean;
   includeSamlSetup?: boolean; // Add this new prop
@@ -68,7 +69,7 @@ export function CreateOrgForm({
       if (includeSamlSetup) {
         setStep("saml");
       } else if (onComplete) {
-        onComplete();
+        onComplete(org);
       }
       return org;
     } catch (error) {
@@ -89,7 +90,7 @@ export function CreateOrgForm({
       });
 
       if (res && onComplete) {
-        onComplete();
+        onComplete(org);
       }
     } catch (error) {
       console.error(error);

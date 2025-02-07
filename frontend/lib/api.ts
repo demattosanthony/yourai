@@ -110,7 +110,11 @@ class ApiClient {
     return await response.json();
   }
 
-  async createCheckoutSession(lookupKey: string): Promise<string> {
+  async createCheckoutSession(
+    lookupKey: string,
+    seat_count?: number,
+    organization_id?: string
+  ): Promise<string> {
     const response = await fetch(
       `${this.baseUrl}/payments/create-checkout-session`,
       {
@@ -121,6 +125,8 @@ class ApiClient {
         credentials: "include",
         body: JSON.stringify({
           lookup_key: lookupKey,
+          seat_count,
+          organization_id,
         }),
       }
     );

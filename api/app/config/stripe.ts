@@ -1,6 +1,6 @@
 import Stripe from "stripe";
 import db from "./db";
-import { users } from "./schema";
+import { organizations, users } from "./schema";
 import { eq } from "drizzle-orm";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
@@ -38,15 +38,41 @@ export async function syncStripeData(customerId: string) {
       expand: ["data.default_payment_method"],
     });
 
+    // Determine if it's an organization or user based on the customer ID.
+    const organization = await db.query.organizations.findFirst({
+      where: eq(organizations.stripeCustomerId, customerId),
+    });
+    const user = await db.query.users.findFirst({
+      where: eq(users.stripeCustomerId, customerId),
+    });
+
+    if (!organization && !user) {
+      console.warn(
+        `Customer ID ${customerId} not found in organizations or users.`
+      );
+      return; // Early return.  Important!
+    }
+
+    const isOrganization = !!organization; // Convert to boolean.
+
     // If user has no subscription on Stripe
     if (stripeSubscriptions.data.length === 0) {
-      await db
-        .update(users)
-        .set({
-          subscriptionStatus: "incomplete",
-          subscriptionPlan: null,
-        })
-        .where(eq(users.stripeCustomerId, customerId));
+      if (isOrganization) {
+        await db
+          .update(organizations)
+          .set({
+            subscriptionStatus: "incomplete",
+          })
+          .where(eq(organizations.stripeCustomerId, customerId));
+      } else {
+        await db
+          .update(users)
+          .set({
+            subscriptionStatus: "incomplete",
+            subscriptionPlan: "free", // Always default to free.
+          })
+          .where(eq(users.stripeCustomerId, customerId));
+      }
       return {
         subscriptionId: null,
         status: "none",
@@ -66,13 +92,20 @@ export async function syncStripeData(customerId: string) {
       | "trialing"
       | "unpaid";
     const priceId = subscription.items.data[0].price.id;
+    const plan = "pro"; // Hardcoded for now, but could be dynamic based on price ID
 
-    // Normally you could store these in the subscriptions table if you want
-    // but if using a single-subscription approach, store them on the user record.
-    await db
-      .update(users)
-      .set({ subscriptionStatus: status, subscriptionPlan: "pro" })
-      .where(eq(users.stripeCustomerId, customerId));
+    // Update organization or user based on the flag.
+    if (isOrganization) {
+      await db
+        .update(organizations)
+        .set({ subscriptionStatus: status })
+        .where(eq(organizations.stripeCustomerId, customerId));
+    } else {
+      await db
+        .update(users)
+        .set({ subscriptionStatus: status, subscriptionPlan: plan })
+        .where(eq(users.stripeCustomerId, customerId));
+    }
 
     return {
       subscriptionId,
