@@ -202,8 +202,14 @@ export const organizationsRelations = relations(
 export const organizationMembersRelations = relations(
   organizationMembers,
   ({ one }) => ({
-    organization: one(organizations),
-    user: one(users),
+    organization: one(organizations, {
+      fields: [organizationMembers.organizationId],
+      references: [organizations.id],
+    }),
+    user: one(users, {
+      fields: [organizationMembers.userId],
+      references: [users.id],
+    }),
   })
 );
 

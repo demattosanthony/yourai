@@ -10,7 +10,6 @@ import {
   users,
 } from "../config/schema";
 import s3 from "../config/s3";
-import { Console } from "console";
 
 // Pure business logic operations
 const ops = {
@@ -201,7 +200,14 @@ const optionalAuth = async (req: any, res: any, next: any) => {
 
 // Router
 export default Router()
-  .get("/google", myPassport.authenticate("google", { session: false }))
+  .get("/google", (req: Request, res: Response) => {
+    // Pass the state parameter from the query to the authenticate call
+    const state = req.query.state as string;
+    myPassport.authenticate("google", {
+      ...googleAuthConfig,
+      state,
+    })(req, res);
+  })
   .get(
     "/google/callback",
     myPassport.authenticate("google", googleAuthConfig),
