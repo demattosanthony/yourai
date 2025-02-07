@@ -146,6 +146,31 @@ export function OrganizationSettings({ orgId }: { orgId: string }) {
       </section>
 
       <section className="space-y-4">
+        <Card className="p-6">
+          <div className="flex justify-between items-center">
+            <div>
+              <h2 className="text-lg font-semibold">Billing</h2>
+              <p className="text-sm text-gray-600">
+                Manage your billing information and subscription details.
+              </p>
+            </div>
+            <Button
+              onClick={async () => {
+                try {
+                  const url = await api.createPortalSession(orgId);
+                  window.location.href = url;
+                } catch (error) {
+                  console.error("Error opening billing portal:", error);
+                }
+              }}
+            >
+              Manage Billing
+            </Button>
+          </div>
+        </Card>
+      </section>
+
+      <section className="space-y-4">
         <div className="space-y-1">
           <h2 className="text-base font-medium">Invite Link</h2>
           <p className="text-sm text-muted-foreground">

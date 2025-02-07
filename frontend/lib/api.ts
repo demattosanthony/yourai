@@ -244,12 +244,16 @@ class ApiClient {
     return response;
   }
 
-  async createPortalSession() {
+  async createPortalSession(organizationId?: string): Promise<string> {
     const response = await fetch(
       `${this.baseUrl}/payments/create-portal-session`,
       {
         method: "POST",
         credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ organization_id: organizationId }),
       }
     );
 
@@ -257,7 +261,6 @@ class ApiClient {
 
     return data.url;
   }
-
   /**
    * Fetches the list of available AI models from the server
    * @returns Promise containing array of Model objects

@@ -161,13 +161,33 @@ const handlers = {
 
   createPortalSession: async (req: Request, res: Response) => {
     try {
-      if (!req.dbUser?.stripeCustomerId) {
-        res.status(400).json({ error: "No billing information found" });
-        return;
+      const { organization_id } = req.body;
+      let stripeCustomerId: string | undefined;
+
+      if (organization_id) {
+        // Get organization's stripe customer ID
+        const org = await db.query.organizations.findFirst({
+          where: eq(organizations.id, organization_id),
+        });
+
+        if (!org?.stripeCustomerId) {
+          res.status(400).json({
+            error: "No billing information found for this organization",
+          });
+          return;
+        }
+        stripeCustomerId = org.stripeCustomerId;
+      } else {
+        // Use user's stripe customer ID
+        if (!req.dbUser?.stripeCustomerId) {
+          res.status(400).json({ error: "No billing information found" });
+          return;
+        }
+        stripeCustomerId = req.dbUser.stripeCustomerId;
       }
 
       const session = await ops.portal.createSession({
-        stripeCustomerId: req.dbUser.stripeCustomerId,
+        stripeCustomerId,
       });
 
       res.json({ url: session.url });

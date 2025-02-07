@@ -105,36 +105,30 @@ export function NavUser({ user }: { user: User }) {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
 
-            {user.organizationMembers && user.organizationMembers.length > 0 ? (
-              <></>
+            {user.subscriptionStatus !== "active" ? (
+              <DropdownMenuGroup>
+                <Button
+                  className="w-full"
+                  variant={"default"}
+                  onClick={(e) => {
+                    console.log("Upgrade to Pro");
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setShowPricingPlanDialog(true);
+                  }}
+                >
+                  Upgrade to Pro
+                </Button>
+              </DropdownMenuGroup>
             ) : (
-              <>
-                {user.subscriptionStatus !== "active" ? (
-                  <DropdownMenuGroup>
-                    <Button
-                      className="w-full"
-                      variant={"default"}
-                      onClick={(e) => {
-                        console.log("Upgrade to Pro");
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setShowPricingPlanDialog(true);
-                      }}
-                    >
-                      Upgrade to Pro
-                    </Button>
-                  </DropdownMenuGroup>
-                ) : (
-                  <DropdownMenuGroup>
-                    <DropdownMenuItem onClick={handleBillingPortal}>
-                      <CreditCard />
-                      Billing
-                    </DropdownMenuItem>
-                  </DropdownMenuGroup>
-                )}
-                <DropdownMenuSeparator />
-              </>
+              <DropdownMenuGroup>
+                <DropdownMenuItem onClick={handleBillingPortal}>
+                  <CreditCard />
+                  Billing
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
             )}
+            <DropdownMenuSeparator />
 
             <DropdownMenuGroup>
               <Link href="/settings">
