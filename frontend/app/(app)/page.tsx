@@ -33,6 +33,7 @@ export default function Home() {
   );
 
   const { data: user } = useMeQuery();
+  console.log(`user`, user);
 
   const chatInputRef = useRef<ChatInputFormRef>(null);
 
@@ -43,12 +44,7 @@ export default function Home() {
   const handleSubmit = async () => {
     // Require login
     if (!user) {
-      toast.error("You must be logged in to create a thread.", {
-        action: {
-          label: "Close",
-          onClick: () => {},
-        },
-      });
+      router.push("/login");
       return;
     }
 

@@ -22,7 +22,7 @@ const SUBSCRIPTION_STATUS = [
   "trialing",
   "unpaid",
 ] as const;
-const SUBSCRIPTION_PLAN = ["pro"] as const;
+const SUBSCRIPTION_PLAN = ["free", "pro", "teams", "enterprise"] as const;
 const IDENTITY_PROVIDER = ["google", "saml"] as const;
 
 // Custom type for bytea columns (pgcrypto extension)
@@ -36,12 +36,16 @@ export const bytea = customType<{
 
 export const organizations = pgTable("organizations", {
   id: uuid("id").primaryKey().defaultRandom(),
-  name: varchar("name", { length: 255 }).notNull(),
-  slug: varchar("slug", { length: 255 }).unique().notNull(), // for subdomains or URLs
+  name: varchar("name", { length: 255 }),
+  slug: varchar("slug", { length: 255 }).unique(), // for subdomains or URLs
   domain: varchar("domain", { length: 255 }), // for email matching & auto-assignment
   logo: varchar("logo", { length: 255 }), // file key for s3
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  stripeCustomerId: varchar("stripe_customer_id", { length: 255 }).unique(),
+  subscriptionStatus: text("subscription_status", {
+    enum: SUBSCRIPTION_STATUS,
+  }).default("incomplete"),
 });
 
 export const organizationMembers = pgTable("organization_members", {
@@ -89,8 +93,10 @@ export const users = pgTable("users", {
   subscriptionStatus: text("subscription_status", {
     enum: SUBSCRIPTION_STATUS,
   }).default("incomplete"),
-  subscriptionPlan: text("subscription_plan", { enum: SUBSCRIPTION_PLAN }),
-  systemRole: text("system_role", { enum: ["super_admin"] }), // identify super admins
+  subscriptionPlan: text("subscription_plan", {
+    enum: SUBSCRIPTION_PLAN,
+  }).default("free"),
+  systemRole: text("system_role", { enum: ["super_admin"] }), // identify system super admins
 });
 
 // Threads table with user association

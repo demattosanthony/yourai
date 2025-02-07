@@ -120,7 +120,11 @@ export function useUpdateOrganizationMutation() {
 }
 
 export function useDeleteOrganizationMutation() {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => api.deleteOrganization(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["organizations"] });
+    },
   });
 }

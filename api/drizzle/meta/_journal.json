@@ -99,6 +99,13 @@
       "when": 1738866309390,
       "tag": "0013_subscription_plan_pro",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1738891822679,
+      "tag": "0014_open_blade",
+      "breakpoints": true
     }
   ]
 }

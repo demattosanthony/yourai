@@ -13,12 +13,14 @@ interface CreateOrgFormProps {
   onComplete?: () => void;
   onBack?: () => void;
   showBackButton?: boolean;
+  includeSamlSetup?: boolean; // Add this new prop
 }
 
 export function CreateOrgForm({
   onComplete,
   onBack,
   showBackButton = true,
+  includeSamlSetup = true, // Add default value
 }: CreateOrgFormProps) {
   const [step, setStep] = React.useState<"org" | "saml">("org");
 
@@ -63,7 +65,11 @@ export function CreateOrgForm({
         logo: fileKey,
       });
       setOrg(org);
-      setStep("saml");
+      if (includeSamlSetup) {
+        setStep("saml");
+      } else if (onComplete) {
+        onComplete();
+      }
       return org;
     } catch (error) {
       console.error(error);
@@ -182,7 +188,7 @@ export function CreateOrgForm({
           <Button
             type="submit"
             className="font-semibold w-full flex justify-center h-[50px]"
-            disabled={!name || !domain}
+            disabled={!name}
           >
             Create Organization
             <ArrowRight size={24} className="ml-1" />

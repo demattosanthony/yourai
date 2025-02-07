@@ -93,7 +93,7 @@ export default Router()
   .use("/models", modelRoutes)
   .use("/threads", auth, checkSub, threadRoutes)
   .use("/payments", auth, paymentRoutes)
-  .use("/organizations", auth, superAdminMiddleware, organizationRoutes)
+  .use("/organizations", auth, checkSub, organizationRoutes)
   .post(
     "/presigned-url",
     auth,

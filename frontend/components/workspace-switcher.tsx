@@ -9,7 +9,6 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -22,23 +21,48 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "./ui/dialog";
 import { CreateOrgForm } from "./organizations/create-org-form";
 
-type Team = {
+type Workspace = {
+  id: string;
   name: string;
-  logo: React.ElementType | null;
-  useAiOrb?: boolean;
-  plan: string;
+  type: "personal" | "organization";
+  logo?: string;
+  subscriptionPlan?: string;
 };
 
-export function WorkSpaceSwitcher({ teams }: { teams: Team[] }) {
+export function WorkSpaceSwitcher() {
   const { isMobile } = useSidebar();
-  const [activeTeam, setActiveTeam] = React.useState(teams[0]);
   const { data: user } = useMeQuery();
 
-  const TeamLogo = ({ team }: { team: Team }) => {
-    if (team.useAiOrb) {
+  // Create personal workspace from user data
+  const personalWorkspace: Workspace = {
+    id: user?.id || "",
+    name: user?.name || "Personal",
+    type: "personal",
+    subscriptionPlan: user?.subscriptionPlan || "free",
+  };
+
+  // Create organization workspaces from user data
+  const organizationWorkspaces: Workspace[] =
+    user?.organizationMembers?.map((member) => ({
+      id: member.organization.id,
+      name: member.organization.name,
+      type: "organization" as const,
+      logo: member.organization.logo,
+    })) || [];
+
+  // Combine personal and organization workspaces
+  const workspaces = [personalWorkspace, ...organizationWorkspaces];
+  const [activeWorkspace, setActiveWorkspace] = React.useState(workspaces[0]);
+
+  const handleCreateOrgComplete = () => {
+    window.location.reload();
+  };
+
+  const WorkspaceLogo = ({ workspace }: { workspace: Workspace }) => {
+    if (workspace.type === "personal" || !workspace.logo) {
       return (
         <div className="flex h-6 w-6 items-center justify-center shrink-0">
-          <Avatar className="h-6 w-6 rounded-full">
+          <Avatar className="h-6 w-6 rounded-full bg-transparent">
             <AvatarImage src={user?.profilePicture} alt={user?.name} />
             <AvatarFallback className="rounded-full">
               {user?.name
@@ -51,13 +75,13 @@ export function WorkSpaceSwitcher({ teams }: { teams: Team[] }) {
       );
     }
 
-    if (!team.logo) {
-      return null;
-    }
-
     return (
-      <div className="flex h-6 w-6 items-center justify-center rounded-full bg-sidebar-primary text-sidebar-primary-foreground shrink-0">
-        {React.createElement(team.logo, { className: "size-3" })}
+      <div className="flex h-6 w-6 items-center justify-center rounded-full  shrink-0">
+        <img
+          src={workspace.logo}
+          alt={workspace.name}
+          className="h-6 w-6 rounded-full"
+        />
       </div>
     );
   };
@@ -67,9 +91,11 @@ export function WorkSpaceSwitcher({ teams }: { teams: Team[] }) {
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground flex w-full group-data-[collapsible=icon]:justify-center justify-start items-center gap-2 px-1">
-            <TeamLogo team={activeTeam} />
+            <WorkspaceLogo workspace={activeWorkspace} />
             <div className="grid text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
-              <span className="truncate font-semibold">{activeTeam.name}</span>
+              <span className="truncate font-semibold">
+                {activeWorkspace.name}
+              </span>
             </div>
             <ChevronDown className="opacity-50 group-data-[collapsible=icon]:hidden" />
           </SidebarMenuButton>
@@ -83,17 +109,19 @@ export function WorkSpaceSwitcher({ teams }: { teams: Team[] }) {
           <DropdownMenuLabel className="text-xs text-muted-foreground">
             Switch workspace
           </DropdownMenuLabel>
-          {teams.map((team, index) => (
+          {workspaces.map((workspace, index) => (
             <DropdownMenuItem
-              key={team.name}
-              onClick={() => setActiveTeam(team)}
+              key={workspace.id}
+              onClick={() => setActiveWorkspace(workspace)}
               className="gap-2 p-2"
             >
-              <TeamLogo team={team} />
-              {team.name}
-              <DropdownMenuShortcut>⌘{index + 1}</DropdownMenuShortcut>
+              <WorkspaceLogo workspace={workspace} />
+              <div className="flex flex-col">
+                <span>{workspace.name}</span>
+              </div>
             </DropdownMenuItem>
           ))}
+
           <DropdownMenuSeparator />
 
           <DropdownMenuItem
@@ -115,8 +143,9 @@ export function WorkSpaceSwitcher({ teams }: { teams: Team[] }) {
               <DialogContent className="max-w-none w-fit pt-2 pb-8">
                 <DialogTitle className="h-0 p-0" />
                 <CreateOrgForm
-                  onComplete={() => window.location.reload()}
+                  onComplete={handleCreateOrgComplete}
                   showBackButton={false}
+                  includeSamlSetup={false}
                 />
               </DialogContent>
             </Dialog>

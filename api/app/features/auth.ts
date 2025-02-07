@@ -4,23 +4,39 @@ import db from "../config/db";
 import { eq } from "drizzle-orm";
 import myPassport, { authenticateSaml } from "../config/passport";
 import { organizations, users } from "../config/schema";
+import s3 from "../config/s3";
 
 // Pure business logic operations
 const ops = {
   getUser: async (userId: string) => {
-    return db.query.users.findFirst({
+    const user = await db.query.users.findFirst({
       where: eq(users.id, userId),
       with: {
         organizationMembers: {
-          limit: 1,
           with: {
             organization: true,
           },
         },
       },
     });
-  },
 
+    // Transform the response to include logo URLs
+    if (user?.organizationMembers) {
+      user.organizationMembers = user.organizationMembers.map((member) => ({
+        ...member,
+        organization: member.organization && {
+          ...member.organization,
+          logo: member.organization.logo
+            ? s3.presign(member.organization.logo, {
+                expiresIn: 60 * 60, // 1 hour
+              })
+            : null,
+        },
+      }));
+    }
+
+    return user;
+  },
   logout: () => {
     return {
       cookieOptions: {

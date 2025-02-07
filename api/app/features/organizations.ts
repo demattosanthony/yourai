@@ -9,6 +9,7 @@ import {
   users,
 } from "../config/schema";
 import s3 from "../config/s3";
+import { DbUser } from "../createAuthToken";
 
 // Core Types
 type Role = "owner" | "member";
@@ -25,8 +26,6 @@ const schemas = {
     name: z.string().min(1),
     domain: z.string().optional(),
     logo: z.string().optional(),
-    ownerEmail: z.string().email().optional(),
-    ownerName: z.string().optional(),
     saml: z
       .object({
         entryPoint: z.string().url().optional(),
@@ -90,12 +89,13 @@ const ops = {
     };
   },
 
-  async create(data: z.infer<typeof schemas.org>) {
+  async create(data: z.infer<typeof schemas.org>, user: DbUser) {
     const slug = data.domain?.split(".")[0].toLowerCase();
     if (
-      await db.query.organizations.findFirst({
+      data.domain &&
+      (await db.query.organizations.findFirst({
         where: eq(organizations.slug, slug!),
-      })
+      }))
     ) {
       throw new Error("Organization already exists");
     }
@@ -111,29 +111,11 @@ const ops = {
         })
         .returning();
 
-      if (data.ownerEmail) {
-        const owner =
-          (await tx.query.users.findFirst({
-            where: eq(users.email, data.ownerEmail),
-          })) ||
-          (await tx
-            .insert(users)
-            .values({
-              email: data.ownerEmail,
-              name: data.ownerName || data.ownerEmail.split("@")[0],
-              identityProvider: "saml",
-            })
-            .returning()
-            .then(([user]) => user));
-
-        if (!owner) throw new Error("Failed to create or find owner");
-
-        await tx.insert(organizationMembers).values({
-          organizationId: org.id,
-          userId: owner.id,
-          role: "owner" as Role,
-        });
-      }
+      await tx.insert(organizationMembers).values({
+        organizationId: org.id,
+        userId: user.id,
+        role: "owner" as Role,
+      });
 
       if (data.saml) {
         await ops.updateSaml(org.id, data.saml);
@@ -241,7 +223,7 @@ const handle = {
 
   async create(req: Request, res: Response) {
     const data = schemas.org.parse(req.body);
-    res.json(await ops.create(data));
+    res.json(await ops.create(data, req.dbUser!));
   },
 
   async update(req: Request, res: Response) {
