@@ -61,6 +61,15 @@ export const organizationMembers = pgTable("organization_members", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+export const organizationInvites = pgTable("organization_invites", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  organizationId: uuid("organization_id").references(() => organizations.id, {
+    onDelete: "cascade",
+  }),
+  token: text("token").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const samlConfigs = pgTable("saml_configs", {
   id: uuid("id").primaryKey().defaultRandom(),
   organizationId: uuid("organization_id")

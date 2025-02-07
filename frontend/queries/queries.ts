@@ -147,3 +147,55 @@ export function useDeleteOrganizationMutation() {
     },
   });
 }
+
+export function useOrganizationMembersQuery(organizationId: string) {
+  return useQuery({
+    queryKey: ["organization-members", organizationId],
+    queryFn: () => api.listOrganizationMembers(organizationId),
+  });
+}
+
+export function useRemoveOrganizationMemberMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      organizationId,
+      userId,
+    }: {
+      organizationId: string;
+      userId: string;
+    }) => api.removeOrganizationMember(organizationId, userId),
+    onSuccess: (_, { organizationId }) => {
+      queryClient.invalidateQueries({
+        queryKey: ["organization-members", organizationId],
+      });
+    },
+  });
+}
+
+export function useOrganizationInviteTokenQuery(organizationId: string) {
+  return useQuery({
+    queryKey: ["organization-invite", organizationId],
+    queryFn: () => api.getOrganizationInviteToken(organizationId),
+  });
+}
+
+export function useResetOrganizationInviteTokenMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (organizationId: string) =>
+      api.resetOrganizationInviteToken(organizationId),
+    onSuccess: (_, organizationId) => {
+      queryClient.invalidateQueries({
+        queryKey: ["organization-invite", organizationId],
+      });
+    },
+  });
+}
+
+export function useOrgQuery(orgId: string) {
+  return useQuery({
+    queryKey: ["organization", orgId],
+    queryFn: () => api.getOrg(orgId),
+  });
+}

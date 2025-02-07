@@ -67,27 +67,6 @@ export const superAdminMiddleware = async (
   next();
 };
 
-// Organization owner check
-export const isOrgOwner = async (
-  req: any,
-  res: Response,
-  next: NextFunction
-) => {
-  const member = await db.query.organizationMembers.findFirst({
-    where: and(
-      eq(organizationMembers.organizationId, req.params.orgId),
-      eq(organizationMembers.userId, req.dbUser!.id)
-    ),
-  });
-
-  if (!member || member.role !== "owner") {
-    res.status(403).json({ error: "Not authorized" });
-    return;
-  }
-
-  next();
-};
-
 export default Router()
   .use("/auth", authRoutes)
   .use("/models", modelRoutes)

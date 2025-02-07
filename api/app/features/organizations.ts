@@ -1,15 +1,37 @@
-import { Request, Response, Router } from "express";
-import { eq, sql } from "drizzle-orm";
+import { Request, Response, Router, NextFunction } from "express";
+import { and, eq, sql } from "drizzle-orm";
 import z from "zod";
 import db from "../config/db";
 import {
+  organizationInvites,
   organizationMembers,
   organizations,
   samlConfigs,
-  users,
 } from "../config/schema";
 import s3 from "../config/s3";
 import { DbUser } from "../createAuthToken";
+import { randomBytes } from "crypto";
+
+// Middleware
+export const isOrgOwner = async (
+  req: any,
+  res: Response,
+  next: NextFunction
+) => {
+  const member = await db.query.organizationMembers.findFirst({
+    where: and(
+      eq(organizationMembers.organizationId, req.params.id),
+      eq(organizationMembers.userId, req.dbUser!.id)
+    ),
+  });
+
+  if (!member || member.role !== "owner") {
+    res.status(403).json({ error: "Not authorized" });
+    return;
+  }
+
+  next();
+};
 
 // Core Types
 type Role = "owner" | "member";
@@ -205,11 +227,18 @@ const ops = {
   async getById(id: string) {
     const org = await db.query.organizations.findFirst({
       where: eq(organizations.id, id),
-      with: { samlConfig: true },
+      with: { samlConfig: true, members: true },
     });
     if (!org) throw new Error("Organization not found");
+
+    // Generate presigned URL for the logo
+    const logoUrl = org.logo
+      ? s3.file(org.logo).presign({ expiresIn: 3600, method: "GET" })
+      : null;
+
     return {
       ...org,
+      logoUrl,
       samlConfig: org.samlConfig ? await ops.decryptSaml(org.samlConfig) : null,
     };
   },
@@ -222,10 +251,59 @@ const ops = {
       await tx.delete(organizations).where(eq(organizations.id, id));
     });
   },
+
+  async listMembers(orgId: string) {
+    return db.query.organizationMembers.findMany({
+      where: eq(organizationMembers.organizationId, orgId),
+      with: {
+        user: {
+          columns: {
+            id: true,
+            email: true,
+            name: true,
+            profilePicture: true,
+          },
+        },
+      },
+    });
+  },
+
+  async removeMember(orgId: string, userId: string) {
+    return db
+      .delete(organizationMembers)
+      .where(sql`organization_id = ${orgId} AND user_id = ${userId}`);
+  },
+
+  async getInviteLink(orgId: string) {
+    const invite = await db.query.organizationInvites.findFirst({
+      where: eq(organizationInvites.organizationId, orgId),
+    });
+
+    return invite ? invite.token : await ops.generateInviteLink(orgId);
+  },
+
+  async generateInviteLink(orgId: string) {
+    // Delete any existing invite
+    await db
+      .delete(organizationInvites)
+      .where(eq(organizationInvites.organizationId, orgId));
+
+    const token = randomBytes(32).toString("hex");
+    await db.insert(organizationInvites).values({
+      organizationId: orgId,
+      token,
+    });
+
+    return token;
+  },
 };
 
 // Request Handlers
 const handle = {
+  async get(req: Request, res: Response) {
+    res.json(await ops.getById(req.params.id));
+  },
+
   async list(req: Request, res: Response) {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
@@ -246,11 +324,35 @@ const handle = {
     await ops.delete(req.params.id);
     res.json({ success: true });
   },
+
+  async listMembers(req: Request, res: Response) {
+    const members = await ops.listMembers(req.params.id);
+    res.json(members);
+  },
+
+  async getInvite(req: Request, res: Response) {
+    const token = await ops.getInviteLink(req.params.id);
+    res.json({ token });
+  },
+
+  async removeMember(req: Request, res: Response) {
+    await ops.removeMember(req.params.id, req.params.userId);
+    res.json({ success: true });
+  },
+  async resetInvite(req: Request, res: Response) {
+    const token = await ops.generateInviteLink(req.params.id);
+    res.json({ token });
+  },
 };
 
 // Router
 export default Router()
-  .get("", handle.list)
+  .get("", isOrgOwner, handle.list)
   .post("", handle.create)
-  .put("/:id", handle.update)
-  .delete("/:id", handle.delete);
+  .get("/:id", isOrgOwner, handle.get)
+  .put("/:id", isOrgOwner, handle.update)
+  .delete("/:id", isOrgOwner, handle.delete)
+  .get("/:id/members", isOrgOwner, handle.listMembers)
+  .delete("/:id/members/:userId", isOrgOwner, handle.removeMember)
+  .get("/:id/invite", isOrgOwner, handle.getInvite)
+  .post("/:id/invite/reset", isOrgOwner, handle.resetInvite);

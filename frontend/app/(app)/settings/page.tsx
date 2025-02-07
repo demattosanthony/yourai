@@ -19,7 +19,8 @@ import { useEffect, useMemo, useState } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import AdminSettings from "@/components/settings/admin-settings";
 import { useSearchParams, useRouter } from "next/navigation";
-import OrganizationsList from "@/components/organizations/orgs-list";
+import { useWorkspace } from "@/components/workspace-context";
+import { OrganizationSettings } from "@/components/organizations/org-settings";
 
 export default function UserSettings() {
   const { data: user } = useMeQuery();
@@ -27,11 +28,16 @@ export default function UserSettings() {
   const [mounted, setMounted] = useState(false);
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { activeWorkspace } = useWorkspace();
 
   const isSuperAdmin = user?.systemRole === "super_admin";
   const isOrgOwner = useMemo(() => {
-    return user?.organizationMembers?.some((member) => member.role === "owner");
-  }, [user]);
+    if (activeWorkspace?.type !== "organization") return false;
+    return user?.organizationMembers?.some(
+      (member) =>
+        member.role === "owner" && member.organization.id === activeWorkspace.id
+    );
+  }, [user, activeWorkspace]);
 
   const [temperature, setTemperature] = useAtom(temperatureAtom);
   const [, setInputValue] = useState(temperature.toFixed(2));
@@ -89,7 +95,7 @@ export default function UserSettings() {
                 value="organization"
                 className="bg-transparent px-0 data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-9"
               >
-                Organizations
+                Organization
               </TabsTrigger>
             )}
           </TabsList>
@@ -214,7 +220,9 @@ export default function UserSettings() {
         <TabsContent value="organization">
           <div className="space-y-6">
             <section>
-              <OrganizationsList />
+              {activeWorkspace && activeWorkspace.type === "organization" && (
+                <OrganizationSettings orgId={activeWorkspace?.id} />
+              )}
             </section>
           </div>
         </TabsContent>

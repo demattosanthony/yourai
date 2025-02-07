@@ -31,6 +31,14 @@ class ApiClient {
   }
 
   // ORGANIZATION ROUTES
+  async getOrg(id: string): Promise<Organization> {
+    const response = await fetch(`${this.baseUrl}/organizations/${id}`, {
+      method: "GET",
+      credentials: "include",
+    });
+    return await response.json();
+  }
+
   async listOrganizations(
     page = 1,
     limit = 10
@@ -107,6 +115,67 @@ class ApiClient {
       method: "DELETE",
       credentials: "include",
     });
+    return await response.json();
+  }
+
+  async listOrganizationMembers(organizationId: string): Promise<
+    Array<{
+      user: {
+        id: string;
+        email: string;
+        name: string;
+        profilePicture: string;
+      };
+      role: "owner" | "member";
+    }>
+  > {
+    const response = await fetch(
+      `${this.baseUrl}/organizations/${organizationId}/members`,
+      {
+        method: "GET",
+        credentials: "include",
+      }
+    );
+    return await response.json();
+  }
+
+  async removeOrganizationMember(
+    organizationId: string,
+    userId: string
+  ): Promise<{ success: boolean }> {
+    const response = await fetch(
+      `${this.baseUrl}/organizations/${organizationId}/members/${userId}`,
+      {
+        method: "DELETE",
+        credentials: "include",
+      }
+    );
+    return await response.json();
+  }
+
+  async getOrganizationInviteToken(
+    organizationId: string
+  ): Promise<{ token: string }> {
+    const response = await fetch(
+      `${this.baseUrl}/organizations/${organizationId}/invite`,
+      {
+        method: "GET",
+        credentials: "include",
+      }
+    );
+    return await response.json();
+  }
+
+  async resetOrganizationInviteToken(
+    organizationId: string
+  ): Promise<{ token: string }> {
+    const response = await fetch(
+      `${this.baseUrl}/organizations/${organizationId}/invite/reset`,
+      {
+        method: "POST",
+        credentials: "include",
+      }
+    );
     return await response.json();
   }
 
