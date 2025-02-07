@@ -1,27 +1,37 @@
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import {
+  useMeQuery,
   useOrganizationInviteTokenQuery,
   useOrganizationMembersQuery,
   useOrgQuery,
+  useRemoveOrganizationMemberMutation,
   useResetOrganizationInviteTokenMutation,
   useUpdateOrganizationMutation,
 } from "@/queries/queries";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Input } from "../ui/input";
-import { Camera, Check, Copy } from "lucide-react";
+import { Camera, Check, Copy, Ellipsis } from "lucide-react";
 import { Button } from "../ui/button";
 import { useEffect, useState } from "react";
 import api from "@/lib/api";
 import { toast } from "sonner";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
 
 export function OrganizationSettings({ orgId }: { orgId: string }) {
+  const { data: user } = useMeQuery();
   const { data: org } = useOrgQuery(orgId);
   const updateOrgMutation = useUpdateOrganizationMutation();
   const { data: members } = useOrganizationMembersQuery(orgId);
 
   const { data: inviteLinkData } = useOrganizationInviteTokenQuery(orgId);
   const regenerateTokenLinkMutation = useResetOrganizationInviteTokenMutation();
+  const removeMemberMutation = useRemoveOrganizationMemberMutation();
 
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [newLogoFile, setNewLogoFile] = useState<File | null>(null);
@@ -214,7 +224,40 @@ export function OrganizationSettings({ orgId }: { orgId: string }) {
                     </p>
                   </div>
                 </div>
-                <span className="text-sm capitalize">{member.role}</span>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm capitalize">{member.role}</span>
+                  {member.user.id !== user?.id && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          className="flex items-center justify-center"
+                          size="sm"
+                          variant="ghost"
+                        >
+                          <Ellipsis size={16} />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                          onSelect={async () => {
+                            try {
+                              await removeMemberMutation.mutateAsync({
+                                organizationId: orgId,
+                                userId: member.user.id,
+                              });
+                              toast.success("Member removed successfully");
+                            } catch (error) {
+                              toast.error("Failed to remove member");
+                            }
+                          }}
+                          className="text-red-600"
+                        >
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
+                </div>
               </div>
             ))}
           </div>
