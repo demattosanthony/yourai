@@ -17,7 +17,10 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import AIOrbScene from "./AiOrbScene";
+import { useMeQuery } from "@/queries/queries";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "./ui/dialog";
+import { CreateOrgForm } from "./organizations/create-org-form";
 
 type Team = {
   name: string;
@@ -29,12 +32,21 @@ type Team = {
 export function WorkSpaceSwitcher({ teams }: { teams: Team[] }) {
   const { isMobile } = useSidebar();
   const [activeTeam, setActiveTeam] = React.useState(teams[0]);
+  const { data: user } = useMeQuery();
 
   const TeamLogo = ({ team }: { team: Team }) => {
     if (team.useAiOrb) {
       return (
         <div className="flex h-6 w-6 items-center justify-center shrink-0">
-          <AIOrbScene width="20px" height="20px" autoRotateSpeed={0.5} />
+          <Avatar className="h-6 w-6 rounded-full">
+            <AvatarImage src={user?.profilePicture} alt={user?.name} />
+            <AvatarFallback className="rounded-full">
+              {user?.name
+                ?.split(" ")
+                .map((n: string) => n[0])
+                .join("")}
+            </AvatarFallback>
+          </Avatar>
         </div>
       );
     }
@@ -44,7 +56,7 @@ export function WorkSpaceSwitcher({ teams }: { teams: Team[] }) {
     }
 
     return (
-      <div className="flex h-6 w-6 items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground shrink-0">
+      <div className="flex h-6 w-6 items-center justify-center rounded-full bg-sidebar-primary text-sidebar-primary-foreground shrink-0">
         {React.createElement(team.logo, { className: "size-3" })}
       </div>
     );
@@ -54,7 +66,7 @@ export function WorkSpaceSwitcher({ teams }: { teams: Team[] }) {
     <SidebarMenuItem className="flex items-center flex-col">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground flex w-full group-data-[collapsible=icon]:justify-center justify-start items-center gap-1 px-1">
+          <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground flex w-full group-data-[collapsible=icon]:justify-center justify-start items-center gap-2 px-1">
             <TeamLogo team={activeTeam} />
             <div className="grid text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
               <span className="truncate font-semibold">{activeTeam.name}</span>
@@ -83,11 +95,31 @@ export function WorkSpaceSwitcher({ teams }: { teams: Team[] }) {
             </DropdownMenuItem>
           ))}
           <DropdownMenuSeparator />
-          <DropdownMenuItem className="gap-2 p-2">
+
+          <DropdownMenuItem
+            onSelect={(e) => e.preventDefault()}
+            className="gap-2 p-2"
+          >
             <div className="flex size-6 items-center justify-center rounded-md border bg-background">
               <Plus className="size-4" />
             </div>
-            <div className="font-medium text-muted-foreground">Add team</div>
+            <Dialog>
+              <DialogTrigger asChild>
+                <button
+                  className="font-medium text-muted-foreground"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  Create organization
+                </button>
+              </DialogTrigger>
+              <DialogContent className="max-w-none w-fit pt-2 pb-8">
+                <DialogTitle className="h-0 p-0" />
+                <CreateOrgForm
+                  onComplete={() => window.location.reload()}
+                  showBackButton={false}
+                />
+              </DialogContent>
+            </Dialog>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

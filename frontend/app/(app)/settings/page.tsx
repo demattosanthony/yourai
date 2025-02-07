@@ -83,14 +83,12 @@ export default function UserSettings() {
               </TabsTrigger>
             )}
 
-            {isOrgOwner && (
-              <TabsTrigger
-                value="organization"
-                className="bg-transparent px-0 data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-9"
-              >
-                Organization
-              </TabsTrigger>
-            )}
+            <TabsTrigger
+              value="organization"
+              className="bg-transparent px-0 data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-9"
+            >
+              Organization
+            </TabsTrigger>
           </TabsList>
         </div>
 
