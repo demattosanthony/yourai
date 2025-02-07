@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { ChevronDown, Plus } from "lucide-react";
+import { ChevronDown, Command, Plus } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,7 +37,7 @@ export function WorkSpaceSwitcher() {
   };
 
   const WorkspaceLogo = ({ workspace }: { workspace: Workspace }) => {
-    if (workspace.type === "personal" || !workspace.logo) {
+    if (workspace.type === "personal") {
       return (
         <div className="flex h-6 w-6 items-center justify-center shrink-0">
           <Avatar className="h-6 w-6 rounded-full bg-transparent">
@@ -54,12 +54,16 @@ export function WorkSpaceSwitcher() {
     }
 
     return (
-      <div className="flex h-6 w-6 items-center justify-center rounded-full  shrink-0">
-        <img
-          src={workspace.logo}
-          alt={workspace.name}
-          className="h-6 w-6 rounded-full"
-        />
+      <div className="flex h-6 w-6 items-center justify-center rounded-full shrink-0">
+        {workspace.logo ? (
+          <img
+            src={workspace.logo}
+            alt={workspace.name}
+            className="h-6 w-6 rounded-full"
+          />
+        ) : (
+          <Command className="h-4 w-4 rounded-full" />
+        )}
       </div>
     );
   };
