@@ -5,9 +5,17 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { CreateOrgForm } from "@/components/organizations/create-org-form";
+import api from "@/lib/api";
 
 export default function CreateOrgPage() {
   const router = useRouter();
+
+  const handleCreateOrgComplete = async (org: { id: string }) => {
+    // go to checkout for the org
+    const url = await api.createCheckoutSession("yo-teams-plan", 1, org.id);
+    console.log(`url`, url);
+    window.location.href = url;
+  };
 
   return (
     <div className="h-screen flex flex-col items-center px-4 py-12">
@@ -18,8 +26,9 @@ export default function CreateOrgPage() {
       </div>
       <div className="flex justify-center w-full h-[75%] items-center">
         <CreateOrgForm
-          onComplete={() => router.push("/")}
+          onComplete={handleCreateOrgComplete}
           showBackButton={false}
+          includeSamlSetup={false}
         />
       </div>
     </div>

@@ -21,45 +21,19 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "./ui/dialog";
 import { CreateOrgForm } from "./organizations/create-org-form";
 import api from "@/lib/api";
-
-type Workspace = {
-  id: string;
-  name: string;
-  type: "personal" | "organization";
-  logo?: string;
-  subscriptionPlan?: string;
-};
+import { Workspace } from "@/types/workspace";
+import { useWorkspace } from "./workspace-context";
+import { Skeleton } from "./ui/skeleton";
 
 export function WorkSpaceSwitcher() {
   const { isMobile } = useSidebar();
   const { data: user } = useMeQuery();
 
-  // Create personal workspace from user data
-  const personalWorkspace: Workspace = {
-    id: user?.id || "",
-    name: user?.name || "Personal",
-    type: "personal",
-    subscriptionPlan: user?.subscriptionPlan || "free",
-  };
-
-  // Create organization workspaces from user data
-  const organizationWorkspaces: Workspace[] =
-    user?.organizationMembers?.map((member) => ({
-      id: member.organization.id,
-      name: member.organization.name,
-      type: "organization" as const,
-      logo: member.organization.logo,
-    })) || [];
-
-  // Combine personal and organization workspaces
-  const workspaces = [personalWorkspace, ...organizationWorkspaces];
-  const [activeWorkspace, setActiveWorkspace] = React.useState(workspaces[0]);
+  const { setActiveWorkspace, activeWorkspace, workspaces } = useWorkspace();
 
   const handleCreateOrgComplete = async (org: { id: string }) => {
-    // window.location.reload();
     // go to checkout for the org
     const url = await api.createCheckoutSession("yo-teams-plan", 1, org.id);
-    console.log(`url`, url);
     window.location.href = url;
   };
 
@@ -90,6 +64,10 @@ export function WorkSpaceSwitcher() {
       </div>
     );
   };
+
+  if (!activeWorkspace) {
+    return <Skeleton className="h-6 w-36" />;
+  }
 
   return (
     <SidebarMenuItem className="flex items-center flex-col">
