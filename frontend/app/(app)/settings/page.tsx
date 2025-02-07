@@ -19,6 +19,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import AdminSettings from "@/components/settings/admin-settings";
 import { useSearchParams, useRouter } from "next/navigation";
+import OrganizationsList from "@/components/organizations/orgs-list";
 
 export default function UserSettings() {
   const { data: user } = useMeQuery();
@@ -74,21 +75,23 @@ export default function UserSettings() {
             >
               Account
             </TabsTrigger>
-            {isSuperAdmin && (
+            {/* {isSuperAdmin && (
               <TabsTrigger
                 value="admin"
                 className="bg-transparent px-0 data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-9"
               >
                 Admin
               </TabsTrigger>
-            )}
+            )} */}
 
-            <TabsTrigger
-              value="organization"
-              className="bg-transparent px-0 data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-9"
-            >
-              Organization
-            </TabsTrigger>
+            {isOrgOwner && (
+              <TabsTrigger
+                value="organization"
+                className="bg-transparent px-0 data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-9"
+              >
+                Organizations
+              </TabsTrigger>
+            )}
           </TabsList>
         </div>
 
@@ -211,13 +214,7 @@ export default function UserSettings() {
         <TabsContent value="organization">
           <div className="space-y-6">
             <section>
-              <div className="space-y-1">
-                <h2 className="text-base font-medium">Organization Settings</h2>
-                <p className="text-sm text-muted-foreground">
-                  Manage your organization preferences and details.
-                </p>
-              </div>
-              {/* Add your organization settings content here */}
+              <OrganizationsList />
             </section>
           </div>
         </TabsContent>

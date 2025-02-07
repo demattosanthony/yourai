@@ -491,17 +491,12 @@ It is currently: ${new Date().toLocaleString("en-US", {
       threadId: string,
       organizationId?: string
     ) => {
-      const conditions = [
-        eq(messages.threadId, threadId),
-        eq(messages.userId, userId),
-      ];
-
-      if (organizationId) {
-        conditions.push(eq(threads.organizationId, organizationId));
-      }
-
       // Delete all messages first due to foreign key constraint
-      await db.delete(messages).where(and(...conditions));
+      await db
+        .delete(messages)
+        .where(
+          and(eq(messages.threadId, threadId), eq(messages.userId, userId))
+        );
 
       // Delete the thread
       await db
@@ -554,6 +549,11 @@ export default Router()
   .delete(
     "/:threadId",
     handle(async (req) => {
-      return ops.threads.deleteThread(req.dbUser!.id, req.params.threadId);
+      const { organizationId } = req.query;
+      return ops.threads.deleteThread(
+        req.dbUser!.id,
+        req.params.threadId,
+        organizationId as string | undefined
+      );
     })
   );

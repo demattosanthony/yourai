@@ -19,7 +19,7 @@ export function useThreadsQuery(search?: string, initialThreads?: Thread[]) {
   const { activeWorkspace } = useWorkspace();
 
   return useInfiniteQuery({
-    queryKey: ["threads", search, activeWorkspace?.id],
+    queryKey: ["threads", activeWorkspace?.id, search],
     initialData: initialThreads
       ? {
           pages: [{ threads: initialThreads, nextPage: 2 }],
