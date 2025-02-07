@@ -52,25 +52,6 @@ import {
 } from "./ui/alert-dialog";
 import { WorkSpaceSwitcher } from "./workspace-switcher";
 
-const teams = [
-  {
-    name: "Personal",
-    useAiOrb: true,
-    plan: "Enterprise",
-    logo: null,
-  },
-  {
-    name: "Syyclops Inc.",
-    logo: AudioWaveform,
-    plan: "Startup",
-  },
-  {
-    name: "Setty & Associates",
-    logo: Command,
-    plan: "Free",
-  },
-];
-
 export function AppSidebar({
   user,
   ...props

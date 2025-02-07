@@ -20,12 +20,6 @@ export function useThreadsQuery(search?: string, initialThreads?: Thread[]) {
 
   return useInfiniteQuery({
     queryKey: ["threads", activeWorkspace?.id, search],
-    initialData: initialThreads
-      ? {
-          pages: [{ threads: initialThreads, nextPage: 2 }],
-          pageParams: [1],
-        }
-      : undefined,
     queryFn: async ({ pageParam = 1 }) => {
       const threads = await api.getThreads(
         pageParam,
