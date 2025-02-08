@@ -156,16 +156,36 @@ const handlers = {
       // Verify invite token first
       const invite = await ops.verifyInvite(token);
 
-      // If user is not logged in, return unauthorized status
+      // Check seats before authentication
+      const org = await db.query.organizations.findFirst({
+        where: eq(organizations.id, invite.organizationId as string),
+        columns: {
+          seats: true,
+        },
+        with: {
+          members: {
+            columns: {
+              id: true,
+            },
+          },
+        },
+      });
+
+      if (org?.seats && org.members.length >= org.seats) {
+        res.status(403).json({ error: "insufficient_seats" });
+        return;
+      }
+
+      // Now check authentication
       if (!req.dbUser) {
         res.status(401).json({
           error: "Authentication required",
-          inviteToken: token, // Include the token so frontend can use it after auth
+          inviteToken: token,
         });
         return;
       }
 
-      // If user is already logged in, proceed with joining
+      // If we get here, seats are available and user is authenticated
       await ops.joinOrganization(
         invite.organizationId as string,
         req.dbUser.id

@@ -10,7 +10,7 @@ import { toast } from "sonner";
 export const useAuth = () => {
   const queryClient = useQueryClient();
   const router = useRouter();
-  const { activeWorkspace, setActiveWorkspace } = useWorkspace();
+  const { setActiveWorkspace } = useWorkspace();
 
   async function logOut() {
     await api.logout();
@@ -38,6 +38,10 @@ export const useAuth = () => {
   const handleJoinOrg = async (token: string) => {
     try {
       const result = await api.joinWithInvite(token);
+
+      if (result.insufficientSeats) {
+        return { insufficientSeats: true };
+      }
 
       if (result.requiresAuth) {
         return { requiresAuth: true };
@@ -82,12 +86,12 @@ export const useAuth = () => {
           };
           setActiveWorkspace(workspace);
         }
+
+        // Clear URL parameters
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, "", newUrl);
       }, 1000); // Add 1 second delay
     }
-
-    // Clear URL parameters
-    const newUrl = window.location.pathname;
-    window.history.replaceState({}, "", newUrl);
   }, [queryClient]);
 
   return { logOut, handleGoogleLogin, handleSSOLogin, handleJoinOrg };

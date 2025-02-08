@@ -282,7 +282,7 @@ export function OrganizationSettings({ orgId }: { orgId: string }) {
 
       <section className="flex justify-between items-center">
         <div>
-          <h2 className="text-lg font-semibold">Billing</h2>
+          <h2 className="text-base font-medium">Billing</h2>
           <p className="text-sm text-muted-foreground">
             Manage your billing information and subscription details.
           </p>

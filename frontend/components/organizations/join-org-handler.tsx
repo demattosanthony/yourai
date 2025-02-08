@@ -33,6 +33,12 @@ export default function JoinOrgHandler({ token }: { token: string }) {
         window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/auth/google?state=${token}`;
         return;
       }
+      if (result.insufficientSeats) {
+        setError(
+          "This organization has reached its seat limit. Please contact your organization administrator to increase the number of seats."
+        );
+        return;
+      }
       router.push("/");
     } catch (err) {
       setError("Failed to join organization");
@@ -79,7 +85,11 @@ export default function JoinOrgHandler({ token }: { token: string }) {
           </p>
         </div>
 
-        {error && <p className="text-sm text-red-500 mt-1 px-2">{error}</p>}
+        {error && (
+          <p className="text-sm text-red-500 mt-1 px-2 max-w-[550px] text-center">
+            {error}
+          </p>
+        )}
 
         <div className="flex flex-col gap-4">
           <Button

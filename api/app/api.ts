@@ -76,7 +76,6 @@ export default Router()
     "/organizations/invite/:inviteToken",
     handle(async (req) => {
       const { inviteToken } = req.params;
-      console.log(inviteToken);
       const invite = await db.query.organizationInvites.findFirst({
         where: eq(organizationInvites.token, inviteToken),
         with: {
@@ -85,18 +84,27 @@ export default Router()
               id: true,
               name: true,
               slug: true,
+              seats: true,
+            },
+            with: {
+              members: true, // Include members to count seats used
             },
           },
         },
       });
 
-      console.log(invite);
-
       if (!invite) {
         return { error: "Invalid invite token" };
       }
 
-      return { organization: invite.organization };
+      const seatsUsed = invite.organization?.members.length;
+
+      return {
+        organization: {
+          ...invite.organization,
+          seatsUsed,
+        },
+      };
     })
   )
   .use("/organizations", auth, checkSub, organizationRoutes)

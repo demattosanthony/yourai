@@ -34,6 +34,7 @@ class ApiClient {
     success?: boolean;
     requiresAuth?: boolean;
     error?: string;
+    insufficientSeats?: boolean;
   }> {
     const response = await fetch(`${this.baseUrl}/auth/invite/${token}`, {
       method: "POST",
@@ -44,6 +45,10 @@ class ApiClient {
 
     if (response.status === 401) {
       return { requiresAuth: true };
+    }
+
+    if (response.status === 403 && data.error === "insufficient_seats") {
+      return { insufficientSeats: true, error: data.error };
     }
 
     if (!response.ok) {
@@ -64,6 +69,7 @@ class ApiClient {
 
   async getOrgFromInviteToken(token: string): Promise<{
     organization: Organization;
+    seatsUsed: number;
   }> {
     const response = await fetch(
       `${this.baseUrl}/organizations/invite/${token}`,
@@ -210,6 +216,42 @@ class ApiClient {
       {
         method: "POST",
         credentials: "include",
+      }
+    );
+    return await response.json();
+  }
+
+  async validateSeatUpdate(
+    organizationId: string,
+    seats: number
+  ): Promise<{ success: boolean; error?: string }> {
+    const response = await fetch(
+      `${this.baseUrl}/organizations/${organizationId}/seats/validate`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ seats }),
+      }
+    );
+    return await response.json();
+  }
+
+  async updateOrganizationSeats(
+    organizationId: string,
+    seats: number
+  ): Promise<{ success: boolean; error?: string }> {
+    const response = await fetch(
+      `${this.baseUrl}/organizations/${organizationId}/seats`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ seats }),
       }
     );
     return await response.json();

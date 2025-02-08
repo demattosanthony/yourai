@@ -160,8 +160,13 @@ export function useRemoveOrganizationMemberMutation() {
       userId: string;
     }) => api.removeOrganizationMember(organizationId, userId),
     onSuccess: (_, { organizationId }) => {
+      // Invalidate org members list
       queryClient.invalidateQueries({
         queryKey: ["organization-members", organizationId],
+      });
+      // Invalidate org details
+      queryClient.invalidateQueries({
+        queryKey: ["organization", organizationId],
       });
     },
   });
@@ -198,5 +203,16 @@ export function useOrgFromInviteToken(token: string) {
   return useQuery({
     queryKey: ["organization-from-invite", token],
     queryFn: () => api.getOrgFromInviteToken(token),
+  });
+}
+
+export function useUpdateOrganizationSeatsMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ orgId, seats }: { orgId: string; seats: number }) =>
+      api.updateOrganizationSeats(orgId, seats),
+    onSuccess: (_, { orgId }) => {
+      queryClient.invalidateQueries({ queryKey: ["organization", orgId] });
+    },
   });
 }

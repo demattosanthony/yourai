@@ -16,7 +16,7 @@ import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-const PRICING_PLANS = {
+export const PRICING_PLANS = {
   PRO: {
     name: "Pro",
     price: "$20",

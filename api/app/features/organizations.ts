@@ -11,6 +11,7 @@ import {
 import s3 from "../config/s3";
 import { DbUser } from "../createAuthToken";
 import { randomBytes } from "crypto";
+import stripe from "../config/stripe";
 
 // Middleware
 export const isOrgOwner = async (
@@ -328,9 +329,88 @@ const handle = {
     await ops.removeMember(req.params.id, req.params.userId);
     res.json({ success: true });
   },
+
   async resetInvite(req: Request, res: Response) {
     const token = await ops.generateInviteLink(req.params.id);
     res.json({ token });
+  },
+
+  async validateSeatUpdate(req: Request, res: Response) {
+    const { seats } = req.body;
+    const orgId = req.params.id;
+
+    const org = await db.query.organizations.findFirst({
+      where: eq(organizations.id, orgId),
+      with: { members: true },
+    });
+
+    if (!org) {
+      res.status(404).json({ error: "Organization not found" });
+      return;
+    }
+
+    // Don't allow reducing seats below current member count
+    if (seats < (org.members?.length || 0)) {
+      res.status(400).json({
+        error: "Cannot reduce seats below current member count",
+      });
+      return;
+    }
+
+    res.json({ success: true });
+  },
+
+  async updateSeats(req: Request, res: Response) {
+    try {
+      const { seats } = req.body;
+      const orgId = req.params.id;
+
+      const org = await db.query.organizations.findFirst({
+        where: eq(organizations.id, orgId),
+        columns: {
+          stripeCustomerId: true,
+        },
+      });
+
+      if (!org?.stripeCustomerId) {
+        res
+          .status(400)
+          .json({ error: "No subscription found for this organization" });
+        return;
+      }
+
+      // Get subscription details from Stripe
+      const subscription = await stripe.subscriptions.list({
+        customer: org.stripeCustomerId,
+        limit: 1,
+      });
+
+      if (!subscription.data.length) {
+        res.status(400).json({ error: "No active subscription found" });
+        return;
+      }
+
+      // Update subscription quantity in Stripe
+      await stripe.subscriptions.update(subscription.data[0].id, {
+        items: [
+          {
+            quantity: seats,
+            id: subscription.data[0].items.data[0].id,
+          },
+        ],
+      });
+
+      // Update seats in database
+      await db
+        .update(organizations)
+        .set({ seats, updatedAt: new Date() })
+        .where(eq(organizations.id, orgId));
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error updating seats:", error);
+      res.status(500).json({ error: "Failed to update seats" });
+    }
   },
 };
 
@@ -344,4 +424,6 @@ export default Router()
   .get("/:id/members", isOrgOwner, handle.listMembers)
   .delete("/:id/members/:userId", isOrgOwner, handle.removeMember)
   .get("/:id/invite", isOrgOwner, handle.getInvite)
-  .post("/:id/invite/reset", isOrgOwner, handle.resetInvite);
+  .post("/:id/invite/reset", isOrgOwner, handle.resetInvite)
+  .post("/:id/seats/validate", isOrgOwner, handle.validateSeatUpdate)
+  .put("/:id/seats", isOrgOwner, handle.updateSeats);

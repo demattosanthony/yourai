@@ -4,6 +4,9 @@ import { Button } from "../ui/button";
 import { Minus, Plus } from "lucide-react";
 import { useState } from "react";
 import { Input } from "../ui/input";
+import api from "@/lib/api";
+import { toast } from "sonner";
+import { useUpdateOrganizationSeatsMutation } from "@/queries/queries";
 
 export default function OrgManageSeats({
   org,
@@ -23,7 +26,37 @@ export default function OrgManageSeats({
     | undefined;
 }) {
   const [seats, setSeats] = useState(org.seats);
+  const [isLoading, setIsLoading] = useState(false);
   const hasChanges = seats !== org.seats;
+  const memberCount = members?.length || 0;
+  const updateSeats = useUpdateOrganizationSeatsMutation();
+
+  const handleSave = async () => {
+    try {
+      setIsLoading(true);
+
+      // First validate the seat update
+      const validation = await api.validateSeatUpdate(org.id, seats);
+      if (!validation.success) {
+        toast.error(validation.error || "Failed to update seats");
+        return;
+      }
+
+      // Update the seats using mutation
+      const result = await updateSeats.mutateAsync({ orgId: org.id, seats });
+      if (!result.success) {
+        toast.error(result.error || "Failed to update seats");
+        return;
+      }
+
+      toast.success("Successfully updated seats");
+    } catch (error) {
+      console.error("Failed to update seats:", error);
+      toast.error("Failed to update seats");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <section className="space-y-4">
@@ -40,7 +73,7 @@ export default function OrgManageSeats({
             <div className="flex justify-between text-sm">
               <span></span>
               <span>
-                {members?.length || 0} of {org.seats} seats used
+                {memberCount} of {org.seats} seats used
               </span>
             </div>
 
@@ -48,7 +81,7 @@ export default function OrgManageSeats({
               <div
                 className="h-full bg-primary rounded-full"
                 style={{
-                  width: `${((members?.length || 0) / org.seats) * 100}%`,
+                  width: `${(memberCount / org.seats) * 100}%`,
                 }}
               />
             </div>
@@ -60,17 +93,25 @@ export default function OrgManageSeats({
                   variant="outline"
                   size="sm"
                   className="h-7 w-7"
-                  onClick={() => setSeats((prev) => Math.max(1, prev - 1))}
+                  onClick={() =>
+                    setSeats((prev) => Math.max(memberCount, prev - 1))
+                  }
+                  disabled={isLoading || seats <= memberCount}
                 >
                   <Minus className="h-3 w-3" />
                 </Button>
 
                 <Input
                   value={seats}
-                  onChange={(e) =>
-                    setSeats(Math.max(1, parseInt(e.target.value) || 1))
-                  }
+                  onChange={(e) => {
+                    const value = Math.max(
+                      memberCount,
+                      parseInt(e.target.value) || memberCount
+                    );
+                    setSeats(value);
+                  }}
                   className="w-8 h-7 text-center p-0"
+                  disabled={isLoading}
                 />
 
                 <Button
@@ -79,6 +120,7 @@ export default function OrgManageSeats({
                   size="sm"
                   className="h-7 w-7"
                   onClick={() => setSeats((prev) => prev + 1)}
+                  disabled={isLoading}
                 >
                   <Plus className="h-3 w-3" />
                 </Button>
@@ -87,7 +129,9 @@ export default function OrgManageSeats({
 
             {hasChanges && (
               <div className="flex justify-end mt-4">
-                <Button>Save Changes</Button>
+                <Button onClick={handleSave} disabled={isLoading}>
+                  {isLoading ? "Processing..." : "Update Seats"}
+                </Button>
               </div>
             )}
           </div>
