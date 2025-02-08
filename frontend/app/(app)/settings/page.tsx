@@ -70,9 +70,13 @@ export default function UserSettings() {
   }, []);
 
   return (
-    <div className="max-w-2xl mx-auto py-20 px-6 w-full">
-      <Tabs value={tab} onValueChange={handleTabChange} className="w-full">
-        <div className="flex items-center justify-between mb-8">
+    <div className="max-w-2xl mx-auto pt-20 px-6 w-full h-screen flex flex-col">
+      <Tabs
+        value={tab}
+        onValueChange={handleTabChange}
+        className="w-full h-full flex flex-col"
+      >
+        <div className="flex items-center justify-between mb-8 flex-shrink-0">
           <h1 className="text-xl font-semibold">Settings</h1>
           <TabsList className="bg-transparent p-0 h-9 gap-6">
             <TabsTrigger
@@ -102,7 +106,7 @@ export default function UserSettings() {
         </div>
 
         {/* Profile Picture Section */}
-        <TabsContent value="account" className="h-full">
+        <TabsContent value="account" className="h-full overflow-y-auto">
           <div className="space-y-6 h-full">
             <section>
               <div className="flex items-center justify-between">
@@ -217,14 +221,10 @@ export default function UserSettings() {
           </TabsContent>
         )}
 
-        <TabsContent value="organization">
-          <div className="space-y-6">
-            <section>
-              {activeWorkspace && activeWorkspace.type === "organization" && (
-                <OrganizationSettings orgId={activeWorkspace?.id} />
-              )}
-            </section>
-          </div>
+        <TabsContent value="organization" className="h-full overflow-y-auto">
+          {activeWorkspace && activeWorkspace.type === "organization" && (
+            <OrganizationSettings orgId={activeWorkspace?.id} />
+          )}
         </TabsContent>
       </Tabs>
     </div>

@@ -1,6 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import {
+  useDeleteOrganizationMutation,
   useMeQuery,
   useOrganizationInviteTokenQuery,
   useOrganizationMembersQuery,
@@ -22,6 +23,17 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "../ui/alert-dialog";
 
 export function OrganizationSettings({ orgId }: { orgId: string }) {
   const { data: user } = useMeQuery();
@@ -32,6 +44,7 @@ export function OrganizationSettings({ orgId }: { orgId: string }) {
   const { data: inviteLinkData } = useOrganizationInviteTokenQuery(orgId);
   const regenerateTokenLinkMutation = useResetOrganizationInviteTokenMutation();
   const removeMemberMutation = useRemoveOrganizationMemberMutation();
+  const deleteOrgMutation = useDeleteOrganizationMutation();
 
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [newLogoFile, setNewLogoFile] = useState<File | null>(null);
@@ -287,6 +300,49 @@ export function OrganizationSettings({ orgId }: { orgId: string }) {
             ))}
           </div>
         </Card>
+      </section>
+
+      {/* Danger Zone Section */}
+      <section className="flex items-center justify-between">
+        <div className="space-y-1">
+          <h2 className="text-base font-medium">Danger Zone</h2>
+          <p className="text-sm text-muted-foreground">
+            Delete your organization and all its data permanently.
+          </p>
+        </div>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="destructive">Delete Organization</Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. This will permanently delete your
+                organization and all associated data.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={async () => {
+                  try {
+                    await deleteOrgMutation.mutateAsync(orgId);
+                    toast.success("Organization deleted successfully");
+
+                    // Redirect to home
+                    window.location.href = "/";
+                  } catch (error) {
+                    toast.error("Failed to delete organization");
+                  }
+                }}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Delete Organization
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </section>
     </div>
   );

@@ -36,6 +36,8 @@ export default function Home() {
   const { data: user } = useMeQuery();
   const { activeWorkspace } = useWorkspace();
 
+  console.log(`user`, user);
+
   const chatInputRef = useRef<ChatInputFormRef>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
