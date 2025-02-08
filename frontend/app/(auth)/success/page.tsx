@@ -54,6 +54,8 @@ const SuccessPageContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const session_id = searchParams.get("session_id");
+  const organization_id = searchParams.get("organization_id");
+
   const [status, setStatus] = useState<Status>("processing");
 
   useEffect(() => {
@@ -65,7 +67,11 @@ const SuccessPageContent = () => {
       }
 
       try {
-        const response = await api.syncAfterSuccess(session_id);
+        const response = await api.syncAfterSuccess(
+          session_id,
+          organization_id || undefined
+        );
+
         if (response.ok) {
           setStatus("success");
           setTimeout(() => router.push("/"), 1500);

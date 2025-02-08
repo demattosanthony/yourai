@@ -4,4 +4,12 @@ export type Workspace = {
   type: "personal" | "organization";
   logo?: string;
   subscriptionPlan?: string;
+  subscriptionStatus?:
+    | "active"
+    | "canceled"
+    | "incomplete"
+    | "incomplete_expired"
+    | "past_due"
+    | "trialing"
+    | "unpaid";
 };

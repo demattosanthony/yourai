@@ -27,6 +27,15 @@ export interface Organization {
   name: string;
   slug: string;
   seats: number;
+  stripeCustomerId: string;
+  subscriptionStatus:
+    | "active"
+    | "canceled"
+    | "incomplete"
+    | "incomplete_expired"
+    | "past_due"
+    | "trialing"
+    | "unpaid";
   domain?: string;
   logo?: string;
   createdAt: string;

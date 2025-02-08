@@ -283,13 +283,16 @@ class ApiClient {
     return data.url;
   }
 
-  async syncAfterSuccess(sessionId: string) {
+  async syncAfterSuccess(sessionId: string, organizationId?: string) {
     const response = await fetch(
       `${this.baseUrl}/payments/sync-after-success`,
       {
         method: "POST",
         credentials: "include",
-        body: JSON.stringify({ session_id: sessionId }),
+        body: JSON.stringify({
+          session_id: sessionId,
+          organization_id: organizationId,
+        }),
         headers: {
           "Content-Type": "application/json",
         },

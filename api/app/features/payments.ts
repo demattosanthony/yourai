@@ -66,7 +66,9 @@ const ops = {
         customer: customerId,
         line_items: [{ price: prices.data[0].id, quantity: quantity }],
         mode: "subscription",
-        success_url: `${process.env.FRONTEND_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
+        success_url: organizationId
+          ? `${process.env.FRONTEND_URL}/success?session_id={CHECKOUT_SESSION_ID}&organization_id=${organizationId}`
+          : `${process.env.FRONTEND_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: process.env.FRONTEND_URL,
         metadata: organizationId
           ? { organization_id: organizationId }
@@ -120,21 +122,28 @@ const ops = {
 const handlers = {
   createCheckoutSession: async (req: Request, res: Response) => {
     try {
-      const { lookup_key, organization_id, seat_count } = req.body;
+      const { organization_id, seats } = req.body;
+
+      let stripeCustomerId: string | undefined;
+
+      if (organization_id) {
+        // Get organization's stripe customer ID
+        const org = await db.query.organizations.findFirst({
+          where: eq(organizations.id, organization_id),
+        });
+
+        stripeCustomerId = org?.stripeCustomerId || undefined;
+      } else {
+        stripeCustomerId = req.dbUser?.stripeCustomerId || undefined;
+      }
 
       const session = await ops.checkout.createSession({
         userId: req.dbUser!.id,
         email: req.dbUser!.email,
-        lookupKey: lookup_key,
-        stripeCustomerId: organization_id
-          ? (
-              await db.query.organizations.findFirst({
-                where: eq(organizations.id, organization_id),
-              })
-            )?.stripeCustomerId || undefined
-          : undefined,
-        quantity: seat_count || 1,
+        lookupKey: req.body.lookup_key,
+        stripeCustomerId: stripeCustomerId,
         organizationId: organization_id,
+        quantity: seats,
       });
 
       res.json({ url: session.url });
@@ -146,12 +155,32 @@ const handlers = {
 
   syncAfterSuccess: async (req: Request, res: Response) => {
     try {
-      if (!req.dbUser?.stripeCustomerId) {
-        res.status(400).json({ error: "No Stripe customer ID found" });
-        return;
+      const { organization_id } = req.body;
+      let stripeCustomerId: string | undefined;
+
+      if (organization_id) {
+        // Get organization's stripe customer ID
+        const org = await db.query.organizations.findFirst({
+          where: eq(organizations.id, organization_id),
+        });
+
+        if (!org?.stripeCustomerId) {
+          res.status(400).json({
+            error: "No billing information found for this organization",
+          });
+          return;
+        }
+        stripeCustomerId = org.stripeCustomerId;
+      } else {
+        // Use user's stripe customer ID
+        if (!req.dbUser?.stripeCustomerId) {
+          res.status(400).json({ error: "No billing information found" });
+          return;
+        }
+        stripeCustomerId = req.dbUser.stripeCustomerId;
       }
 
-      await syncStripeData(req.dbUser.stripeCustomerId);
+      await syncStripeData(stripeCustomerId);
       res.status(200).json({ message: "Successfully synced data" });
     } catch (error) {
       console.error("Error syncing after success:", error);

@@ -28,8 +28,6 @@ export const allowedEvents: Stripe.Event.Type[] = [
 
 export async function syncStripeData(customerId: string) {
   try {
-    console.log("Syncing Stripe data for customer:", customerId);
-
     // Fetch latest subscription data from Stripe
     const stripeSubscriptions = await stripe.subscriptions.list({
       customer: customerId,
@@ -92,7 +90,19 @@ export async function syncStripeData(customerId: string) {
       | "trialing"
       | "unpaid";
     const priceId = subscription.items.data[0].price.id;
-    const plan = "pro"; // Hardcoded for now, but could be dynamic based on price ID
+
+    // Get the price lookup from Stripe
+    let plan: "free" | "pro" | "teams" = "free";
+
+    const priceObject = await stripe.prices.retrieve(priceId);
+    const lookupKey = priceObject.lookup_key;
+
+    // Match the lookup key to determine the plan
+    if (lookupKey === "yo-pro-plan") {
+      plan = "pro";
+    } else if (lookupKey === "yo-teams-plan") {
+      plan = "teams";
+    }
 
     // Update organization or user based on the flag.
     if (isOrganization) {

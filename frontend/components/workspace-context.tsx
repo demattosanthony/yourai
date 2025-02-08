@@ -24,6 +24,8 @@ export const WorkspaceProvider = ({
   const { data: user } = useMeQuery();
   const [workspaces, setWorkspaces] = React.useState<Workspace[]>([]);
 
+  console.log(`workspace: `, activeWorkspace);
+
   // Determine initial workspace (personal or stored)
   React.useEffect(() => {
     if (user) {
@@ -42,6 +44,7 @@ export const WorkspaceProvider = ({
         name: member.organization.name,
         type: "organization" as const,
         logo: member.organization.logo,
+        subscriptionStatus: member.organization.subscriptionStatus,
       }));
 
       const allWorkspaces = [personalWorkspace, ...organizationWorkspaces];
