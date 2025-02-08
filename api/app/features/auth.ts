@@ -110,7 +110,9 @@ const handlers = {
         // Verify and process invite
         const invite = await ops.verifyInvite(state);
         await ops.joinOrganization(invite.organizationId as string, user.id);
-        res.redirect(`${process.env.FRONTEND_URL}?invite_success=true`);
+        res.redirect(
+          `${process.env.FRONTEND_URL}?orgJoined=true&orgId=${invite.organizationId}`
+        );
         return;
       } catch (error: any) {
         res.redirect(`${process.env.FRONTEND_URL}?error=${error.message}`);

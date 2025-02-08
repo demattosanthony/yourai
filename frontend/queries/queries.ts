@@ -193,3 +193,10 @@ export function useOrgQuery(orgId: string) {
     queryFn: () => api.getOrg(orgId),
   });
 }
+
+export function useOrgFromInviteToken(token: string) {
+  return useQuery({
+    queryKey: ["organization-from-invite", token],
+    queryFn: () => api.getOrgFromInviteToken(token),
+  });
+}

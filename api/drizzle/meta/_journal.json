@@ -127,6 +127,13 @@
       "when": 1738951911053,
       "tag": "0017_panoramic_hydra",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1739043512390,
+      "tag": "0018_fantastic_vindicator",
+      "breakpoints": true
     }
   ]
 }

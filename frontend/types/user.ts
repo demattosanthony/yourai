@@ -26,6 +26,7 @@ export interface Organization {
   id: string;
   name: string;
   slug: string;
+  seats: number;
   domain?: string;
   logo?: string;
   createdAt: string;

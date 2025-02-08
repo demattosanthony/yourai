@@ -12,7 +12,7 @@ export default async function MainAppLayout({
 }) {
   const user = await me();
   const cookieStore = await cookies();
-  const defaultOpen = cookieStore.get("sidebar:state")?.value === "true";
+  const defaultOpen = cookieStore.get("sidebar:state")?.value !== "false";
 
   return (
     <SidebarProvider defaultOpen={defaultOpen}>

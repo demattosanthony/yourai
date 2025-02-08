@@ -48,6 +48,7 @@ const schemas = {
     name: z.string().min(1),
     domain: z.string().optional(),
     logo: z.string().optional(),
+    seats: z.number().optional(),
     saml: z
       .object({
         entryPoint: z.string().url().optional(),
@@ -123,24 +124,12 @@ const ops = {
     }
 
     return db.transaction(async (tx) => {
-      const values: {
-        name: string;
-        slug?: string;
-        domain?: string;
-        logo?: string;
-      } = {
+      const values = {
         name: data.name,
+        ...(data.domain && { domain: data.domain, slug }),
+        ...(data.logo && { logo: data.logo }),
+        ...(data.seats && { seats: data.seats }),
       };
-
-      // Only add domain and slug if they exist
-      if (data.domain) {
-        values.domain = data.domain;
-        values.slug = slug;
-      }
-
-      if (data.logo) {
-        values.logo = data.logo;
-      }
 
       const [org] = await tx.insert(organizations).values(values).returning();
 

@@ -3,35 +3,38 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import { ArrowLeft, ArrowRight, Camera } from "lucide-react";
+import { ArrowLeft, ArrowRight, Camera, Minus, Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import api from "@/lib/api";
 import AIOrbScene from "@/components/AiOrbScene";
+import { Label } from "../ui/label";
 
 interface CreateOrgFormProps {
-  onComplete?: (org: { id: string }) => void;
+  onComplete?: (org: { id: string; seats: number }) => void;
 
   onBack?: () => void;
   showBackButton?: boolean;
-  includeSamlSetup?: boolean; // Add this new prop
+  includeSamlSetup?: boolean;
 }
 
 export function CreateOrgForm({
   onComplete,
   onBack,
   showBackButton = true,
-  includeSamlSetup = true, // Add default value
+  includeSamlSetup = true,
 }: CreateOrgFormProps) {
   const [step, setStep] = React.useState<"org" | "saml">("org");
 
   // Org details
   const [name, setName] = React.useState("");
   const [domain, setDomain] = React.useState("");
-  const [org, setOrg] = React.useState<{ id: string; slug: string } | null>(
-    null
-  );
+  const [org, setOrg] = React.useState<{
+    id: string;
+    slug: string;
+  } | null>(null);
   const [logo, setLogo] = React.useState<File | null>(null);
+  const [seats, setSeats] = React.useState(5);
 
   // SAML config
   const [entryPoint, setEntryPoint] = React.useState("");
@@ -64,6 +67,7 @@ export function CreateOrgForm({
         name,
         domain,
         logo: fileKey,
+        seats,
       });
       setOrg(org);
       if (includeSamlSetup) {
@@ -90,7 +94,10 @@ export function CreateOrgForm({
       });
 
       if (res && onComplete) {
-        onComplete(org);
+        onComplete({
+          ...org,
+          seats,
+        });
       }
     } catch (error) {
       console.error(error);
@@ -136,7 +143,7 @@ export function CreateOrgForm({
             e.preventDefault();
             handleCreateOrg();
           }}
-          className="flex flex-col gap-4 w-[320px]"
+          className="flex flex-col gap-6 w-[320px]"
         >
           <div className="flex items-center justify-center">
             <label className="relative w-14 h-14 rounded-full bg-accent flex items-center justify-center cursor-pointer overflow-hidden hover:bg-gray-200 transition-colors">
@@ -179,13 +186,42 @@ export function CreateOrgForm({
             autoFocus
             required
           />
-          {/* <Input
-            value={domain}
-            onChange={(e) => setDomain(e.target.value)}
-            placeholder="Domain (e.g., company.com)"
-            className="h-[50px]"
-            required
-          /> */}
+
+          <div className="flex items-center justify-between">
+            <Label className="text-sm text-muted-foreground">
+              Number of Seats
+            </Label>
+            <div className="flex items-center gap-1">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-7 w-7"
+                onClick={() => setSeats((prev) => Math.max(1, prev - 1))}
+              >
+                <Minus className="h-3 w-3" />
+              </Button>
+
+              <Input
+                value={seats}
+                onChange={(e) =>
+                  setSeats(Math.max(1, parseInt(e.target.value) || 1))
+                }
+                className="w-8 h-7 text-center p-0"
+              />
+
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-7 w-7"
+                onClick={() => setSeats((prev) => prev + 1)}
+              >
+                <Plus className="h-3 w-3" />
+              </Button>
+            </div>
+          </div>
+
           <Button
             type="submit"
             className="font-semibold w-full flex justify-center h-[50px]"

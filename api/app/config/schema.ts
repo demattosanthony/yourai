@@ -46,6 +46,7 @@ export const organizations = pgTable("organizations", {
   subscriptionStatus: text("subscription_status", {
     enum: SUBSCRIPTION_STATUS,
   }).default("incomplete"),
+  seats: integer("seats").default(0),
 });
 
 export const organizationMembers = pgTable("organization_members", {

@@ -1,7 +1,7 @@
 import { Router, Request, Response, NextFunction } from "express";
 import { CONFIG } from "./config/constants";
 import { checkTokens, DbUser, sendAuthCookies } from "./createAuthToken";
-import { organizationMembers } from "./config/schema";
+import { organizationInvites, organizationMembers } from "./config/schema";
 import db from "./config/db";
 import { and, eq } from "drizzle-orm";
 
@@ -72,6 +72,33 @@ export default Router()
   .use("/models", modelRoutes)
   .use("/threads", auth, checkSub, threadRoutes)
   .use("/payments", auth, paymentRoutes)
+  .get(
+    "/organizations/invite/:inviteToken",
+    handle(async (req) => {
+      const { inviteToken } = req.params;
+      console.log(inviteToken);
+      const invite = await db.query.organizationInvites.findFirst({
+        where: eq(organizationInvites.token, inviteToken),
+        with: {
+          organization: {
+            columns: {
+              id: true,
+              name: true,
+              slug: true,
+            },
+          },
+        },
+      });
+
+      console.log(invite);
+
+      if (!invite) {
+        return { error: "Invalid invite token" };
+      }
+
+      return { organization: invite.organization };
+    })
+  )
   .use("/organizations", auth, checkSub, organizationRoutes)
   .post(
     "/presigned-url",

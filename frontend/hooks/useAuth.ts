@@ -1,5 +1,6 @@
 "use client";
 
+import { useWorkspace } from "@/components/workspace-context";
 import api from "@/lib/api";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
@@ -9,6 +10,7 @@ import { toast } from "sonner";
 export const useAuth = () => {
   const queryClient = useQueryClient();
   const router = useRouter();
+  const { activeWorkspace, setActiveWorkspace } = useWorkspace();
 
   async function logOut() {
     await api.logout();
@@ -52,17 +54,41 @@ export const useAuth = () => {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const error = params.get("error");
+    const orgJoined = params.get("orgJoined");
+    const orgId = params.get("orgId");
 
     if (error === "unauthorized") {
       toast("You do not have access", {
         description: "This app is whitelist only for now.",
       });
-
-      // Optionally clear the URL parameter
-      const newUrl = window.location.pathname;
-      window.history.replaceState({}, "", newUrl);
     }
-  }, []);
+
+    if (orgJoined === "true" && orgId) {
+      // Find the org workspace and set it as active
+      setTimeout(async () => {
+        const workspaces = queryClient.getQueryData<any>([
+          "me",
+        ])?.organizationMembers;
+        const orgWorkspace = workspaces?.find(
+          (w: any) => w.organization.id === orgId
+        );
+
+        if (orgWorkspace) {
+          const workspace = {
+            id: orgWorkspace.organization.id,
+            name: orgWorkspace.organization.name,
+            type: "organization" as const,
+            logo: orgWorkspace.organization.logo,
+          };
+          setActiveWorkspace(workspace);
+        }
+      }, 1000); // Add 1 second delay
+    }
+
+    // Clear URL parameters
+    const newUrl = window.location.pathname;
+    window.history.replaceState({}, "", newUrl);
+  }, [queryClient]);
 
   return { logOut, handleGoogleLogin, handleSSOLogin, handleJoinOrg };
 };

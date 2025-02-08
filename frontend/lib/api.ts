@@ -62,6 +62,18 @@ class ApiClient {
     return await response.json();
   }
 
+  async getOrgFromInviteToken(token: string): Promise<{
+    organization: Organization;
+  }> {
+    const response = await fetch(
+      `${this.baseUrl}/organizations/invite/${token}`,
+      {
+        method: "GET",
+      }
+    );
+    return await response.json();
+  }
+
   async listOrganizations(
     page = 1,
     limit = 10
@@ -90,6 +102,7 @@ class ApiClient {
     logo?: string;
     ownerEmail?: string;
     ownerName?: string;
+    seats?: number;
     saml?: {
       entryPoint: string;
       issuer: string;

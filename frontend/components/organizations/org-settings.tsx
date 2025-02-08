@@ -12,7 +12,7 @@ import {
 } from "@/queries/queries";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Input } from "../ui/input";
-import { Camera, Check, Copy, Ellipsis } from "lucide-react";
+import { Camera, Check, Copy, Ellipsis, Minus, Plus } from "lucide-react";
 import { Button } from "../ui/button";
 import { useEffect, useState } from "react";
 import api from "@/lib/api";
@@ -34,6 +34,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "../ui/alert-dialog";
+import OrgManageSeats from "./org-manage-seats";
 
 export function OrganizationSettings({ orgId }: { orgId: string }) {
   const { data: user } = useMeQuery();
@@ -60,7 +61,7 @@ export function OrganizationSettings({ orgId }: { orgId: string }) {
   if (!org) return null;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-10">
       {/* Organization Details Section */}
       <section className="space-y-4">
         <div className="space-y-1">
@@ -158,30 +159,7 @@ export function OrganizationSettings({ orgId }: { orgId: string }) {
         </Card>
       </section>
 
-      <section className="space-y-4">
-        <Card className="p-6">
-          <div className="flex justify-between items-center">
-            <div>
-              <h2 className="text-lg font-semibold">Billing</h2>
-              <p className="text-sm text-gray-600">
-                Manage your billing information and subscription details.
-              </p>
-            </div>
-            <Button
-              onClick={async () => {
-                try {
-                  const url = await api.createPortalSession(orgId);
-                  window.location.href = url;
-                } catch (error) {
-                  console.error("Error opening billing portal:", error);
-                }
-              }}
-            >
-              Manage Billing
-            </Button>
-          </div>
-        </Card>
-      </section>
+      <OrgManageSeats org={org} members={members} />
 
       <section className="space-y-4">
         <div className="space-y-1">
@@ -300,6 +278,27 @@ export function OrganizationSettings({ orgId }: { orgId: string }) {
             ))}
           </div>
         </Card>
+      </section>
+
+      <section className="flex justify-between items-center">
+        <div>
+          <h2 className="text-lg font-semibold">Billing</h2>
+          <p className="text-sm text-muted-foreground">
+            Manage your billing information and subscription details.
+          </p>
+        </div>
+        <Button
+          onClick={async () => {
+            try {
+              const url = await api.createPortalSession(orgId);
+              window.location.href = url;
+            } catch (error) {
+              console.error("Error opening billing portal:", error);
+            }
+          }}
+        >
+          Manage Billing
+        </Button>
       </section>
 
       {/* Danger Zone Section */}

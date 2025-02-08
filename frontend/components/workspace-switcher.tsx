@@ -30,9 +30,16 @@ export function WorkSpaceSwitcher() {
 
   const { setActiveWorkspace, activeWorkspace, workspaces } = useWorkspace();
 
-  const handleCreateOrgComplete = async (org: { id: string }) => {
+  const handleCreateOrgComplete = async (org: {
+    id: string;
+    seats: number;
+  }) => {
     // go to checkout for the org
-    const url = await api.createCheckoutSession("yo-teams-plan", 1, org.id);
+    const url = await api.createCheckoutSession(
+      "yo-teams-plan",
+      org.seats,
+      org.id
+    );
     window.location.href = url;
   };
 
