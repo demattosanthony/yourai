@@ -31,7 +31,6 @@ import { Collapsible } from "./ui/collapsible";
 import Link from "next/link";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useParams, usePathname } from "next/navigation";
-import AIOrbScene from "./AiOrbScene";
 import { User } from "@/types/user";
 import {
   DropdownMenu,

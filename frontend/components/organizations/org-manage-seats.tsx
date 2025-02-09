@@ -59,84 +59,80 @@ export default function OrgManageSeats({
   };
 
   return (
-    <section className="space-y-4">
-      <Card className="p-6">
-        <div className="flex justify-between items-start">
-          <div className="space-y-1">
-            <h2 className="text-lg font-semibold">Seats</h2>
-            <p className="text-sm text-muted-foreground">
-              Manage your organization's seat allocation
-            </p>
-          </div>
+    <section className="flex justify-between items-center">
+      <div>
+        <h2 className="text-base font-medium">Seats</h2>
+        <p className="text-sm text-muted-foreground">
+          Manage your organization's seat allocation
+        </p>
+      </div>
 
-          <div className="space-y-4">
-            <div className="flex justify-between text-sm">
-              <span></span>
-              <span>
-                {memberCount} of {org.seats} seats used
-              </span>
-            </div>
+      <div className="space-y-4">
+        <div className="flex justify-between text-sm">
+          <span></span>
+          <span>
+            {memberCount} of {org.seats} seats used
+          </span>
+        </div>
 
-            <div className="h-2 bg-secondary rounded-full overflow-hidden w-[225px]">
-              <div
-                className="h-full bg-primary rounded-full"
-                style={{
-                  width: `${(memberCount / org.seats) * 100}%`,
-                }}
-              />
-            </div>
+        <div className="h-2 bg-secondary rounded-full overflow-hidden w-[225px]">
+          <div
+            className="h-full bg-primary rounded-full"
+            style={{
+              width: `${(memberCount / org.seats) * 100}%`,
+            }}
+          />
+        </div>
 
-            <div className="flex justify-end">
-              <div className="flex items-center gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="h-7 w-7"
-                  onClick={() =>
-                    setSeats((prev) => Math.max(memberCount, prev - 1))
-                  }
-                  disabled={isLoading || seats <= memberCount}
-                >
-                  <Minus className="h-3 w-3" />
-                </Button>
+        <div className="flex justify-end">
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-7 w-7"
+              onClick={() =>
+                setSeats((prev) => Math.max(memberCount, prev - 1))
+              }
+              disabled={isLoading || seats <= memberCount}
+            >
+              <Minus className="h-3 w-3" />
+            </Button>
 
-                <Input
-                  value={seats}
-                  onChange={(e) => {
-                    const value = Math.max(
-                      memberCount,
-                      parseInt(e.target.value) || memberCount
-                    );
-                    setSeats(value);
-                  }}
-                  className="w-8 h-7 text-center p-0"
-                  disabled={isLoading}
-                />
+            <Input
+              value={seats}
+              onChange={(e) => {
+                const value = Math.max(
+                  memberCount,
+                  parseInt(e.target.value) || memberCount
+                );
+                setSeats(value);
+              }}
+              className="w-8 h-7 text-center p-0"
+              disabled={isLoading}
+            />
 
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="h-7 w-7"
-                  onClick={() => setSeats((prev) => prev + 1)}
-                  disabled={isLoading}
-                >
-                  <Plus className="h-3 w-3" />
-                </Button>
-              </div>
-            </div>
-
-            {hasChanges && (
-              <div className="flex justify-end mt-4">
-                <Button onClick={handleSave} disabled={isLoading}>
-                  {isLoading ? "Processing..." : "Update Seats"}
-                </Button>
-              </div>
-            )}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-7 w-7"
+              onClick={() => setSeats((prev) => prev + 1)}
+              disabled={isLoading}
+            >
+              <Plus className="h-3 w-3" />
+            </Button>
           </div>
         </div>
-      </Card>
+
+        {hasChanges && (
+          <div className="flex justify-end mt-4">
+            <Button onClick={handleSave} disabled={isLoading}>
+              {isLoading ? "Processing..." : "Update Seats"}
+            </Button>
+          </div>
+        )}
+      </div>
     </section>
   );
 }

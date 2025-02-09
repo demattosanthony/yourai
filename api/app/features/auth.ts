@@ -156,11 +156,12 @@ const handlers = {
       // Verify invite token first
       const invite = await ops.verifyInvite(token);
 
-      // Check seats before authentication
+      // Check seats and subscription status before authentication
       const org = await db.query.organizations.findFirst({
         where: eq(organizations.id, invite.organizationId as string),
         columns: {
           seats: true,
+          subscriptionStatus: true,
         },
         with: {
           members: {
@@ -170,6 +171,11 @@ const handlers = {
           },
         },
       });
+
+      if (org?.subscriptionStatus !== "active") {
+        res.status(403).json({ error: "inactive_subscription" });
+        return;
+      }
 
       if (org?.seats && org.members.length >= org.seats) {
         res.status(403).json({ error: "insufficient_seats" });

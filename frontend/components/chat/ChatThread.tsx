@@ -24,6 +24,7 @@ import { useEffect } from "react";
 // Components
 import ChatInputForm from "@/components/chat/ChatInputForm";
 import ChatMessagesList from "@/components/chat/MessagesList";
+import { useWorkspace } from "../workspace-context";
 
 type ExtendedAttachment = Attachment & {
   file_key: string;
@@ -46,6 +47,8 @@ export default function ThreadPage({
   const [temperature] = useAtom(temperatureAtom);
   const [instructions] = useAtom(instructionsAtom);
 
+  const { activeWorkspace } = useWorkspace();
+
   const {
     input,
     setInput,
@@ -55,7 +58,11 @@ export default function ThreadPage({
     isLoading,
     stop,
   } = useChat({
-    api: `${process.env.NEXT_PUBLIC_API_URL}/threads/${threadId}/inference`,
+    api: `${process.env.NEXT_PUBLIC_API_URL}/threads/${threadId}/inference${
+      activeWorkspace?.type === "organization"
+        ? `?organizationId=${activeWorkspace.id}`
+        : ""
+    }`,
     credentials: "include",
     initialInput: isNew ? initalInput : "",
     initialMessages: initalMessages,

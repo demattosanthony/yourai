@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { ChevronDown, Command, Plus } from "lucide-react";
+import { Building, ChevronDown, Plus } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -69,7 +69,7 @@ export function WorkSpaceSwitcher() {
             className="h-6 w-6 rounded-full"
           />
         ) : (
-          <Command className="h-4 w-4 rounded-full" />
+          <Building className="h-4 w-4 rounded-full" />
         )}
       </div>
     );

@@ -2,6 +2,7 @@
 
 import { useWorkspace } from "@/components/workspace-context";
 import api from "@/lib/api";
+import { Workspace } from "@/types/workspace";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -43,6 +44,10 @@ export const useAuth = () => {
         return { insufficientSeats: true };
       }
 
+      if (result.inactiveSubscription) {
+        return { inactiveSubscription: true };
+      }
+
       if (result.requiresAuth) {
         return { requiresAuth: true };
       }
@@ -78,11 +83,12 @@ export const useAuth = () => {
         );
 
         if (orgWorkspace) {
-          const workspace = {
+          const workspace: Workspace = {
             id: orgWorkspace.organization.id,
             name: orgWorkspace.organization.name,
             type: "organization" as const,
             logo: orgWorkspace.organization.logo,
+            subscriptionStatus: orgWorkspace.organization.subscriptionStatus,
           };
           setActiveWorkspace(workspace);
         }

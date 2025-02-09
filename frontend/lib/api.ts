@@ -35,6 +35,7 @@ class ApiClient {
     requiresAuth?: boolean;
     error?: string;
     insufficientSeats?: boolean;
+    inactiveSubscription?: boolean;
   }> {
     const response = await fetch(`${this.baseUrl}/auth/invite/${token}`, {
       method: "POST",
@@ -47,8 +48,13 @@ class ApiClient {
       return { requiresAuth: true };
     }
 
-    if (response.status === 403 && data.error === "insufficient_seats") {
-      return { insufficientSeats: true, error: data.error };
+    if (response.status === 403) {
+      if (data.error === "insufficient_seats") {
+        return { insufficientSeats: true };
+      }
+      if (data.error === "inactive_subscription") {
+        return { inactiveSubscription: true };
+      }
     }
 
     if (!response.ok) {
@@ -259,7 +265,7 @@ class ApiClient {
 
   async createCheckoutSession(
     lookupKey: string,
-    seat_count?: number,
+    seats?: number,
     organization_id?: string
   ): Promise<string> {
     const response = await fetch(
@@ -272,7 +278,7 @@ class ApiClient {
         credentials: "include",
         body: JSON.stringify({
           lookup_key: lookupKey,
-          seat_count,
+          seats,
           organization_id,
         }),
       }
@@ -420,11 +426,12 @@ class ApiClient {
       }
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => null);
-        throw new Error(
-          errorData?.message ||
-            `Failed to fetch threads: ${response.status} ${response.statusText}`
-        );
+        // const errorData = await response.json().catch(() => null);
+        // throw new Error(
+        //   errorData?.message ||
+        //     `Failed to fetch threads: ${response.status} ${response.statusText}`
+        // );
+        return [];
       }
 
       return await response.json();
@@ -444,8 +451,12 @@ class ApiClient {
    * @param threadId - ID of the thread to retrieve
    * @returns Promise containing thread object with messages
    */
-  async getThread(threadId: string): Promise<Thread> {
-    const url = `${this.baseUrl}/threads/${threadId}`;
+  async getThread(threadId: string, organizationId?: string): Promise<Thread> {
+    let url = `${this.baseUrl}/threads/${threadId}`;
+
+    if (organizationId) {
+      url += `?organizationId=${organizationId}`;
+    }
 
     const response = await fetch(url, {
       method: "GET",

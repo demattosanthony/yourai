@@ -1,6 +1,5 @@
 import { useWorkspace } from "@/components/workspace-context";
 import api from "@/lib/api";
-import { Thread } from "@/types/chat";
 import {
   useInfiniteQuery,
   useMutation,
@@ -15,11 +14,11 @@ export function useMeQuery() {
   });
 }
 
-export function useThreadsQuery(search?: string, initialThreads?: Thread[]) {
+export function useThreadsQuery(search?: string) {
   const { activeWorkspace } = useWorkspace();
 
   return useInfiniteQuery({
-    queryKey: ["threads", activeWorkspace?.id, search],
+    queryKey: ["threads", search, activeWorkspace?.id],
     queryFn: async ({ pageParam = 1 }) => {
       const threads = await api.getThreads(
         pageParam,
@@ -39,9 +38,17 @@ export function useThreadsQuery(search?: string, initialThreads?: Thread[]) {
 }
 
 export function useThreadQuery(threadId: string, isNewThread: boolean) {
+  const { activeWorkspace } = useWorkspace();
+
   return useQuery({
-    queryKey: ["thread", threadId],
-    queryFn: () => api.getThread(threadId),
+    queryKey: ["thread", threadId, activeWorkspace?.id],
+    queryFn: () =>
+      api.getThread(
+        threadId,
+        activeWorkspace?.type === "organization"
+          ? activeWorkspace.id
+          : undefined
+      ),
     enabled: !isNewThread, // Only fetch if it's not a new thread
     staleTime: 1000 * 60 * 5, // Consider data fresh for 5 minutes
     refetchOnWindowFocus: false,
@@ -62,7 +69,11 @@ export function useDeleteThreadMutation() {
       ),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["threads", activeWorkspace?.id],
+        queryKey: ["threads"],
+        predicate: (query) => {
+          const [key, search, workspaceId] = query.queryKey;
+          return key === "threads" && workspaceId === activeWorkspace?.id;
+        },
       });
     },
   });

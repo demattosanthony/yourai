@@ -1,9 +1,9 @@
 import { Router, Request, Response, NextFunction } from "express";
 import { CONFIG } from "./config/constants";
 import { checkTokens, DbUser, sendAuthCookies } from "./createAuthToken";
-import { organizationInvites, organizationMembers } from "./config/schema";
+import { organizationInvites, organizations } from "./config/schema";
 import db from "./config/db";
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 
 // Routes
 import authRoutes from "./features/auth";
@@ -48,9 +48,28 @@ export const checkSub = async (req: any, res: any, next: any) => {
   if (!CONFIG.__prod__ || CONFIG.EMAIL_WHITELIST.includes(req.dbUser.email))
     return next();
 
+  // Check if request has organizationId (indicating org workspace request)
+  const organizationId = req.body?.organizationId || req.query?.organizationId;
+
+  if (organizationId) {
+    // Check organization subscription
+    const org = await db.query.organizations.findFirst({
+      where: eq(organizations.id, organizationId),
+    });
+
+    if (
+      org &&
+      ["trialing", "active"].includes(org.subscriptionStatus as string)
+    ) {
+      return next();
+    }
+  }
+
+  // Fallback to checking user's personal subscription
   if (!["trialing", "active"].includes(req.dbUser?.subscriptionStatus)) {
     return res.status(402).json({ error: "Subscription required" });
   }
+
   next();
 };
 

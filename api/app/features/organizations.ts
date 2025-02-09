@@ -372,35 +372,26 @@ const handle = {
         },
       });
 
-      if (!org?.stripeCustomerId) {
-        res
-          .status(400)
-          .json({ error: "No subscription found for this organization" });
-        return;
+      // If there's a Stripe customer, update their subscription
+      if (org?.stripeCustomerId) {
+        const subscription = await stripe.subscriptions.list({
+          customer: org.stripeCustomerId,
+          limit: 1,
+        });
+
+        if (subscription.data.length) {
+          await stripe.subscriptions.update(subscription.data[0].id, {
+            items: [
+              {
+                quantity: seats,
+                id: subscription.data[0].items.data[0].id,
+              },
+            ],
+          });
+        }
       }
 
-      // Get subscription details from Stripe
-      const subscription = await stripe.subscriptions.list({
-        customer: org.stripeCustomerId,
-        limit: 1,
-      });
-
-      if (!subscription.data.length) {
-        res.status(400).json({ error: "No active subscription found" });
-        return;
-      }
-
-      // Update subscription quantity in Stripe
-      await stripe.subscriptions.update(subscription.data[0].id, {
-        items: [
-          {
-            quantity: seats,
-            id: subscription.data[0].items.data[0].id,
-          },
-        ],
-      });
-
-      // Update seats in database
+      // Update seats in database regardless of subscription status
       await db
         .update(organizations)
         .set({ seats, updatedAt: new Date() })

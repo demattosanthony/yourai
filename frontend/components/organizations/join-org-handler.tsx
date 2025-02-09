@@ -28,6 +28,7 @@ export default function JoinOrgHandler({ token }: { token: string }) {
 
     try {
       const result = await handleJoinOrg(token);
+      console.log(result);
       if (result.requiresAuth) {
         // Redirect to Google login with invite token as state parameter
         window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/auth/google?state=${token}`;
@@ -36,6 +37,12 @@ export default function JoinOrgHandler({ token }: { token: string }) {
       if (result.insufficientSeats) {
         setError(
           "This organization has reached its seat limit. Please contact your organization administrator to increase the number of seats."
+        );
+        return;
+      }
+      if (result.inactiveSubscription) {
+        setError(
+          "This organization's subscription is not active. Please contact your organization administrator."
         );
         return;
       }
@@ -67,12 +74,6 @@ export default function JoinOrgHandler({ token }: { token: string }) {
 
   return (
     <div className="min-h-screen flex flex-col items-center px-4 py-12 h-full">
-      <div className="absolute top-1 left-1">
-        <Button onClick={() => router.back()} size="icon" variant="ghost">
-          <ArrowLeft size={24} />
-        </Button>
-      </div>
-
       <main className="flex flex-col gap-8 items-center w-full justify-center h-[75%]">
         <AIOrbScene height="75px" width="75px" isAnimating={true} />
 

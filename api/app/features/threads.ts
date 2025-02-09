@@ -176,9 +176,14 @@ ${conversationText}`,
       return { id };
     },
 
-    getThread: async (threadId: string) => {
+    getThread: async (threadId: string, organizationId?: string) => {
       const thread = await db.query.threads.findFirst({
-        where: eq(threads.id, threadId),
+        where: and(
+          eq(threads.id, threadId),
+          organizationId
+            ? eq(threads.organizationId, organizationId)
+            : sql`${threads.organizationId} IS NULL`
+        ),
         with: {
           messages: {
             orderBy: messages.createdAt,
@@ -261,6 +266,7 @@ ${conversationText}`,
 
     inference: async (req: Request, res: Response) => {
       const { threadId } = req.params;
+      const { organizationId } = req.query;
       const { model, maxTokens, temperature, instructions } = req.body;
       const message = req.body.message as Message & {
         experimental_attachments?: ExtendedAttachment[]; // Use ExtendedAttachment instead of Attachment
@@ -274,7 +280,11 @@ ${conversationText}`,
       res.setHeader("Transfer-Encoding", "chunked");
       res.flushHeaders(); // send headers to establish SSE connection
 
-      const thread = await ops.threads.getThread(threadId);
+      const thread = await ops.threads.getThread(
+        threadId,
+        organizationId as string | undefined
+      );
+
       if (!thread) {
         res.status(404).json({ error: "Thread not found" });
         return;
@@ -539,13 +549,19 @@ export default Router()
   )
   .get(
     "/:threadId",
-    handle(async (req) => ops.threads.getThread(req.params.threadId))
+    handle(async (req) => {
+      const { organizationId } = req.query;
+      return ops.threads.getThread(
+        req.params.threadId,
+        organizationId as string | undefined
+      );
+    })
   )
-  .post("/:threadId/inference", (req, res) =>
-    schemas.inference
+  .post("/:threadId/inference", (req, res) => {
+    return schemas.inference
       .parseAsync(req.body)
-      .then(() => ops.threads.inference(req, res))
-  )
+      .then(() => ops.threads.inference(req, res));
+  })
   .delete(
     "/:threadId",
     handle(async (req) => {

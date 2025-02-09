@@ -24,8 +24,6 @@ export const WorkspaceProvider = ({
   const { data: user } = useMeQuery();
   const [workspaces, setWorkspaces] = React.useState<Workspace[]>([]);
 
-  console.log(`workspace: `, activeWorkspace);
-
   // Determine initial workspace (personal or stored)
   React.useEffect(() => {
     if (user) {
