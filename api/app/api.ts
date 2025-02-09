@@ -66,11 +66,17 @@ export const checkSub = async (req: any, res: any, next: any) => {
       },
     });
 
+    if (!org) {
+      return res.status(404).json({ error: "Organization not found" });
+    }
+
     if (
       org &&
       ["trialing", "active"].includes(org.subscriptionStatus as string)
     ) {
       return next();
+    } else {
+      return res.status(402).json({ error: "Subscription required" });
     }
   }
 
