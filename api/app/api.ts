@@ -1,7 +1,11 @@
 import { Router, Request, Response, NextFunction } from "express";
 import { CONFIG } from "./config/constants";
 import { checkTokens, DbUser, sendAuthCookies } from "./createAuthToken";
-import { organizationInvites, organizations } from "./config/schema";
+import {
+  organizationInvites,
+  organizationMembers,
+  organizations,
+} from "./config/schema";
 import db from "./config/db";
 import { eq } from "drizzle-orm";
 
@@ -55,6 +59,11 @@ export const checkSub = async (req: any, res: any, next: any) => {
     // Check organization subscription
     const org = await db.query.organizations.findFirst({
       where: eq(organizations.id, organizationId),
+      with: {
+        members: {
+          where: eq(organizationMembers.userId, req.dbUser.id),
+        },
+      },
     });
 
     if (
