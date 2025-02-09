@@ -92,8 +92,12 @@ export const useAuth = () => {
           setActiveWorkspace(workspace);
         }
 
-        // Clear URL parameters
-        const newUrl = window.location.pathname;
+        // Only clear orgId param
+        const params = new URLSearchParams(window.location.search);
+        params.delete("orgId");
+        const newUrl = `${window.location.pathname}${
+          params.toString() ? `?${params.toString()}` : ""
+        }`;
         window.history.replaceState({}, "", newUrl);
       }, 1000); // Add 1 second delay
     }
