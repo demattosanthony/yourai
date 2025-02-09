@@ -20,6 +20,7 @@ export const handle =
       const data = await fn(req);
       res.json(data as ApiResponse<T>);
     } catch (error) {
+      console.error("Error:", error);
       res.status(500).json({
         error: error instanceof Error ? error.message : "Unknown error",
       } as ApiResponse<T>);

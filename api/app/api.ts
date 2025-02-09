@@ -1,9 +1,13 @@
 import { Router, Request, Response, NextFunction } from "express";
 import { CONFIG } from "./config/constants";
 import { checkTokens, DbUser, sendAuthCookies } from "./createAuthToken";
-import { organizationMembers } from "./config/schema";
+import {
+  organizationInvites,
+  organizationMembers,
+  organizations,
+} from "./config/schema";
 import db from "./config/db";
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 
 // Routes
 import authRoutes from "./features/auth";
@@ -48,9 +52,39 @@ export const checkSub = async (req: any, res: any, next: any) => {
   if (!CONFIG.__prod__ || CONFIG.EMAIL_WHITELIST.includes(req.dbUser.email))
     return next();
 
+  // Check if request has organizationId (indicating org workspace request)
+  const organizationId = req.body?.organizationId || req.query?.organizationId;
+
+  if (organizationId) {
+    // Check organization subscription
+    const org = await db.query.organizations.findFirst({
+      where: eq(organizations.id, organizationId),
+      with: {
+        members: {
+          where: eq(organizationMembers.userId, req.dbUser.id),
+        },
+      },
+    });
+
+    if (!org) {
+      return res.status(404).json({ error: "Organization not found" });
+    }
+
+    if (
+      org &&
+      ["trialing", "active"].includes(org.subscriptionStatus as string)
+    ) {
+      return next();
+    } else {
+      return res.status(402).json({ error: "Subscription required" });
+    }
+  }
+
+  // Fallback to checking user's personal subscription
   if (!["trialing", "active"].includes(req.dbUser?.subscriptionStatus)) {
     return res.status(402).json({ error: "Subscription required" });
   }
+
   next();
 };
 
@@ -67,34 +101,57 @@ export const superAdminMiddleware = async (
   next();
 };
 
-// Organization owner check
-export const isOrgOwner = async (
-  req: any,
-  res: Response,
-  next: NextFunction
-) => {
-  const member = await db.query.organizationMembers.findFirst({
-    where: and(
-      eq(organizationMembers.organizationId, req.params.orgId),
-      eq(organizationMembers.userId, req.dbUser!.id)
-    ),
-  });
-
-  if (!member || member.role !== "owner") {
-    res.status(403).json({ error: "Not authorized" });
-    return;
-  }
-
-  next();
-};
-
 export default Router()
   .use("/auth", authRoutes)
   .use("/models", modelRoutes)
   .use("/threads", auth, checkSub, threadRoutes)
   .post("/payments/webhook", webhook)
   .use("/payments", auth, paymentRoutes)
-  .use("/organizations", auth, superAdminMiddleware, organizationRoutes)
+  .get(
+    "/organizations/invite/:inviteToken",
+    handle(async (req) => {
+      const { inviteToken } = req.params;
+      const invite = await db.query.organizationInvites.findFirst({
+        where: eq(organizationInvites.token, inviteToken),
+        with: {
+          organization: {
+            columns: {
+              id: true,
+              name: true,
+              slug: true,
+              seats: true,
+              logo: true,
+            },
+            with: {
+              members: true, // Include members to count seats used
+            },
+          },
+        },
+      });
+
+      if (!invite) {
+        return { error: "Invalid invite token" };
+      }
+
+      const seatsUsed = invite.organization?.members.length;
+
+      const logoUrl = invite.organization?.logo
+        ? s3.presign(invite.organization.logo, {
+            expiresIn: 3600,
+            method: "GET",
+          })
+        : null;
+
+      return {
+        organization: {
+          ...invite.organization,
+          seatsUsed,
+          logoUrl,
+        },
+      };
+    })
+  )
+  .use("/organizations", auth, organizationRoutes)
   .post(
     "/presigned-url",
     auth,

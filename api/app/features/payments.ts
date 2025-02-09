@@ -1,7 +1,7 @@
 import { Stripe } from "stripe";
 import stripe, { allowedEvents, syncStripeData } from "../config/stripe";
 import db from "../config/db";
-import { users } from "../config/schema";
+import { organizations, users } from "../config/schema";
 import { eq } from "drizzle-orm";
 import { Request, Response, Router } from "express";
 
@@ -10,24 +10,34 @@ export interface CheckoutSessionParams {
   email: string;
   lookupKey: string;
   stripeCustomerId?: string;
+  quantity?: number;
+  organizationId?: string;
 }
 
 export interface PortalSessionParams {
   stripeCustomerId: string;
+  return_url?: string;
 }
 
 const ops = {
   customers: {
-    create: async (email: string, userId: string) => {
+    create: async (email: string, userId: string, organizationId?: string) => {
       const customer = await stripe.customers.create({
         email,
-        metadata: { userId },
+        metadata: organizationId ? { organizationId } : { userId },
       });
 
-      await db
-        .update(users)
-        .set({ stripeCustomerId: customer.id })
-        .where(eq(users.id, userId));
+      if (organizationId) {
+        await db
+          .update(organizations)
+          .set({ stripeCustomerId: customer.id })
+          .where(eq(organizations.id, organizationId));
+      } else {
+        await db
+          .update(users)
+          .set({ stripeCustomerId: customer.id })
+          .where(eq(users.id, userId));
+      }
 
       return customer;
     },
@@ -39,10 +49,13 @@ const ops = {
       email,
       lookupKey,
       stripeCustomerId,
+      organizationId,
+      quantity = 1,
     }: CheckoutSessionParams) => {
       // Create customer if needed
       const customerId =
-        stripeCustomerId || (await ops.customers.create(email, userId)).id;
+        stripeCustomerId ||
+        (await ops.customers.create(email, userId, organizationId)).id;
 
       const prices = await stripe.prices.list({
         lookup_keys: [lookupKey],
@@ -52,21 +65,34 @@ const ops = {
       return stripe.checkout.sessions.create({
         billing_address_collection: "auto",
         customer: customerId,
-        line_items: [{ price: prices.data[0].id, quantity: 1 }],
+        line_items: [{ price: prices.data[0].id, quantity: quantity }],
         mode: "subscription",
-        success_url: `${process.env.FRONTEND_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: process.env.FRONTEND_URL,
-        metadata: { user_id: userId },
-        subscription_data: { metadata: { user_id: userId } },
+        success_url: organizationId
+          ? `${process.env.FRONTEND_URL}/success?session_id={CHECKOUT_SESSION_ID}&organization_id=${organizationId}`
+          : `${process.env.FRONTEND_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: organizationId
+          ? `${process.env.FRONTEND_URL}?orgId=${organizationId}`
+          : `${process.env.FRONTEND_URL}`,
+        metadata: organizationId
+          ? { organization_id: organizationId }
+          : { user_id: userId },
+        subscription_data: {
+          metadata: organizationId
+            ? { organization_id: organizationId }
+            : { user_id: userId },
+        },
       });
     },
   },
 
   portal: {
-    createSession: async ({ stripeCustomerId }: PortalSessionParams) => {
+    createSession: async ({
+      stripeCustomerId,
+      return_url,
+    }: PortalSessionParams) => {
       return stripe.billingPortal.sessions.create({
         customer: stripeCustomerId,
-        return_url: process.env.FRONTEND_URL,
+        return_url: process.env.FRONTEND_URL + (return_url || "/"),
       });
     },
   },
@@ -102,11 +128,28 @@ const ops = {
 const handlers = {
   createCheckoutSession: async (req: Request, res: Response) => {
     try {
+      const { organization_id, seats } = req.body;
+
+      let stripeCustomerId: string | undefined;
+
+      if (organization_id) {
+        // Get organization's stripe customer ID
+        const org = await db.query.organizations.findFirst({
+          where: eq(organizations.id, organization_id),
+        });
+
+        stripeCustomerId = org?.stripeCustomerId || undefined;
+      } else {
+        stripeCustomerId = req.dbUser?.stripeCustomerId || undefined;
+      }
+
       const session = await ops.checkout.createSession({
         userId: req.dbUser!.id,
         email: req.dbUser!.email,
         lookupKey: req.body.lookup_key,
-        stripeCustomerId: req.dbUser?.stripeCustomerId || undefined,
+        stripeCustomerId: stripeCustomerId,
+        organizationId: organization_id,
+        quantity: seats,
       });
 
       res.json({ url: session.url });
@@ -118,12 +161,32 @@ const handlers = {
 
   syncAfterSuccess: async (req: Request, res: Response) => {
     try {
-      if (!req.dbUser?.stripeCustomerId) {
-        res.status(400).json({ error: "No Stripe customer ID found" });
-        return;
+      const { organization_id } = req.body;
+      let stripeCustomerId: string | undefined;
+
+      if (organization_id) {
+        // Get organization's stripe customer ID
+        const org = await db.query.organizations.findFirst({
+          where: eq(organizations.id, organization_id),
+        });
+
+        if (!org?.stripeCustomerId) {
+          res.status(400).json({
+            error: "No billing information found for this organization",
+          });
+          return;
+        }
+        stripeCustomerId = org.stripeCustomerId;
+      } else {
+        // Use user's stripe customer ID
+        if (!req.dbUser?.stripeCustomerId) {
+          res.status(400).json({ error: "No billing information found" });
+          return;
+        }
+        stripeCustomerId = req.dbUser.stripeCustomerId;
       }
 
-      await syncStripeData(req.dbUser.stripeCustomerId);
+      await syncStripeData(stripeCustomerId);
       res.status(200).json({ message: "Successfully synced data" });
     } catch (error) {
       console.error("Error syncing after success:", error);
@@ -133,13 +196,34 @@ const handlers = {
 
   createPortalSession: async (req: Request, res: Response) => {
     try {
-      if (!req.dbUser?.stripeCustomerId) {
-        res.status(400).json({ error: "No billing information found" });
-        return;
+      const { organization_id, return_url } = req.body;
+      let stripeCustomerId: string | undefined;
+
+      if (organization_id) {
+        // Get organization's stripe customer ID
+        const org = await db.query.organizations.findFirst({
+          where: eq(organizations.id, organization_id),
+        });
+
+        if (!org?.stripeCustomerId) {
+          res.status(400).json({
+            error: "No billing information found for this organization",
+          });
+          return;
+        }
+        stripeCustomerId = org.stripeCustomerId;
+      } else {
+        // Use user's stripe customer ID
+        if (!req.dbUser?.stripeCustomerId) {
+          res.status(400).json({ error: "No billing information found" });
+          return;
+        }
+        stripeCustomerId = req.dbUser.stripeCustomerId;
       }
 
       const session = await ops.portal.createSession({
-        stripeCustomerId: req.dbUser.stripeCustomerId,
+        stripeCustomerId,
+        return_url,
       });
 
       res.json({ url: session.url });
