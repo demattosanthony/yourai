@@ -23,8 +23,10 @@ import api from "@/lib/api";
 import { Workspace } from "@/types/workspace";
 import { useWorkspace } from "./workspace-context";
 import { Skeleton } from "./ui/skeleton";
+import { useRouter } from "next/navigation";
 
 export function WorkSpaceSwitcher() {
+  const router = useRouter();
   const { isMobile } = useSidebar();
   const { data: user } = useMeQuery();
 
@@ -41,6 +43,11 @@ export function WorkSpaceSwitcher() {
       org.id
     );
     window.location.href = url;
+  };
+
+  const handleWorkspaceChange = (workspace: Workspace) => {
+    setActiveWorkspace(workspace);
+    router.push("/");
   };
 
   const WorkspaceLogo = ({ workspace }: { workspace: Workspace }) => {
@@ -105,7 +112,7 @@ export function WorkSpaceSwitcher() {
           {workspaces.map((workspace, index) => (
             <DropdownMenuItem
               key={workspace.id}
-              onClick={() => setActiveWorkspace(workspace)}
+              onClick={handleWorkspaceChange.bind(null, workspace)}
               className="gap-2 p-2"
             >
               <WorkspaceLogo workspace={workspace} />

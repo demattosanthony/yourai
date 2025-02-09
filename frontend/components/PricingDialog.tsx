@@ -125,7 +125,10 @@ export function PricingDialog() {
               {plan.lookup_key && (
                 <Button
                   className="w-full mt-6 py-6 text-lg font-semibold"
-                  onClick={() => handleSubscribe(plan.lookup_key!)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleSubscribe(plan.lookup_key!);
+                  }}
                   disabled={loadingStates[plan.lookup_key]}
                   variant={key === "PRO" ? "default" : "secondary"}
                 >

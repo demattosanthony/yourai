@@ -74,7 +74,10 @@ const SuccessPageContent = () => {
 
         if (response.ok) {
           setStatus("success");
-          setTimeout(() => router.push("/"), 1500);
+          const redirectUrl = organization_id
+            ? `/?orgId=${organization_id}`
+            : "/";
+          setTimeout(() => router.push(redirectUrl), 1500);
         } else {
           setStatus("error");
           setTimeout(() => router.push("/"), 2000);

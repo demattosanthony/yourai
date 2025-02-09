@@ -113,6 +113,7 @@ export default Router()
               name: true,
               slug: true,
               seats: true,
+              logo: true,
             },
             with: {
               members: true, // Include members to count seats used
@@ -127,15 +128,23 @@ export default Router()
 
       const seatsUsed = invite.organization?.members.length;
 
+      const logoUrl = invite.organization?.logo
+        ? s3.presign(invite.organization.logo, {
+            expiresIn: 3600,
+            method: "GET",
+          })
+        : null;
+
       return {
         organization: {
           ...invite.organization,
           seatsUsed,
+          logoUrl,
         },
       };
     })
   )
-  .use("/organizations", auth, checkSub, organizationRoutes)
+  .use("/organizations", auth, organizationRoutes)
   .post(
     "/presigned-url",
     auth,

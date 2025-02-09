@@ -16,6 +16,7 @@ export interface CheckoutSessionParams {
 
 export interface PortalSessionParams {
   stripeCustomerId: string;
+  return_url?: string;
 }
 
 const ops = {
@@ -83,10 +84,13 @@ const ops = {
   },
 
   portal: {
-    createSession: async ({ stripeCustomerId }: PortalSessionParams) => {
+    createSession: async ({
+      stripeCustomerId,
+      return_url,
+    }: PortalSessionParams) => {
       return stripe.billingPortal.sessions.create({
         customer: stripeCustomerId,
-        return_url: process.env.FRONTEND_URL,
+        return_url: process.env.FRONTEND_URL + (return_url || "/"),
       });
     },
   },
@@ -190,7 +194,7 @@ const handlers = {
 
   createPortalSession: async (req: Request, res: Response) => {
     try {
-      const { organization_id } = req.body;
+      const { organization_id, return_url } = req.body;
       let stripeCustomerId: string | undefined;
 
       if (organization_id) {
@@ -217,6 +221,7 @@ const handlers = {
 
       const session = await ops.portal.createSession({
         stripeCustomerId,
+        return_url,
       });
 
       res.json({ url: session.url });

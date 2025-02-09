@@ -6,13 +6,21 @@ import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { CreateOrgForm } from "@/components/organizations/create-org-form";
 import api from "@/lib/api";
+import { PRICING_PLANS } from "@/components/PricingDialog";
 
 export default function CreateOrgPage() {
   const router = useRouter();
 
-  const handleCreateOrgComplete = async (org: { id: string }) => {
+  const handleCreateOrgComplete = async (org: {
+    id: string;
+    seats: number;
+  }) => {
     // go to checkout for the org
-    const url = await api.createCheckoutSession("yo-teams-plan", 1, org.id);
+    const url = await api.createCheckoutSession(
+      PRICING_PLANS.TEAMS.lookup_key,
+      org.seats,
+      org.id
+    );
     window.location.href = url;
   };
 

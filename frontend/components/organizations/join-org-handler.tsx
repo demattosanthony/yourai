@@ -28,7 +28,6 @@ export default function JoinOrgHandler({ token }: { token: string }) {
 
     try {
       const result = await handleJoinOrg(token);
-      console.log(result);
       if (result.requiresAuth) {
         // Redirect to Google login with invite token as state parameter
         window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/auth/google?state=${token}`;
@@ -46,7 +45,8 @@ export default function JoinOrgHandler({ token }: { token: string }) {
         );
         return;
       }
-      router.push("/");
+
+      router.push("/?orgId=" + orgDetails?.organization.id);
     } catch (err) {
       setError("Failed to join organization");
     } finally {
@@ -75,7 +75,15 @@ export default function JoinOrgHandler({ token }: { token: string }) {
   return (
     <div className="min-h-screen flex flex-col items-center px-4 py-12 h-full">
       <main className="flex flex-col gap-8 items-center w-full justify-center h-[75%]">
-        <AIOrbScene height="75px" width="75px" isAnimating={true} />
+        {orgDetails?.organization.logoUrl ? (
+          <img
+            src={orgDetails.organization.logoUrl}
+            alt={`${orgDetails.organization.name} logo`}
+            className="h-[75px] w-[75px] object-contain"
+          />
+        ) : (
+          <AIOrbScene height="75px" width="75px" isAnimating={true} />
+        )}
 
         <div className="flex flex-col items-center w-[400px] gap-2">
           <h3 className="scroll-m-20 text-3xl font-semibold tracking-tight">

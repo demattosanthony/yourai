@@ -135,7 +135,7 @@ export default function ThreadPage({
 
       setTimeout(() => {
         queryClient.invalidateQueries({ queryKey: ["threads"] }); // Needed so the app sidebar shows the new thread
-      }, 1000);
+      }, 2000);
 
       return;
     }

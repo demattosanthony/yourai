@@ -70,7 +70,7 @@ export default function UserSettings() {
   }, []);
 
   return (
-    <div className="max-w-2xl mx-auto pt-20 px-6 w-full h-screen flex flex-col">
+    <div className="max-w-3xl mx-auto pt-20 px-6 w-full h-screen flex flex-col">
       <Tabs
         value={tab}
         onValueChange={handleTabChange}
@@ -106,7 +106,10 @@ export default function UserSettings() {
         </div>
 
         {/* Profile Picture Section */}
-        <TabsContent value="account" className="h-full overflow-y-auto">
+        <TabsContent
+          value="account"
+          className="h-full overflow-y-auto overflow-visible"
+        >
           <div className="space-y-6 h-full">
             <section>
               <div className="flex items-center justify-between">

@@ -308,7 +308,10 @@ class ApiClient {
     return response;
   }
 
-  async createPortalSession(organizationId?: string): Promise<string> {
+  async createPortalSession(
+    organizationId?: string,
+    returnUrl?: string
+  ): Promise<string> {
     const response = await fetch(
       `${this.baseUrl}/payments/create-portal-session`,
       {
@@ -317,7 +320,10 @@ class ApiClient {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ organization_id: organizationId }),
+        body: JSON.stringify({
+          organization_id: organizationId,
+          return_url: returnUrl,
+        }),
       }
     );
 

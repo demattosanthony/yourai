@@ -63,7 +63,6 @@ export const useAuth = () => {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const error = params.get("error");
-    const orgJoined = params.get("orgJoined");
     const orgId = params.get("orgId");
 
     if (error === "unauthorized") {
@@ -72,7 +71,7 @@ export const useAuth = () => {
       });
     }
 
-    if (orgJoined === "true" && orgId) {
+    if (orgId) {
       // Find the org workspace and set it as active
       setTimeout(async () => {
         const workspaces = queryClient.getQueryData<any>([
