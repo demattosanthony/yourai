@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import api from "@/lib/api";
 import AIOrbScene from "@/components/AiOrbScene";
 import { Label } from "../ui/label";
+import { PRICING_PLANS } from "../PricingDialog";
 
 interface CreateOrgFormProps {
   onComplete?: (org: { id: string; seats: number }) => void;
@@ -123,7 +124,7 @@ export function CreateOrgForm({
       )}
 
       <div className="flex flex-col items-center">
-        <AIOrbScene height="75px" width="75px" isAnimating={false} />
+        <AIOrbScene height="75px" width="75px" isAnimating />
 
         <div className="flex flex-col items-center w-[400px] gap-2 mt-4">
           <h3 className="scroll-m-20 text-3xl font-semibold tracking-tight">
@@ -187,45 +188,50 @@ export function CreateOrgForm({
             required
           />
 
-          <div className="flex items-center justify-between">
-            <Label className="text-sm text-muted-foreground">
-              Number of Seats
-            </Label>
-            <div className="flex items-center gap-1">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="h-7 w-7"
-                onClick={() => setSeats((prev) => Math.max(1, prev - 1))}
-              >
-                <Minus className="h-3 w-3" />
-              </Button>
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between">
+              <Label className="text-sm text-muted-foreground pl-1">
+                Number of Seats
+              </Label>
+              <div className="flex items-center gap-1">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-7 w-7"
+                  onClick={() => setSeats((prev) => Math.max(1, prev - 1))}
+                >
+                  <Minus className="h-3 w-3" />
+                </Button>
 
-              <Input
-                value={seats}
-                onChange={(e) =>
-                  setSeats(Math.max(1, parseInt(e.target.value) || 1))
-                }
-                className="w-8 h-7 text-center p-0"
-              />
+                <Input
+                  value={seats}
+                  onChange={(e) =>
+                    setSeats(Math.max(0, parseInt(e.target.value) || 0))
+                  }
+                  className="w-8 h-7 text-center p-0"
+                />
 
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="h-7 w-7"
-                onClick={() => setSeats((prev) => prev + 1)}
-              >
-                <Plus className="h-3 w-3" />
-              </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-7 w-7"
+                  onClick={() => setSeats((prev) => prev + 1)}
+                >
+                  <Plus className="h-3 w-3" />
+                </Button>
+              </div>
+            </div>
+            <div className="flex justify-end text-sm text-muted-foreground pr-1">
+              ${seats * PRICING_PLANS.TEAMS.cost}/month
             </div>
           </div>
 
           <Button
             type="submit"
             className="font-semibold w-full flex justify-center h-[50px]"
-            disabled={!name}
+            disabled={!name || !seats || seats < 1}
           >
             Create Organization
             <ArrowRight size={24} className="ml-1" />

@@ -33,12 +33,14 @@ import { useAtom } from "jotai";
 import { pricingPlanDialogOpenAtom } from "./PricingDialog";
 import { useTheme } from "next-themes";
 import Link from "next/link";
+import { useWorkspace } from "./workspace-context";
 
 export function NavUser({ user }: { user: User }) {
   const [, setShowPricingPlanDialog] = useAtom(pricingPlanDialogOpenAtom);
   const { isMobile } = useSidebar();
   const { logOut } = useAuth();
   const { setTheme } = useTheme();
+  const { activeWorkspace } = useWorkspace();
 
   const handleBillingPortal = async () => {
     try {
@@ -105,30 +107,34 @@ export function NavUser({ user }: { user: User }) {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
 
-            {user.subscriptionStatus !== "active" ? (
-              <DropdownMenuGroup>
-                <Button
-                  className="w-full"
-                  variant={"default"}
-                  onClick={(e) => {
-                    console.log("Upgrade to Pro");
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setShowPricingPlanDialog(true);
-                  }}
-                >
-                  Upgrade to Pro
-                </Button>
-              </DropdownMenuGroup>
-            ) : (
-              <DropdownMenuGroup>
-                <DropdownMenuItem onClick={handleBillingPortal}>
-                  <CreditCard />
-                  Billing
-                </DropdownMenuItem>
-              </DropdownMenuGroup>
+            {activeWorkspace?.type === "personal" && (
+              <>
+                {user.subscriptionStatus !== "active" ? (
+                  <DropdownMenuGroup>
+                    <Button
+                      className="w-full"
+                      variant={"default"}
+                      onClick={(e) => {
+                        console.log("Upgrade to Pro");
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setShowPricingPlanDialog(true);
+                      }}
+                    >
+                      Upgrade to Pro
+                    </Button>
+                  </DropdownMenuGroup>
+                ) : (
+                  <DropdownMenuGroup>
+                    <DropdownMenuItem onClick={handleBillingPortal}>
+                      <CreditCard />
+                      Billing
+                    </DropdownMenuItem>
+                  </DropdownMenuGroup>
+                )}
+                <DropdownMenuSeparator />
+              </>
             )}
-            <DropdownMenuSeparator />
 
             <DropdownMenuGroup>
               <Link href="/settings">

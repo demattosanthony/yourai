@@ -70,7 +70,9 @@ const ops = {
         success_url: organizationId
           ? `${process.env.FRONTEND_URL}/success?session_id={CHECKOUT_SESSION_ID}&organization_id=${organizationId}`
           : `${process.env.FRONTEND_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: process.env.FRONTEND_URL,
+        cancel_url: organizationId
+          ? `${process.env.FRONTEND_URL}/cancel?organization_id=${organizationId}`
+          : `${process.env.FRONTEND_URL}/cancel`,
         metadata: organizationId
           ? { organization_id: organizationId }
           : { user_id: userId },

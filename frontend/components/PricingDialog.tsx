@@ -20,6 +20,7 @@ export const PRICING_PLANS = {
   PRO: {
     name: "Pro",
     price: "$20",
+    cost: 20,
     priceDetail: undefined,
     features: [
       "Chat with all the top AI models",
@@ -33,6 +34,7 @@ export const PRICING_PLANS = {
   TEAMS: {
     name: "Team",
     price: "$30",
+    cost: 30,
     priceDetail: "per seat/month",
     features: [
       "Everything in Pro",

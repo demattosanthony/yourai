@@ -51,7 +51,6 @@ export function useThreadQuery(threadId: string, isNewThread: boolean) {
       ),
     enabled: !isNewThread, // Only fetch if it's not a new thread
     refetchOnWindowFocus: false,
-    staleTime: 5000,
   });
 }
 

@@ -3,6 +3,8 @@
 import * as React from "react";
 import { type Workspace } from "@/types/workspace";
 import { useMeQuery } from "@/queries/queries";
+import { atomWithStorage } from "jotai/utils";
+import { useAtom } from "jotai";
 
 type WorkspaceContextType = {
   activeWorkspace: Workspace | null;
@@ -14,20 +16,23 @@ const WorkspaceContext = React.createContext<WorkspaceContextType | undefined>(
   undefined
 );
 
+const activeWorkspaceAtom = atomWithStorage<Workspace | null>(
+  "activeWorkspace",
+  null
+);
+
 export const WorkspaceProvider = ({
   children,
 }: {
   children: React.ReactNode;
 }) => {
-  const [activeWorkspace, setActiveWorkspaceState] =
-    React.useState<Workspace | null>(null);
+  const [activeWorkspace, setActiveWorkspace] = useAtom(activeWorkspaceAtom);
   const { data: user } = useMeQuery();
   const [workspaces, setWorkspaces] = React.useState<Workspace[]>([]);
 
-  // Determine initial workspace (personal or stored)
+  // Set up workspaces and ensure active workspace is valid
   React.useEffect(() => {
     if (user) {
-      // Wait for user data
       const personalWorkspace: Workspace = {
         id: user.id,
         name: "Personal",
@@ -46,28 +51,17 @@ export const WorkspaceProvider = ({
       }));
 
       const allWorkspaces = [personalWorkspace, ...organizationWorkspaces];
-      setWorkspaces(allWorkspaces); // Update the workspaces state
+      setWorkspaces(allWorkspaces);
 
-      const storedWorkspaceId = localStorage.getItem("activeWorkspaceId");
-      let initialWorkspace: Workspace | null = personalWorkspace; // Default to personal
-
-      if (storedWorkspaceId) {
-        const storedWorkspace = allWorkspaces.find(
-          (w) => w.id === storedWorkspaceId
-        );
-        if (storedWorkspace) {
-          initialWorkspace = storedWorkspace;
-        }
+      // If no active workspace or the active workspace is invalid, set to personal
+      if (
+        !activeWorkspace ||
+        !allWorkspaces.find((w) => w.id === activeWorkspace.id)
+      ) {
+        setActiveWorkspace(personalWorkspace);
       }
-
-      setActiveWorkspaceState(initialWorkspace);
     }
   }, [user]); // Depend on user data
-
-  const setActiveWorkspace = (workspace: Workspace) => {
-    setActiveWorkspaceState(workspace);
-    localStorage.setItem("activeWorkspaceId", workspace.id);
-  };
 
   const contextValue = {
     activeWorkspace,

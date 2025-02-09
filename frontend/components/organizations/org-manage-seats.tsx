@@ -119,7 +119,8 @@ export default function OrgManageSeats({
           <div>
             <h3 className="text-sm font-medium">Seat Management</h3>
             <p className="text-sm text-muted-foreground">
-              {memberCount} of {org.seats} seats used
+              {memberCount} of {org.seats} seats used ($
+              {org.seats * PRICING_PLANS.TEAMS.cost}/month)
             </p>
           </div>
 
