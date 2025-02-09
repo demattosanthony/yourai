@@ -143,6 +143,7 @@ const LoadingMessage = React.memo(() => (
 ));
 LoadingMessage.displayName = "LoadingMessage";
 
+// Memo helps to prevent unnecessary re-renders. Fixes issue when lots of messages and user types in chat input form is laggy
 const ChatMessagesList = React.memo(
   ({ messages, isLoading }: { messages: Message[]; isLoading: boolean }) => {
     useEffect(() => {
