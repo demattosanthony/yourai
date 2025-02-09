@@ -254,22 +254,50 @@ export function OrganizationSettings({ orgId }: { orgId: string }) {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onSelect={async () => {
-                            try {
-                              await removeMemberMutation.mutateAsync({
-                                organizationId: orgId,
-                                userId: member.user.id,
-                              });
-                              toast.success("Member removed successfully");
-                            } catch {
-                              toast.error("Failed to remove member");
-                            }
-                          }}
-                          className="text-red-600"
-                        >
-                          Delete
-                        </DropdownMenuItem>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <DropdownMenuItem
+                              className="text-red-600"
+                              onSelect={(e) => {
+                                e.preventDefault();
+                              }}
+                            >
+                              Remove
+                            </DropdownMenuItem>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>
+                                Remove member?
+                              </AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to remove this member from
+                                the organization?
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={async () => {
+                                  try {
+                                    await removeMemberMutation.mutateAsync({
+                                      organizationId: orgId,
+                                      userId: member.user.id,
+                                    });
+                                    toast.success(
+                                      "Member removed successfully"
+                                    );
+                                  } catch {
+                                    toast.error("Failed to remove member");
+                                  }
+                                }}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                Remove Member
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   )}

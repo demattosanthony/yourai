@@ -51,9 +51,9 @@ export async function syncStripeData(customerId: string) {
       return; // Early return.  Important!
     }
 
-    const isOrganization = !!organization; // Convert to boolean.
+    const isOrganization = !!organization; // If organization is found, it's an organization.
 
-    // If user has no subscription on Stripe
+    // If no subscriptions found, set subscription status to incomplete
     if (stripeSubscriptions.data.length === 0) {
       if (isOrganization) {
         await db
