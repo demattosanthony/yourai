@@ -12,7 +12,7 @@ export default function ErrorPage() {
           Site Under Construction
         </h1>
         <p className="text-lg text-muted-foreground">
-          We're working on some improvements. Please try again in a moment.
+          We&apos;re working on some improvements. Please try again in a moment.
         </p>
         <Button onClick={() => window.location.reload()}>Refresh Page</Button>
       </div>
