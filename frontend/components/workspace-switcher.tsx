@@ -57,7 +57,7 @@ export function WorkSpaceSwitcher() {
         <div className="flex h-6 w-6 items-center justify-center shrink-0">
           <Avatar className="h-6 w-6 rounded-full bg-transparent">
             <AvatarImage src={user?.profilePicture} alt={user?.name} />
-            <AvatarFallback className="rounded-full">
+            <AvatarFallback>
               {user?.name
                 ?.split(" ")
                 .map((n: string) => n[0])
@@ -84,7 +84,9 @@ export function WorkSpaceSwitcher() {
   };
 
   if (!activeWorkspace) {
-    return <Skeleton className="h-6 w-36" />;
+    return (
+      <Skeleton className="h-6 group-data-[collapsible=icon]:w-6 w-36 group-data-[collapsible=icon]:rounded-full" />
+    );
   }
 
   return (
