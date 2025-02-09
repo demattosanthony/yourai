@@ -1,14 +1,7 @@
 "use client";
 
 import * as React from "react";
-import {
-  History,
-  MoreHorizontal,
-  Plus,
-  Trash,
-  Command,
-  AudioWaveform,
-} from "lucide-react";
+import { History, MoreHorizontal, Plus, Trash } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,

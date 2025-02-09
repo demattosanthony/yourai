@@ -35,7 +35,6 @@ import {
   AlertDialogTrigger,
 } from "../ui/alert-dialog";
 import OrgManageSeats from "./org-manage-seats";
-import { PRICING_PLANS } from "../PricingDialog";
 
 export function OrganizationSettings({ orgId }: { orgId: string }) {
   const { data: user } = useMeQuery();
@@ -68,7 +67,7 @@ export function OrganizationSettings({ orgId }: { orgId: string }) {
         <div className="space-y-1">
           <h2 className="text-base font-medium">Organization Details</h2>
           <p className="text-sm text-muted-foreground">
-            Manage your organization's profile and settings.
+            Manage your organization&apos;s profile and settings.
           </p>
         </div>
 
@@ -214,7 +213,7 @@ export function OrganizationSettings({ orgId }: { orgId: string }) {
         <div className="space-y-1">
           <h2 className="text-base font-medium">Members</h2>
           <p className="text-sm text-muted-foreground">
-            Manage your organization's members and their roles.
+            Manage your organization&apos;s members and their roles.
           </p>
         </div>
         <Card className="p-6">
@@ -263,7 +262,7 @@ export function OrganizationSettings({ orgId }: { orgId: string }) {
                                 userId: member.user.id,
                               });
                               toast.success("Member removed successfully");
-                            } catch (error) {
+                            } catch {
                               toast.error("Failed to remove member");
                             }
                           }}
@@ -311,7 +310,7 @@ export function OrganizationSettings({ orgId }: { orgId: string }) {
 
                     // Redirect to home
                     window.location.href = "/";
-                  } catch (error) {
+                  } catch {
                     toast.error("Failed to delete organization");
                   }
                 }}

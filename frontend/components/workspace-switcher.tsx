@@ -112,7 +112,7 @@ export function WorkSpaceSwitcher() {
           <DropdownMenuLabel className="text-xs text-muted-foreground">
             Switch workspace
           </DropdownMenuLabel>
-          {workspaces.map((workspace, index) => (
+          {workspaces.map((workspace) => (
             <DropdownMenuItem
               key={workspace.id}
               onClick={handleWorkspaceChange.bind(null, workspace)}

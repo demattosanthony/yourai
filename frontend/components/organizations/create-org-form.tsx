@@ -29,7 +29,7 @@ export function CreateOrgForm({
 
   // Org details
   const [name, setName] = React.useState("");
-  const [domain, setDomain] = React.useState("");
+  const [domain] = React.useState("");
   const [org, setOrg] = React.useState<{
     id: string;
     slug: string;

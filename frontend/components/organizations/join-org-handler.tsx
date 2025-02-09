@@ -4,7 +4,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import AIOrbScene from "@/components/AiOrbScene";
 import { useOrgFromInviteToken } from "@/queries/queries";
@@ -12,7 +11,7 @@ import { useOrgFromInviteToken } from "@/queries/queries";
 export default function JoinOrgHandler({ token }: { token: string }) {
   const { handleJoinOrg } = useAuth();
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
+  const [, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
   // Query to fetch org details from the invite token
@@ -47,7 +46,7 @@ export default function JoinOrgHandler({ token }: { token: string }) {
       }
 
       router.push("/?orgId=" + orgDetails?.organization.id);
-    } catch (err) {
+    } catch {
       setError("Failed to join organization");
     } finally {
       setIsLoading(false);
@@ -66,7 +65,7 @@ export default function JoinOrgHandler({ token }: { token: string }) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <p className="text-lg text-red-500">
-          We couldn't find the organization you're trying to join
+          We couldn&apos;t find the organization you&apos;re trying to join
         </p>
       </div>
     );
@@ -90,7 +89,7 @@ export default function JoinOrgHandler({ token }: { token: string }) {
             Join {orgDetails?.organization.name || "Organization"}
           </h3>
           <p className="text-base text-muted-foreground text-center">
-            You've been invited to join {orgDetails?.organization.name}
+            You&apos;ve been invited to join {orgDetails?.organization.name}
           </p>
         </div>
 
