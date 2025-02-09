@@ -9,7 +9,7 @@ import { and, eq } from "drizzle-orm";
 import authRoutes from "./features/auth";
 import modelRoutes from "./features/models";
 import threadRoutes from "./features/threads";
-import paymentRoutes from "./features/payments";
+import paymentRoutes, { webhook } from "./features/payments";
 import organizationRoutes from "./features/organizations";
 import s3 from "./config/s3";
 import { handle } from "./utils";
@@ -92,6 +92,7 @@ export default Router()
   .use("/auth", authRoutes)
   .use("/models", modelRoutes)
   .use("/threads", auth, checkSub, threadRoutes)
+  .post("/payments/webhook", webhook)
   .use("/payments", auth, paymentRoutes)
   .use("/organizations", auth, superAdminMiddleware, organizationRoutes)
   .post(

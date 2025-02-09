@@ -168,8 +168,9 @@ const handlers = {
   },
 };
 
+export const { webhook } = handlers;
+
 export default Router()
   .post("/create-checkout-session", handlers.createCheckoutSession)
   .post("/sync-after-success", handlers.syncAfterSuccess)
-  .post("/create-portal-session", handlers.createPortalSession)
-  .post("/webhook", handlers.webhook);
+  .post("/create-portal-session", handlers.createPortalSession);
