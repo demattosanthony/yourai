@@ -143,40 +143,39 @@ const LoadingMessage = React.memo(() => (
 ));
 LoadingMessage.displayName = "LoadingMessage";
 
-const ChatMessagesList = ({
-  messages,
-  isLoading,
-}: {
-  messages: Message[];
-  isLoading: boolean;
-}) => {
-  useEffect(() => {
-    const container = document.querySelector(".overflow-y-auto");
-    if (container) {
-      container.scrollTop = container.scrollHeight;
-    }
-  }, [messages.length]);
+const ChatMessagesList = React.memo(
+  ({ messages, isLoading }: { messages: Message[]; isLoading: boolean }) => {
+    useEffect(() => {
+      const container = document.querySelector(".overflow-y-auto");
+      if (container) {
+        container.scrollTop = container.scrollHeight;
+      }
+    }, [messages.length]);
 
-  // Example: show loading after the user's last message
-  const lastMessage = messages[messages.length - 1];
-  const showLoadingState = isLoading && lastMessage?.role === MessageRole.user;
+    // Example: show loading after the user's last message
+    const lastMessage = messages[messages.length - 1];
+    const showLoadingState =
+      isLoading && lastMessage?.role === MessageRole.user;
 
-  return (
-    <div className="flex-1 w-full h-full relative">
-      <div className="absolute inset-0 overflow-y-auto">
-        <div className="max-w-[840px] mx-auto pt-20 p-4">
-          {messages.map((message, index) =>
-            message.role === MessageRole.user ? (
-              <UserMessage key={index} message={message} />
-            ) : (
-              <AssistantMessage key={index} message={message} />
-            )
-          )}
-          {showLoadingState && <LoadingMessage />}
+    return (
+      <div className="flex-1 w-full h-full relative">
+        <div className="absolute inset-0 overflow-y-auto">
+          <div className="max-w-[840px] mx-auto pt-20 p-4">
+            {messages.map((message, index) =>
+              message.role === MessageRole.user ? (
+                <UserMessage key={index} message={message} />
+              ) : (
+                <AssistantMessage key={index} message={message} />
+              )
+            )}
+            {showLoadingState && <LoadingMessage />}
+          </div>
         </div>
       </div>
-    </div>
-  );
-};
+    );
+  }
+);
+
+ChatMessagesList.displayName = "ChatMessagesList";
 
 export default ChatMessagesList;

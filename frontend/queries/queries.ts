@@ -50,8 +50,8 @@ export function useThreadQuery(threadId: string, isNewThread: boolean) {
           : undefined
       ),
     enabled: !isNewThread, // Only fetch if it's not a new thread
-    staleTime: 1000 * 60 * 5, // Consider data fresh for 5 minutes
     refetchOnWindowFocus: false,
+    staleTime: 5000,
   });
 }
 

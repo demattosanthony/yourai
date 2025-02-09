@@ -24,6 +24,7 @@ import { Workspace } from "@/types/workspace";
 import { useWorkspace } from "./workspace-context";
 import { Skeleton } from "./ui/skeleton";
 import { useRouter } from "next/navigation";
+import { PRICING_PLANS } from "./PricingDialog";
 
 export function WorkSpaceSwitcher() {
   const router = useRouter();
@@ -38,7 +39,7 @@ export function WorkSpaceSwitcher() {
   }) => {
     // go to checkout for the org
     const url = await api.createCheckoutSession(
-      "yo-teams-plan",
+      PRICING_PLANS.TEAMS.lookup_key,
       org.seats,
       org.id
     );
