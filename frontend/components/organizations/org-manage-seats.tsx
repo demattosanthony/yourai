@@ -2,11 +2,12 @@ import { Organization } from "@/types/user";
 import { Card } from "../ui/card";
 import { Button } from "../ui/button";
 import { Minus, Plus } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Input } from "../ui/input";
 import api from "@/lib/api";
 import { toast } from "sonner";
 import { useUpdateOrganizationSeatsMutation } from "@/queries/queries";
+import { PRICING_PLANS } from "../PricingDialog";
 
 export default function OrgManageSeats({
   org,
@@ -58,81 +59,129 @@ export default function OrgManageSeats({
     }
   };
 
+  // Add effect to sync seats with org.seats
+  useEffect(() => {
+    setSeats(org.seats);
+  }, [org.seats]);
+
   return (
-    <section className="flex justify-between items-center">
-      <div>
-        <h2 className="text-base font-medium">Seats</h2>
-        <p className="text-sm text-muted-foreground">
-          Manage your organization's seat allocation
-        </p>
+    <section className="space-y-4">
+      <div className="space-y-1">
+        <h2 className="text-base font-medium">Billing & Seats</h2>
       </div>
 
-      <div className="space-y-4">
-        <div className="flex justify-between text-sm">
-          <span></span>
-          <span>
-            {memberCount} of {org.seats} seats used
-          </span>
-        </div>
-
-        <div className="h-2 bg-secondary rounded-full overflow-hidden w-[225px]">
-          <div
-            className="h-full bg-primary rounded-full"
-            style={{
-              width: `${(memberCount / org.seats) * 100}%`,
-            }}
-          />
-        </div>
-
-        <div className="flex justify-end">
-          <div className="flex items-center gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="h-7 w-7"
-              onClick={() =>
-                setSeats((prev) => Math.max(memberCount, prev - 1))
+      <Card className="p-6 space-y-6">
+        {/* Billing Row */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-sm font-medium">Subscription</h3>
+            <p className="text-sm text-muted-foreground">
+              {org.subscriptionStatus === "active"
+                ? "Manage your billing information and subscription details."
+                : "Complete your organization setup by adding billing information."}
+            </p>
+          </div>
+          <Button
+            onClick={async () => {
+              try {
+                if (org.subscriptionStatus === "active") {
+                  const url = await api.createPortalSession(org.id);
+                  window.location.href = url;
+                } else {
+                  const url = await api.createCheckoutSession(
+                    PRICING_PLANS.TEAMS.lookup_key,
+                    org.seats,
+                    org.id
+                  );
+                  window.location.href = url;
+                }
+              } catch (error) {
+                console.error("Error with billing action:", error);
               }
-              disabled={isLoading || seats <= memberCount}
-            >
-              <Minus className="h-3 w-3" />
-            </Button>
-
-            <Input
-              value={seats}
-              onChange={(e) => {
-                const value = Math.max(
-                  memberCount,
-                  parseInt(e.target.value) || memberCount
-                );
-                setSeats(value);
-              }}
-              className="w-8 h-7 text-center p-0"
-              disabled={isLoading}
-            />
-
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="h-7 w-7"
-              onClick={() => setSeats((prev) => prev + 1)}
-              disabled={isLoading}
-            >
-              <Plus className="h-3 w-3" />
-            </Button>
-          </div>
+            }}
+            className={
+              org.subscriptionStatus === "active"
+                ? ""
+                : "bg-blue-600 hover:bg-blue-700 animate-pulse"
+            }
+          >
+            {org.subscriptionStatus === "active" ? "Manage Billing" : "Upgrade"}
+          </Button>
         </div>
 
-        {hasChanges && (
-          <div className="flex justify-end mt-4">
-            <Button onClick={handleSave} disabled={isLoading}>
-              {isLoading ? "Processing..." : "Update Seats"}
-            </Button>
+        {/* Divider */}
+        <div className="border-t" />
+
+        {/* Seats Row */}
+        <div className="flex items-start justify-between">
+          <div>
+            <h3 className="text-sm font-medium">Seat Management</h3>
+            <p className="text-sm text-muted-foreground">
+              {memberCount} of {org.seats} seats used
+            </p>
           </div>
-        )}
-      </div>
+
+          <div className="space-y-4">
+            <div className="h-2 bg-secondary rounded-full overflow-hidden w-[225px]">
+              <div
+                className="h-full bg-primary rounded-full"
+                style={{
+                  width: `${(memberCount / org.seats) * 100}%`,
+                }}
+              />
+            </div>
+
+            <div className="flex justify-end">
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-7 w-7"
+                  onClick={() =>
+                    setSeats((prev) => Math.max(memberCount, prev - 1))
+                  }
+                  disabled={isLoading || seats <= memberCount}
+                >
+                  <Minus className="h-3 w-3" />
+                </Button>
+
+                <Input
+                  value={seats}
+                  onChange={(e) => {
+                    const value = Math.max(
+                      memberCount,
+                      parseInt(e.target.value) || memberCount
+                    );
+                    setSeats(value);
+                  }}
+                  className="w-8 h-7 text-center p-0"
+                  disabled={isLoading}
+                />
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-7 w-7"
+                  onClick={() => setSeats((prev) => prev + 1)}
+                  disabled={isLoading}
+                >
+                  <Plus className="h-3 w-3" />
+                </Button>
+              </div>
+            </div>
+
+            {hasChanges && (
+              <div className="flex justify-end">
+                <Button onClick={handleSave} disabled={isLoading}>
+                  {isLoading ? "Processing..." : "Update Seats"}
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+      </Card>
     </section>
   );
 }

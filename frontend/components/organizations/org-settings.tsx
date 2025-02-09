@@ -160,44 +160,6 @@ export function OrganizationSettings({ orgId }: { orgId: string }) {
         </Card>
       </section>
 
-      <section className="flex justify-between items-center">
-        <div>
-          <h2 className="text-base font-medium">Billing</h2>
-          <p className="text-sm text-muted-foreground">
-            {org.subscriptionStatus === "active"
-              ? "Manage your billing information and subscription details."
-              : "Complete your organization setup by adding billing information."}
-          </p>
-        </div>
-        <Button
-          onClick={async () => {
-            try {
-              if (org.subscriptionStatus === "active") {
-                const url = await api.createPortalSession(orgId);
-                window.location.href = url;
-              } else {
-                // Redirect to upgrade/checkout flow
-                const url = await api.createCheckoutSession(
-                  PRICING_PLANS.TEAMS.lookup_key,
-                  org.seats,
-                  orgId
-                );
-                window.location.href = url;
-              }
-            } catch (error) {
-              console.error("Error with billing action:", error);
-            }
-          }}
-          className={
-            org.subscriptionStatus === "active"
-              ? ""
-              : "bg-blue-600 hover:bg-blue-700 animate-pulse"
-          }
-        >
-          {org.subscriptionStatus === "active" ? "Manage Billing" : "Upgrade"}
-        </Button>
-      </section>
-
       <OrgManageSeats org={org} members={members} />
 
       <section className="space-y-4">
