@@ -42,14 +42,12 @@ export function PricingDialog() {
       console.error("Error:", error);
     } finally {
       setLoadingStates((prev) => ({ ...prev, [lookupKey]: false }));
+      setOpen(false);
     }
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline">View Pricing</Button>
-      </DialogTrigger>
       <DialogContent className="sm:max-w-[800px]">
         <DialogHeader className="text-center">
           <DialogTitle className="text-2xl font-bold">

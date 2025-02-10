@@ -8,7 +8,7 @@ import api from "@/lib/api";
 import { toast } from "sonner";
 import { useUpdateOrganizationSeatsMutation } from "@/queries/queries";
 import { PRICING_PLANS } from "@/lib/pricing";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 
 export default function OrgManageSeats({
   org,
@@ -33,6 +33,7 @@ export default function OrgManageSeats({
   const memberCount = members?.length || 0;
   const updateSeats = useUpdateOrganizationSeatsMutation();
   const pathName = usePathname();
+  const searchParams = useSearchParams();
 
   const handleSave = async () => {
     try {
@@ -92,7 +93,7 @@ export default function OrgManageSeats({
                 if (org.subscriptionStatus === "active") {
                   const url = await api.payments.createPortalSession(
                     org.id,
-                    pathName
+                    pathName + "?" + searchParams.toString()
                   );
                   window.location.href = url;
                 } else {

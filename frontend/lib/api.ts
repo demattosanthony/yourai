@@ -389,10 +389,6 @@ class ThreadApi extends ApiRequest {
     try {
       return await this.request<Thread[]>(endpoint);
     } catch (error: unknown) {
-      if (error instanceof ApiError && error.status === 401) {
-        return []; // Silently return empty array for 401
-      }
-      console.error("Error fetching threads:", error); // Log other errors
       return []; // Return empty array for other errors as well, adjust as needed
     }
   }
