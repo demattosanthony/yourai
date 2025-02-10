@@ -24,7 +24,7 @@ import { useEffect } from "react";
 // Components
 import ChatInputForm from "@/components/chat/ChatInputForm";
 import ChatMessagesList from "@/components/chat/MessagesList";
-import { useWorkspace } from "../workspace-context";
+import { useWorkspace } from "../sidebar/workspace-context";
 
 type ExtendedAttachment = Attachment & {
   file_key: string;
@@ -82,11 +82,12 @@ export default function ThreadPage({
     if (uploads.length > 0) {
       const attachments: ExtendedAttachment[] = await Promise.all(
         uploads.map(async (upload) => {
-          const { url, file_metadata, viewUrl } = await api.getPresignedUrl(
-            upload.file.name,
-            upload.file.type,
-            upload.file.size
-          );
+          const { url, file_metadata, viewUrl } =
+            await api.uploads.getPresignedUrl(
+              upload.file.name,
+              upload.file.type,
+              upload.file.size
+            );
 
           // upload directly to storage
           await fetch(url, {

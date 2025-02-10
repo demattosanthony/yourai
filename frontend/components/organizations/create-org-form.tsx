@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import api from "@/lib/api";
 import AIOrbScene from "@/components/AiOrbScene";
 import { Label } from "../ui/label";
-import { PRICING_PLANS } from "../PricingDialog";
+import { PRICING_PLANS } from "@/lib/pricing";
 
 interface CreateOrgFormProps {
   onComplete?: (org: { id: string; seats: number }) => void;
@@ -46,7 +46,7 @@ export function CreateOrgForm({
     try {
       let fileKey = undefined;
       if (logo) {
-        const { url, file_metadata } = await api.getPresignedUrl(
+        const { url, file_metadata } = await api.uploads.getPresignedUrl(
           logo.name,
           logo.type,
           logo.size
@@ -64,7 +64,7 @@ export function CreateOrgForm({
         fileKey = file_metadata.file_key;
       }
 
-      const org = await api.createOrganization({
+      const org = await api.organizations.createOrganization({
         name,
         domain,
         logo: fileKey,
@@ -86,7 +86,7 @@ export function CreateOrgForm({
     try {
       if (!org) return;
 
-      const res = await api.updateOrganization(org.id, {
+      const res = await api.organizations.updateOrganization(org.id, {
         saml: {
           entryPoint,
           issuer,

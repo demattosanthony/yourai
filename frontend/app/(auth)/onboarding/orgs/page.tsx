@@ -6,7 +6,7 @@ import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { CreateOrgForm } from "@/components/organizations/create-org-form";
 import api from "@/lib/api";
-import { PRICING_PLANS } from "@/components/PricingDialog";
+import { PRICING_PLANS } from "@/lib/pricing";
 
 export default function CreateOrgPage() {
   const router = useRouter();
@@ -16,7 +16,7 @@ export default function CreateOrgPage() {
     seats: number;
   }) => {
     // go to checkout for the org
-    const url = await api.createCheckoutSession(
+    const url = await api.payments.createCheckoutSession(
       PRICING_PLANS.TEAMS.lookup_key,
       org.seats,
       org.id

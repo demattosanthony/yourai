@@ -5,7 +5,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import ReactQueryProvider from "./providers";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
-import { WorkspaceProvider } from "@/components/workspace-context";
+import { WorkspaceProvider } from "@/components/sidebar/workspace-context";
 
 const inter = Inter({
   subsets: ["latin"],

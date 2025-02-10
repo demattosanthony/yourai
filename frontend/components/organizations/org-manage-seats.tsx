@@ -7,8 +7,8 @@ import { Input } from "../ui/input";
 import api from "@/lib/api";
 import { toast } from "sonner";
 import { useUpdateOrganizationSeatsMutation } from "@/queries/queries";
-import { PRICING_PLANS } from "../PricingDialog";
-import { usePathname } from "next/navigation";
+import { PRICING_PLANS } from "@/lib/pricing";
+import { usePathname, useSearchParams } from "next/navigation";
 
 export default function OrgManageSeats({
   org,
@@ -33,13 +33,17 @@ export default function OrgManageSeats({
   const memberCount = members?.length || 0;
   const updateSeats = useUpdateOrganizationSeatsMutation();
   const pathName = usePathname();
+  const searchParams = useSearchParams();
 
   const handleSave = async () => {
     try {
       setIsLoading(true);
 
       // First validate the seat update
-      const validation = await api.validateSeatUpdate(org.id, seats);
+      const validation = await api.organizations.validateSeatUpdate(
+        org.id,
+        seats
+      );
       if (!validation.success) {
         toast.error(validation.error || "Failed to update seats");
         return;
@@ -87,10 +91,13 @@ export default function OrgManageSeats({
             onClick={async () => {
               try {
                 if (org.subscriptionStatus === "active") {
-                  const url = await api.createPortalSession(org.id, pathName);
+                  const url = await api.payments.createPortalSession(
+                    org.id,
+                    pathName + "?" + searchParams.toString()
+                  );
                   window.location.href = url;
                 } else {
-                  const url = await api.createCheckoutSession(
+                  const url = await api.payments.createCheckoutSession(
                     PRICING_PLANS.TEAMS.lookup_key,
                     org.seats,
                     org.id

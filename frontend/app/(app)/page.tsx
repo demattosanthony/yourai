@@ -22,7 +22,7 @@ import ChatInputForm, {
   ChatInputFormRef,
 } from "@/components/chat/ChatInputForm";
 import { initalInputAtom } from "@/atoms/chat";
-import { useWorkspace } from "@/components/workspace-context";
+import { useWorkspace } from "@/components/sidebar/workspace-context";
 
 export default function Home() {
   const router = useRouter();
@@ -51,7 +51,7 @@ export default function Home() {
 
     try {
       // Create thread in background
-      const { id: threadId } = await api.createThread(
+      const { id: threadId } = await api.threads.createThread(
         activeWorkspace?.type === "organization"
           ? activeWorkspace.id
           : undefined
