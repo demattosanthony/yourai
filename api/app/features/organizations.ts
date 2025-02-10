@@ -1,5 +1,5 @@
-import { Request, Response, Router, NextFunction } from "express";
-import { and, eq, sql } from "drizzle-orm";
+import { Request, Response, Router } from "express";
+import { eq, sql } from "drizzle-orm";
 import z from "zod";
 import db from "../config/db";
 import {
@@ -12,27 +12,7 @@ import s3 from "../config/s3";
 import { DbUser } from "../createAuthToken";
 import { randomBytes } from "crypto";
 import stripe from "../config/stripe";
-
-// Middleware
-export const isOrgOwner = async (
-  req: any,
-  res: Response,
-  next: NextFunction
-) => {
-  const member = await db.query.organizationMembers.findFirst({
-    where: and(
-      eq(organizationMembers.organizationId, req.params.id),
-      eq(organizationMembers.userId, req.dbUser!.id)
-    ),
-  });
-
-  if (!member || member.role !== "owner") {
-    res.status(403).json({ error: "Not authorized" });
-    return;
-  }
-
-  next();
-};
+import { isOrgOwner } from "../middleware";
 
 // Core Types
 type Role = "owner" | "member";
