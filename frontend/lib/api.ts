@@ -104,11 +104,10 @@ class AuthApi extends ApiRequest {
           return { requiresAuth: true };
         }
         if (error.status === 403) {
-          const errorData = JSON.parse(error.message); // Assuming message is JSON stringified error data
-          if (errorData.error === "insufficient_seats") {
+          if (error.message === "insufficient_seats") {
             return { insufficientSeats: true };
           }
-          if (errorData.error === "inactive_subscription") {
+          if (error.message === "inactive_subscription") {
             return { inactiveSubscription: true };
           }
         }

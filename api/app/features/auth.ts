@@ -136,7 +136,7 @@ const handlers = {
 
       if (!req.dbUser) {
         res.status(401).json({
-          error: "Authentication required",
+          message: "Authentication required",
           inviteToken: req.params.token,
         });
         return;
@@ -145,7 +145,7 @@ const handlers = {
       await addOrgMember(invite.organizationId as string, req.dbUser.id);
       res.json({ success: true });
     } catch (error: any) {
-      res.status(400).json({ error: error.message });
+      res.status(403).json({ message: error.message });
     }
   },
 };
