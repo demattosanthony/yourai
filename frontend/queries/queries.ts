@@ -121,6 +121,7 @@ export function useCreateOrganizationMutation() {
 }
 
 export function useUpdateOrganizationMutation() {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({
       id,
@@ -139,6 +140,9 @@ export function useUpdateOrganizationMutation() {
         }>;
       }>;
     }) => api.organizations.updateOrganization(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["me"] });
+    },
   });
 }
 
