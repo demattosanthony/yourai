@@ -57,7 +57,7 @@ export class ApiError extends Error {
   constructor(status: number, message: string) {
     super(message);
     this.status = status;
-    this.name = "ApiError"; // Optional: Customize error name
+    this.name = "ApiError"; // Explicitly set name for better error identification
   }
 }
 
@@ -69,7 +69,7 @@ class AuthApi extends ApiRequest {
     try {
       await this.request("/auth/logout", "POST");
     } catch (error) {
-      console.error("Logout failed:", error); // Decide how to handle errors, maybe re-throw or just log
+      console.error("Logout failed:", error);
       throw error; // Re-throwing for the caller to handle if needed
     }
   }
@@ -79,7 +79,7 @@ class AuthApi extends ApiRequest {
       return await this.request<User | null>("/auth/me");
     } catch (error) {
       console.error("Failed to fetch user info:", error);
-      return null; // Or handle error as needed, maybe throw or return null
+      return null;
     }
   }
 

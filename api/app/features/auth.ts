@@ -108,7 +108,10 @@ const handlers = {
       .clearCookie("id", options)
       .clearCookie("rid", options)
       .status(200)
-      .send("Logged out");
+      .send({
+        success: true,
+        message: "Logged out",
+      });
   },
 
   me: async (req: Request, res: any) => {
