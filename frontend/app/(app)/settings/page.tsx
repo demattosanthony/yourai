@@ -70,7 +70,7 @@ export default function UserSettings() {
   }, []);
 
   return (
-    <div className="max-w-3xl mx-auto pt-20 px-6 w-full h-screen flex flex-col">
+    <div className="max-w-3xl mx-auto pt-[58px] md:pt-20 px-6 w-full h-screen flex flex-col">
       <Tabs
         value={tab}
         onValueChange={handleTabChange}

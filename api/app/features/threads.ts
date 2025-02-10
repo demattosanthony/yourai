@@ -140,10 +140,10 @@ ${conversationText}`,
       return MODELS["claude-3.5-sonnet"];
     }
     if (type === "type_1_thinking") {
-      return MODELS["gpt-4o"];
+      return MODELS["gemini-2.0-flash"];
     }
     if (type === "type_2_thinking") {
-      return MODELS["deepseek-r1"];
+      return MODELS["o1"];
     }
     if (type === "web_search") {
       return MODELS["sonar-pro"];
