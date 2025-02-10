@@ -4,13 +4,7 @@ import { ContentPart, messages, threads } from "../config/schema";
 import db from "../config/db";
 import { and, desc, eq, sql } from "drizzle-orm";
 import { Request, Response, Router } from "express";
-import {
-  CoreMessage,
-  generateObject,
-  Message,
-  smoothStream,
-  streamText,
-} from "ai";
+import { CoreMessage, generateObject, Message, streamText } from "ai";
 import { CONFIG } from "../config/constants";
 import { handle, generateThreadTitle } from "../utils";
 import { MODELS } from "./models";
@@ -29,7 +23,7 @@ type ExtendedAttachment = {
   name?: string;
   contentType?: string;
   url: string;
-  file_key: string; // Changed from optional to required since it's needed
+  file_key: string;
 };
 
 const ops = {

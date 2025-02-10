@@ -10,18 +10,11 @@ import {
   users,
 } from "../config/schema";
 import s3 from "../config/s3";
+import { CONFIG } from "../config/constants";
 
 const addLogoUrl = (org: any) => ({
   ...org,
   logo: org.logo ? s3.presign(org.logo, { expiresIn: 3600 }) : null,
-});
-
-const getCookieOptions = () => ({
-  httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: "lax" as const,
-  domain: process.env.NODE_ENV === "production" ? ".syyclops.com" : "",
-  path: "/",
 });
 
 const getUserWithOrgs = async (userId: string) => {
@@ -110,7 +103,7 @@ const handlers = {
   },
 
   logout: (req: Request, res: any) => {
-    const options = getCookieOptions();
+    const options = CONFIG.COOKIE_OPTIONS;
     res
       .clearCookie("id", options)
       .clearCookie("rid", options)
