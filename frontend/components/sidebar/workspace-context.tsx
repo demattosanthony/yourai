@@ -53,11 +53,18 @@ export const WorkspaceProvider = ({
       const allWorkspaces = [personalWorkspace, ...organizationWorkspaces];
       setWorkspaces(allWorkspaces);
 
-      // If no active workspace or the active workspace is invalid, set to personal
-      if (
-        !activeWorkspace ||
-        !allWorkspaces.find((w) => w.id === activeWorkspace.id)
-      ) {
+      // Update active workspace with fresh data if it exists, otherwise set to personal
+      // Need to do this because logo is a presigned URL that expires
+      if (activeWorkspace) {
+        const updatedWorkspace = allWorkspaces.find(
+          (w) => w.id === activeWorkspace.id
+        );
+        if (updatedWorkspace) {
+          setActiveWorkspace(updatedWorkspace);
+        } else {
+          setActiveWorkspace(personalWorkspace);
+        }
+      } else {
         setActiveWorkspace(personalWorkspace);
       }
     }

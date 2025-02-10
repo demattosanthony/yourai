@@ -148,11 +148,12 @@ export default function OrganizationCard({
                 if (newLogoFile) {
                   const file = formData.get("logo") as File;
                   // Store file in s3
-                  const { url, file_metadata } = await api.getPresignedUrl(
-                    file.name,
-                    file.type,
-                    file.size
-                  );
+                  const { url, file_metadata } =
+                    await api.uploads.getPresignedUrl(
+                      file.name,
+                      file.type,
+                      file.size
+                    );
 
                   const res = await fetch(url, {
                     method: "PUT",

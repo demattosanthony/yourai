@@ -16,15 +16,20 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { useMeQuery } from "@/queries/queries";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "./ui/dialog";
-import { CreateOrgForm } from "./organizations/create-org-form";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogTrigger,
+} from "../ui/dialog";
+import { CreateOrgForm } from "../organizations/create-org-form";
 import api from "@/lib/api";
 import { Workspace } from "@/types/workspace";
 import { useWorkspace } from "./workspace-context";
-import { Skeleton } from "./ui/skeleton";
+import { Skeleton } from "../ui/skeleton";
 import { useRouter } from "next/navigation";
-import { PRICING_PLANS } from "./PricingDialog";
+import { PRICING_PLANS } from "@/lib/pricing";
 
 export function WorkSpaceSwitcher() {
   const router = useRouter();
@@ -38,7 +43,7 @@ export function WorkSpaceSwitcher() {
     seats: number;
   }) => {
     // go to checkout for the org
-    const url = await api.createCheckoutSession(
+    const url = await api.payments.createCheckoutSession(
       PRICING_PLANS.TEAMS.lookup_key,
       org.seats,
       org.id

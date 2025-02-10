@@ -6,7 +6,7 @@ import Link from "next/link";
 import { SidebarTrigger } from "./ui/sidebar";
 import HeaderActions from "./HeaderActions";
 import { User } from "@/types/user";
-import { useWorkspace } from "./workspace-context";
+import { useWorkspace } from "./sidebar/workspace-context";
 import { ArrowRight, TriangleAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useWorkspace } from "@/components/workspace-context";
+import { useWorkspace } from "@/components/sidebar/workspace-context";
 import api from "@/lib/api";
 import { Workspace } from "@/types/workspace";
 import { useQueryClient } from "@tanstack/react-query";
@@ -14,7 +14,7 @@ export const useAuth = () => {
   const { setActiveWorkspace } = useWorkspace();
 
   async function logOut() {
-    await api.logout();
+    await api.auth.logout();
 
     queryClient.invalidateQueries({ queryKey: ["me"] });
 
@@ -38,7 +38,7 @@ export const useAuth = () => {
 
   const handleJoinOrg = async (token: string) => {
     try {
-      const result = await api.joinWithInvite(token);
+      const result = await api.auth.joinWithInvite(token);
 
       if (result.insufficientSeats) {
         return { insufficientSeats: true };

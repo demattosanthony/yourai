@@ -80,11 +80,12 @@ export function OrganizationSettings({ orgId }: { orgId: string }) {
               let file_key = undefined;
               if (newLogoFile) {
                 const file = newLogoFile;
-                const { url, file_metadata } = await api.getPresignedUrl(
-                  file.name,
-                  file.type,
-                  file.size
-                );
+                const { url, file_metadata } =
+                  await api.uploads.getPresignedUrl(
+                    file.name,
+                    file.type,
+                    file.size
+                  );
 
                 const res = await fetch(url, {
                   method: "PUT",

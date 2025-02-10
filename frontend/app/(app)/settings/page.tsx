@@ -19,7 +19,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import AdminSettings from "@/components/settings/admin-settings";
 import { useSearchParams, useRouter } from "next/navigation";
-import { useWorkspace } from "@/components/workspace-context";
+import { useWorkspace } from "@/components/sidebar/workspace-context";
 import { OrganizationSettings } from "@/components/organizations/org-settings";
 
 export default function UserSettings() {

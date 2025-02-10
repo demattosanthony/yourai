@@ -1,4 +1,4 @@
-import { useWorkspace } from "@/components/workspace-context";
+import { useWorkspace } from "@/components/sidebar/workspace-context";
 import api from "@/lib/api";
 import {
   useInfiniteQuery,
@@ -10,7 +10,7 @@ import {
 export function useMeQuery() {
   return useQuery({
     queryKey: ["me"],
-    queryFn: () => api.me(),
+    queryFn: () => api.auth.me(),
   });
 }
 
@@ -20,7 +20,7 @@ export function useThreadsQuery(search?: string) {
   return useInfiniteQuery({
     queryKey: ["threads", search, activeWorkspace?.id],
     queryFn: async ({ pageParam = 1 }) => {
-      const threads = await api.getThreads(
+      const threads = await api.threads.getThreads(
         pageParam,
         search,
         activeWorkspace?.type === "organization"
@@ -43,7 +43,7 @@ export function useThreadQuery(threadId: string, isNewThread: boolean) {
   return useQuery({
     queryKey: ["thread", threadId, activeWorkspace?.id],
     queryFn: () =>
-      api.getThread(
+      api.threads.getThread(
         threadId,
         activeWorkspace?.type === "organization"
           ? activeWorkspace.id
@@ -60,7 +60,7 @@ export function useDeleteThreadMutation() {
 
   return useMutation({
     mutationFn: (threadId: string) =>
-      api.deleteThread(
+      api.threads.deleteThread(
         threadId,
         activeWorkspace?.type === "organization"
           ? activeWorkspace.id
@@ -81,7 +81,7 @@ export function useDeleteThreadMutation() {
 export function useModelsQuery() {
   return useQuery({
     queryKey: ["models"],
-    queryFn: () => api.getAvailableModels(),
+    queryFn: () => api.models.getAvailableModels(),
   });
 }
 
@@ -89,7 +89,7 @@ export function useOrganizationsQuery() {
   return useInfiniteQuery({
     queryKey: ["organizations"],
     queryFn: async ({ pageParam = 1 }) => {
-      const response = await api.listOrganizations(pageParam);
+      const response = await api.organizations.listOrganizations(pageParam);
       return {
         organizations: response.data,
         pagination: response.pagination,
@@ -116,7 +116,7 @@ export function useCreateOrganizationMutation() {
         cert: string;
         callbackUrl: string;
       };
-    }) => api.createOrganization(data),
+    }) => api.organizations.createOrganization(data),
   });
 }
 
@@ -138,14 +138,14 @@ export function useUpdateOrganizationMutation() {
           callbackUrl: string;
         }>;
       }>;
-    }) => api.updateOrganization(id, data),
+    }) => api.organizations.updateOrganization(id, data),
   });
 }
 
 export function useDeleteOrganizationMutation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => api.deleteOrganization(id),
+    mutationFn: (id: string) => api.organizations.deleteOrganization(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["organizations"] });
     },
@@ -155,7 +155,7 @@ export function useDeleteOrganizationMutation() {
 export function useOrganizationMembersQuery(organizationId: string) {
   return useQuery({
     queryKey: ["organization-members", organizationId],
-    queryFn: () => api.listOrganizationMembers(organizationId),
+    queryFn: () => api.organizations.listOrganizationMembers(organizationId),
   });
 }
 
@@ -168,7 +168,7 @@ export function useRemoveOrganizationMemberMutation() {
     }: {
       organizationId: string;
       userId: string;
-    }) => api.removeOrganizationMember(organizationId, userId),
+    }) => api.organizations.removeOrganizationMember(organizationId, userId),
     onSuccess: (_, { organizationId }) => {
       // Invalidate org members list
       queryClient.invalidateQueries({
@@ -185,7 +185,7 @@ export function useRemoveOrganizationMemberMutation() {
 export function useOrganizationInviteTokenQuery(organizationId: string) {
   return useQuery({
     queryKey: ["organization-invite", organizationId],
-    queryFn: () => api.getOrganizationInviteToken(organizationId),
+    queryFn: () => api.organizations.getOrganizationInviteToken(organizationId),
   });
 }
 
@@ -193,7 +193,7 @@ export function useResetOrganizationInviteTokenMutation() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (organizationId: string) =>
-      api.resetOrganizationInviteToken(organizationId),
+      api.organizations.resetOrganizationInviteToken(organizationId),
     onSuccess: (_, organizationId) => {
       queryClient.invalidateQueries({
         queryKey: ["organization-invite", organizationId],
@@ -205,14 +205,14 @@ export function useResetOrganizationInviteTokenMutation() {
 export function useOrgQuery(orgId: string) {
   return useQuery({
     queryKey: ["organization", orgId],
-    queryFn: () => api.getOrg(orgId),
+    queryFn: () => api.organizations.getOrg(orgId),
   });
 }
 
 export function useOrgFromInviteToken(token: string) {
   return useQuery({
     queryKey: ["organization-from-invite", token],
-    queryFn: () => api.getOrgFromInviteToken(token),
+    queryFn: () => api.organizations.getOrgFromInviteToken(token),
   });
 }
 
@@ -220,7 +220,7 @@ export function useUpdateOrganizationSeatsMutation() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ orgId, seats }: { orgId: string; seats: number }) =>
-      api.updateOrganizationSeats(orgId, seats),
+      api.organizations.updateOrganizationSeats(orgId, seats),
     onSuccess: (_, { orgId }) => {
       queryClient.invalidateQueries({ queryKey: ["organization", orgId] });
     },

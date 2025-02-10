@@ -67,21 +67,16 @@ const SuccessPageContent = () => {
       }
 
       try {
-        const response = await api.syncAfterSuccess(
+        await api.payments.syncAfterSuccess(
           session_id,
           organization_id || undefined
         );
 
-        if (response.ok) {
-          setStatus("success");
-          const redirectUrl = organization_id
-            ? `settings?tab=organization&orgId=${organization_id}`
-            : "/";
-          setTimeout(() => router.push(redirectUrl), 1500);
-        } else {
-          setStatus("error");
-          setTimeout(() => router.push("/"), 2000);
-        }
+        setStatus("success");
+        const redirectUrl = organization_id
+          ? `settings?tab=organization&orgId=${organization_id}`
+          : "/";
+        setTimeout(() => router.push(redirectUrl), 1500);
       } catch (error) {
         console.error("Error syncing data:", error);
         setStatus("error");

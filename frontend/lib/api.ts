@@ -3,31 +3,84 @@ import { Model } from "@/types/model";
 import { Organization, User } from "@/types/user";
 
 /**
- * ApiClient class handles all API communication with the backend server
+ * Base ApiRequest class to handle common request logic
  */
-class ApiClient {
-  public baseUrl: string;
+class ApiRequest {
+  protected baseUrl: string;
 
   constructor(baseUrl: string) {
     this.baseUrl = baseUrl;
   }
 
-  async logout() {
-    await fetch(`${this.baseUrl}/auth/logout`, {
-      method: "POST",
+  protected async request<T>(
+    endpoint: string,
+    method: "GET" | "POST" | "PUT" | "DELETE" = "GET",
+    body?: unknown,
+    headers?: HeadersInit
+  ): Promise<T> {
+    const url = `${this.baseUrl}${endpoint}`;
+    const fetchHeaders: HeadersInit = {
+      "Content-Type": "application/json",
+      ...headers,
+    };
+    const config: RequestInit = {
+      method,
       credentials: "include",
-    }).catch((error) => {
-      console.error("Error:", error);
-    });
+      headers: fetchHeaders,
+      ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+    };
+
+    const response = await fetch(url, config);
+
+    if (!response.ok) {
+      let errorData;
+      try {
+        errorData = await response.json();
+      } catch {
+        errorData = { message: `HTTP error! status: ${response.status}` };
+      }
+      throw new ApiError(
+        response.status,
+        errorData?.message || `Request failed with status ${response.status}`
+      );
+    }
+
+    return response.json() as Promise<T>; // Explicitly cast for better type safety
+  }
+}
+
+/**
+ * Custom ApiError class for better error handling
+ */
+export class ApiError extends Error {
+  status: number;
+  constructor(status: number, message: string) {
+    super(message);
+    this.status = status;
+    this.name = "ApiError"; // Optional: Customize error name
+  }
+}
+
+/**
+ * Auth API Module
+ */
+class AuthApi extends ApiRequest {
+  async logout() {
+    try {
+      await this.request("/auth/logout", "POST");
+    } catch (error) {
+      console.error("Logout failed:", error); // Decide how to handle errors, maybe re-throw or just log
+      throw error; // Re-throwing for the caller to handle if needed
+    }
   }
 
   async me(): Promise<User | null> {
-    const response = await fetch(`${this.baseUrl}/auth/me`, {
-      method: "GET",
-      credentials: "include",
-    });
-
-    return await response.json();
+    try {
+      return await this.request<User | null>("/auth/me");
+    } catch (error) {
+      console.error("Failed to fetch user info:", error);
+      return null; // Or handle error as needed, maybe throw or return null
+    }
   }
 
   async joinWithInvite(token: string): Promise<{
@@ -37,53 +90,52 @@ class ApiClient {
     insufficientSeats?: boolean;
     inactiveSubscription?: boolean;
   }> {
-    const response = await fetch(`${this.baseUrl}/auth/invite/${token}`, {
-      method: "POST",
-      credentials: "include",
-    });
-
-    const data = await response.json();
-
-    if (response.status === 401) {
-      return { requiresAuth: true };
-    }
-
-    if (response.status === 403) {
-      if (data.error === "insufficient_seats") {
-        return { insufficientSeats: true };
+    try {
+      return await this.request<{
+        success?: boolean;
+        requiresAuth?: boolean;
+        error?: string;
+        insufficientSeats?: boolean;
+        inactiveSubscription?: boolean;
+      }>(`/auth/invite/${token}`, "POST");
+    } catch (error: unknown) {
+      if (error instanceof ApiError) {
+        if (error.status === 401) {
+          return { requiresAuth: true };
+        }
+        if (error.status === 403) {
+          const errorData = JSON.parse(error.message); // Assuming message is JSON stringified error data
+          if (errorData.error === "insufficient_seats") {
+            return { insufficientSeats: true };
+          }
+          if (errorData.error === "inactive_subscription") {
+            return { inactiveSubscription: true };
+          }
+        }
       }
-      if (data.error === "inactive_subscription") {
-        return { inactiveSubscription: true };
-      }
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+      return { success: false, error: errorMessage };
     }
-
-    if (!response.ok) {
-      return { success: false, error: data.error };
-    }
-
-    return { success: true };
   }
+}
 
-  // ORGANIZATION ROUTES
+/**
+ * Organization API Module
+ */
+class OrganizationApi extends ApiRequest {
   async getOrg(id: string): Promise<Organization> {
-    const response = await fetch(`${this.baseUrl}/organizations/${id}`, {
-      method: "GET",
-      credentials: "include",
-    });
-    return await response.json();
+    return await this.request<Organization>(`/organizations/${id}`);
   }
 
   async getOrgFromInviteToken(token: string): Promise<{
     organization: Organization;
     seatsUsed: number;
   }> {
-    const response = await fetch(
-      `${this.baseUrl}/organizations/invite/${token}`,
-      {
-        method: "GET",
-      }
-    );
-    return await response.json();
+    return await this.request<{
+      organization: Organization;
+      seatsUsed: number;
+    }>(`/organizations/invite/${token}`);
   }
 
   async listOrganizations(
@@ -98,14 +150,15 @@ class ApiClient {
       pages: number;
     };
   }> {
-    const response = await fetch(
-      `${this.baseUrl}/organizations?page=${page}&limit=${limit}`,
-      {
-        method: "GET",
-        credentials: "include",
-      }
-    );
-    return await response.json();
+    return await this.request<{
+      data: Organization[];
+      pagination: {
+        page: number;
+        limit: number;
+        total: number;
+        pages: number;
+      };
+    }>(`/organizations?page=${page}&limit=${limit}`);
   }
 
   async createOrganization(data: {
@@ -122,15 +175,7 @@ class ApiClient {
       callbackUrl: string;
     };
   }): Promise<Organization> {
-    const response = await fetch(`${this.baseUrl}/organizations`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify(data),
-    });
-    return await response.json();
+    return await this.request<Organization>(`/organizations`, "POST", data);
   }
 
   async updateOrganization(
@@ -147,23 +192,18 @@ class ApiClient {
       }>;
     }>
   ): Promise<Organization> {
-    const response = await fetch(`${this.baseUrl}/organizations/${id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify(data),
-    });
-    return await response.json();
+    return await this.request<Organization>(
+      `/organizations/${id}`,
+      "PUT",
+      data
+    );
   }
 
   async deleteOrganization(id: string): Promise<{ success: boolean }> {
-    const response = await fetch(`${this.baseUrl}/organizations/${id}`, {
-      method: "DELETE",
-      credentials: "include",
-    });
-    return await response.json();
+    return await this.request<{ success: boolean }>(
+      `/organizations/${id}`,
+      "DELETE"
+    );
   }
 
   async listOrganizationMembers(organizationId: string): Promise<
@@ -177,174 +217,119 @@ class ApiClient {
       role: "owner" | "member";
     }>
   > {
-    const response = await fetch(
-      `${this.baseUrl}/organizations/${organizationId}/members`,
-      {
-        method: "GET",
-        credentials: "include",
-      }
-    );
-    return await response.json();
+    return await this.request<
+      Array<{
+        user: {
+          id: string;
+          email: string;
+          name: string;
+          profilePicture: string;
+        };
+        role: "owner" | "member";
+      }>
+    >(`/organizations/${organizationId}/members`);
   }
 
   async removeOrganizationMember(
     organizationId: string,
     userId: string
   ): Promise<{ success: boolean }> {
-    const response = await fetch(
-      `${this.baseUrl}/organizations/${organizationId}/members/${userId}`,
-      {
-        method: "DELETE",
-        credentials: "include",
-      }
+    return await this.request<{ success: boolean }>(
+      `/organizations/${organizationId}/members/${userId}`,
+      "DELETE"
     );
-    return await response.json();
   }
 
   async getOrganizationInviteToken(
     organizationId: string
   ): Promise<{ token: string }> {
-    const response = await fetch(
-      `${this.baseUrl}/organizations/${organizationId}/invite`,
-      {
-        method: "GET",
-        credentials: "include",
-      }
+    return await this.request<{ token: string }>(
+      `/organizations/${organizationId}/invite`
     );
-    return await response.json();
   }
 
   async resetOrganizationInviteToken(
     organizationId: string
   ): Promise<{ token: string }> {
-    const response = await fetch(
-      `${this.baseUrl}/organizations/${organizationId}/invite/reset`,
-      {
-        method: "POST",
-        credentials: "include",
-      }
+    return await this.request<{ token: string }>(
+      `/organizations/${organizationId}/invite/reset`,
+      "POST"
     );
-    return await response.json();
   }
 
   async validateSeatUpdate(
     organizationId: string,
     seats: number
   ): Promise<{ success: boolean; error?: string }> {
-    const response = await fetch(
-      `${this.baseUrl}/organizations/${organizationId}/seats/validate`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({ seats }),
-      }
+    return await this.request<{ success: boolean; error?: string }>(
+      `/organizations/${organizationId}/seats/validate`,
+      "POST",
+      { seats }
     );
-    return await response.json();
   }
 
   async updateOrganizationSeats(
     organizationId: string,
     seats: number
   ): Promise<{ success: boolean; error?: string }> {
-    const response = await fetch(
-      `${this.baseUrl}/organizations/${organizationId}/seats`,
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({ seats }),
-      }
+    return await this.request<{ success: boolean; error?: string }>(
+      `/organizations/${organizationId}/seats`,
+      "PUT",
+      { seats }
     );
-    return await response.json();
   }
+}
 
+/**
+ * Payment API Module
+ */
+class PaymentApi extends ApiRequest {
   async createCheckoutSession(
     lookupKey: string,
     seats?: number,
     organization_id?: string
   ): Promise<string> {
-    const response = await fetch(
-      `${this.baseUrl}/payments/create-checkout-session`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({
-          lookup_key: lookupKey,
-          seats,
-          organization_id,
-        }),
-      }
+    const data = await this.request<{ url: string }>(
+      `/payments/create-checkout-session`,
+      "POST",
+      { lookup_key: lookupKey, seats, organization_id }
     );
-
-    const data = await response.json();
-
     return data.url;
   }
 
   async syncAfterSuccess(sessionId: string, organizationId?: string) {
-    const response = await fetch(
-      `${this.baseUrl}/payments/sync-after-success`,
-      {
-        method: "POST",
-        credentials: "include",
-        body: JSON.stringify({
-          session_id: sessionId,
-          organization_id: organizationId,
-        }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    return response;
+    await this.request(`/payments/sync-after-success`, "POST", {
+      session_id: sessionId,
+      organization_id: organizationId,
+    });
   }
 
   async createPortalSession(
     organizationId?: string,
     returnUrl?: string
   ): Promise<string> {
-    const response = await fetch(
-      `${this.baseUrl}/payments/create-portal-session`,
-      {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          organization_id: organizationId,
-          return_url: returnUrl,
-        }),
-      }
+    const data = await this.request<{ url: string }>(
+      `/payments/create-portal-session`,
+      "POST",
+      { organization_id: organizationId, return_url: returnUrl }
     );
-
-    const data = await response.json();
-
     return data.url;
   }
-  /**
-   * Fetches the list of available AI models from the server
-   * @returns Promise containing array of Model objects
-   */
+}
+
+/**
+ * Model API Module
+ */
+class ModelApi extends ApiRequest {
   async getAvailableModels(): Promise<Model[]> {
-    const url = `${this.baseUrl}/models`;
-
-    const response = await fetch(url, {
-      method: "GET",
-    });
-
-    return await response.json();
+    return await this.request<Model[]>("/models");
   }
+}
 
+/**
+ * Upload API Module
+ */
+class UploadApi extends ApiRequest {
   async getPresignedUrl(
     filename: string,
     mime_type: string,
@@ -359,55 +344,36 @@ class ApiClient {
       size: number;
     };
   }> {
-    const url = `${this.baseUrl}/presigned-url`;
-
-    const response = await fetch(url, {
-      method: "POST",
-      body: JSON.stringify({ filename, mime_type, size }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-    });
-
-    return await response.json();
+    return await this.request<{
+      url: string;
+      viewUrl: string;
+      file_metadata: {
+        filename: string;
+        mime_type: string;
+        file_key: string;
+        size: number;
+      };
+    }>(`/presigned-url`, "POST", { filename, mime_type, size });
   }
+}
 
-  /**
-   * Creates a new conversation thread
-   * @param organizationId - Optional organization ID for organizational threads
-   * @returns Promise containing the thread ID
-   */
+/**
+ * Thread API Module
+ */
+class ThreadApi extends ApiRequest {
   async createThread(organizationId?: string): Promise<{ id: string }> {
-    const url = `${this.baseUrl}/threads`;
-
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ organizationId }),
-      credentials: "include",
-    });
-
-    if (response.status === 402) {
-      throw new Error("subscription_required");
+    try {
+      return await this.request<{ id: string }>("/threads", "POST", {
+        organizationId,
+      });
+    } catch (error: unknown) {
+      if (error instanceof ApiError && error.status === 402) {
+        throw new Error("subscription_required"); // Re-throw specific error for subscription
+      }
+      throw error; // Re-throw other errors
     }
-
-    if (!response.ok) {
-      throw new Error("failed_to_create_thread");
-    }
-
-    return await response.json();
   }
 
-  /**
-   * Retrieves all conversation threads with their messages
-   * @param page - Page number for pagination
-   * @param search - Search term to filter threads
-   * @param organizationId - Optional organization ID to filter threads by organization
-   * @returns Promise containing array of thread objects with messages
-   */
   async getThreads(
     page: number = 1,
     search: string = "",
@@ -418,66 +384,26 @@ class ApiClient {
       search: search,
       ...(organizationId && { organizationId }),
     });
-
-    const url = `${this.baseUrl}/threads?${queryParams.toString()}`;
+    const endpoint = `/threads?${queryParams.toString()}`;
 
     try {
-      const response = await fetch(url, {
-        credentials: "include",
-      });
-
-      if (response.status === 401) {
-        // Return empty array silently for unauthorized users
-        return [];
+      return await this.request<Thread[]>(endpoint);
+    } catch (error: unknown) {
+      if (error instanceof ApiError && error.status === 401) {
+        return []; // Silently return empty array for 401
       }
-
-      if (!response.ok) {
-        // const errorData = await response.json().catch(() => null);
-        // throw new Error(
-        //   errorData?.message ||
-        //     `Failed to fetch threads: ${response.status} ${response.statusText}`
-        // );
-        return [];
-      }
-
-      return await response.json();
-    } catch (error) {
-      // Only log errors that aren't 401
-      if (error instanceof Error && !error.message.includes("401")) {
-        console.error("Error fetching threads:", error);
-      }
-
-      // Return empty array for any error
-      return [];
+      console.error("Error fetching threads:", error); // Log other errors
+      return []; // Return empty array for other errors as well, adjust as needed
     }
   }
 
-  /**
-   * Retrieves a specific thread and its messages
-   * @param threadId - ID of the thread to retrieve
-   * @returns Promise containing thread object with messages
-   */
   async getThread(threadId: string, organizationId?: string): Promise<Thread> {
-    let url = `${this.baseUrl}/threads/${threadId}`;
-
-    if (organizationId) {
-      url += `?organizationId=${organizationId}`;
-    }
-
-    const response = await fetch(url, {
-      method: "GET",
-      credentials: "include",
-    });
-
-    return await response.json();
+    const endpoint = organizationId
+      ? `/threads/${threadId}?organizationId=${organizationId}`
+      : `/threads/${threadId}`;
+    return await this.request<Thread>(endpoint);
   }
 
-  /**
-   * Deletes a specific thread and its messages
-   * @param threadId - ID of the thread to delete
-   * @param organizationId - Optional organization ID for organizational threads
-   * @returns Promise containing success status
-   */
   async deleteThread(
     threadId: string,
     organizationId?: string
@@ -485,22 +411,35 @@ class ApiClient {
     const queryParams = new URLSearchParams({
       ...(organizationId && { organizationId }),
     });
-    const url = `${this.baseUrl}/threads/${threadId}?${queryParams.toString()}`;
-
-    const response = await fetch(url, {
-      method: "DELETE",
-      credentials: "include",
-    });
-
-    if (!response.ok) {
-      throw new Error("failed_to_delete_thread");
-    }
-
-    return await response.json();
+    const endpoint = `/threads/${threadId}?${queryParams.toString()}`;
+    return await this.request<{ success: boolean }>(endpoint, "DELETE");
   }
 }
 
-// Create and export a instance of ApiClient
+/**
+ *  Centralized ApiClient class that uses the modules
+ */
+class ApiClient {
+  auth: AuthApi;
+  organizations: OrganizationApi;
+  payments: PaymentApi;
+  models: ModelApi;
+  uploads: UploadApi;
+  threads: ThreadApi;
+  public baseUrl: string;
+
+  constructor(baseUrl: string) {
+    this.baseUrl = baseUrl;
+    this.auth = new AuthApi(baseUrl);
+    this.organizations = new OrganizationApi(baseUrl);
+    this.payments = new PaymentApi(baseUrl);
+    this.models = new ModelApi(baseUrl);
+    this.uploads = new UploadApi(baseUrl);
+    this.threads = new ThreadApi(baseUrl);
+  }
+}
+
+// Initialize ApiClient with base URL
 const api = new ApiClient(process.env.NEXT_PUBLIC_API_URL!);
 
 export default api;
