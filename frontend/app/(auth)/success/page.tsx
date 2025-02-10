@@ -85,7 +85,7 @@ const SuccessPageContent = () => {
     };
 
     syncData();
-  }, [session_id, router]);
+  }, [session_id, router, organization_id]);
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">

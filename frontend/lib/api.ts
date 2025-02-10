@@ -388,7 +388,7 @@ class ThreadApi extends ApiRequest {
 
     try {
       return await this.request<Thread[]>(endpoint);
-    } catch (error: unknown) {
+    } catch {
       return []; // Return empty array for other errors as well, adjust as needed
     }
   }
